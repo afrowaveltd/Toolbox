@@ -2270,3 +2270,56 @@ responsible. If unaccounted, further
 break down allocations/validation
 and runtime transitions. No physical
 sector defect is established.
+
+## 2026-11-22 — third 1-GiB trace identifies synchronous journal seeks
+
+Physical Windows H: test
+`mdview-hdd-20261122T150433389Z-44ba10df`
+used the same 1-GiB input with twelve opt-in
+trace stages and RAM-only diagnostics until
+completion. Snapshot **24,956.187 ms**;
+journal **46,506.152 ms**;
+**807,433** source lines; all **200/200**
+sampled source-line seeks correct; peak
+process working set **71,368,704 B
+(68.06 MiB)**. The twelve stages
+accounted for **45,595.327 ms**, leaving
+only about **910.825 ms** not timed.
+
+The synchronous append-position setters
+are the measured bottleneck:
+`EventWritePosition` **11,659.125 ms**,
+`OffsetWritePosition` **25,440.455 ms**,
+together **37,099.580 ms** of the entire
+46.5-s phase. At 69–70% an
+`_offsets.Position` setter at source line
+**564,885**, journal byte **1,756,107,492**
+blocked **13,489.504 ms**. At 70–71%
+further setters included **2,923.605 ms**
+offset and **1,506.843 ms** event
+position-setting delays. No direct
+physical-media failure is established.
+
+**Implementation:** before *append*
+only, assign `_events.Position` and
+`_offsets.Position` **only when
+different from the known end offset**.
+Sequential appends no longer repeat
+FileStream Position setters; backward
+readback can still move the streams and
+the following forward append restores
+correct ends. Per-stream cumulative
+internal setter counters are exposed
+in the benchmark's 1% progress records.
+A new regression tests 3×128 lines
+with backward navigation between pages,
+valid Markdown fence classification
+and exact append reposition counts.
+No persistent journal format, limits,
+public API or RAM architecture changed.
+
+**Next:** await green Windows/Linux CI,
+then rerun unchanged 1-GiB physical-HDD
+fixture to verify that actual setters
+are rare and seek-stage time falls.
+Do **not** report speedup until measured.

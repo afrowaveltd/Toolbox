@@ -368,3 +368,40 @@ write coalescing or altering
 seek handling. A position setter
 is not necessarily a physical
 disk seek operation.
+
+## Minimal intervention after third 1-GiB trace
+
+The physical H: 12-stage run
+`mdview-hdd-20261122T150433389Z-44ba10df`
+found **11,659.125 ms** in event-append
+position assignments and **25,440.455 ms**
+in offset-append position assignments
+of **46,506.152 ms** total.
+The 69–70% window included one
+`OffsetWritePosition` call lasting
+**13,489.504 ms**; the following
+70–71% window included several
+multi-second append-position setters.
+
+A targeted code change now checks the
+current FileStream position before
+assigning the expected append end.
+It retains random access, journal
+format, limits, cancellation and the
+same buffered streams. Two cumulative
+actual write-position assignment
+counts are emitted in
+`journal_progress` alongside
+all twelve timing stages.
+
+**Next measured experiment:** after
+green CI, run the unchanged 1-GiB
+fixture, same 100 seeks, one pass and
+`-ProgressStep 1 -TraceJournalIo`.
+The goal is zero unnecessary
+append-position assignments on
+sequential rows, stable source content
+and lower stage totals. Changes to
+actual hardware I/O latency or
+application throughput require
+measurement rather than assumptions.

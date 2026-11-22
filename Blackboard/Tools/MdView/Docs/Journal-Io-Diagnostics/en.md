@@ -141,3 +141,76 @@ regressions and before/after HDD measurements.
 
 See [benchmark methodology](../../../MdView.Benchmarks/Docs/HDD-Benchmark/en.md)
 and [results from 2026-11-22](../../../MdView.Benchmarks/Docs/Results-2026-11-22/en.md).
+
+## Observed cause and minimal corrective experiment (2026-11-22)
+
+The 1-GiB, twelve-stage physical Windows H: HDD trace
+`mdview-hdd-20261122T150433389Z-44ba10df`
+completed correctly (200/200 indexed seek checks).
+Journal scan elapsed: **46,506.152 ms**. The 12 measured
+stages accounted for **45,595.327 ms** of this phase.
+
+The position stages dominated:
+
+| Stage | Total | Longest observed setter |
+| --- | ---: | ---: |
+| `EventWritePosition` | **11,659.125 ms** | **1,506.843 ms** |
+| `OffsetWritePosition` | **25,440.455 ms** | **13,489.504 ms** |
+
+The 69–70% and 70–71% progress windows together took
+**23,363.713 ms**. The largest 69–70% delay happened
+while setting `_offsets.Position` at source line
+**564,885**, journal offset **1,756,107,492 B**.
+Unlike previous eight-stage traces, the synchronous
+position setter now accounts for the delay. A
+position assignment on a buffered stream can entail
+more work than an in-memory pointer update; the
+profile does **not** identify an HDD media defect or
+prove a specific kernel flush.
+
+### Implemented experiment
+
+Both journal append paths now use:
+
+```csharp
+if (stream.Position != requiredEndPosition)
+{
+    stream.Position = requiredEndPosition;
+    actualSetterCount++;
+}
+```
+
+The getter remains an O(1)-sized state lookup in
+typical implementations, but its actual cost is
+included in the existing `EventWritePosition` /
+`OffsetWritePosition` stage timers during manual
+profiling. Already-correct positions are not reset.
+After navigation to a cached older page changes the
+file cursor, the subsequent append repositions once.
+The internal counters distinguish actual setters
+from timing-stage calls, which remain one per appended
+record when profiling.
+
+The benchmark now includes **cumulative**
+`event_write_position_setter_calls` and
+`offset_write_position_setter_calls` per
+`journal_progress` entry. Tests require zero
+append seek setters across an initial 128-row page,
+and exactly one per stream after each backward
+read followed by another forward 128-row page.
+This is a scoped intervention, not a journal
+format migration or an attempt to bypass size
+limits or cancellation.
+
+**Measure again before declaring success:**
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+```
+
+Compare total journal time, source correctness,
+memory peak, both cumulative setter counts and the
+twelve-stage position totals. The first-pass cache
+state and HDD behavior are not controlled enough to
+claim a precise speedup from a single comparison.

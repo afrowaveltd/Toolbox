@@ -1024,3 +1024,27 @@ and they remain off by default. Test with the
 same prepared 1-GiB source to identify the
 exact boundary that blocks. See
 [journal diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+### Avoid redundant journal append seeks (2026-11-22)
+
+The third 1-GiB HDD trace localized the multi-second stalls to
+**synchronous `FileStream.Position` setters**. On this run,
+`EventWritePosition` and `OffsetWritePosition` totaled
+**11,659.125 ms + 25,440.455 ms**, respectively, of a
+**46,506.152-ms** journal phase. A single offset-position setter
+blocked for **13,489.504 ms** near 70% source progress.
+The new cursor change **checks the current stream position** before
+setting an append position. During ordinary forward scanning the
+stream already is at the journal end, so repeated setters are skipped;
+after a cached backward read a single setter restores the append end.
+
+The persisted event/offset format and limits are untouched. The
+internal cumulative counters `EventWritePositionSetterCount` and
+`OffsetWritePositionSetterCount` let regression tests verify that a
+page of 128 sequential records does not cause 128 redundant seeks.
+Manual benchmark `journal_progress` records expose cumulative
+`event_write_position_setter_calls` and
+`offset_write_position_setter_calls`. The original 12 optional
+stage timers remain available for comparing the next physical-HDD
+measurement. A speedup is **not** claimed without that new run.
+See [diagnostics](Docs/Journal-Io-Diagnostics/en.md).

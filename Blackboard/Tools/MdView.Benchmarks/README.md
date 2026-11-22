@@ -419,3 +419,32 @@ A large position-setter time may include
 runtime scheduling or filesystem state,
 not necessarily actual physical seek
 latency or media defects.
+
+### Scoped journal append seek optimization experiment
+
+The 1-GiB twelve-stage H: trace
+`mdview-hdd-20261122T150433389Z-44ba10df`
+completed correctly and showed **37.10 seconds**
+of the 46.51-second journal phase spent in
+synchronous `FileStream.Position` setters
+for event and offset appends. The new cursor
+implementation avoids resetting Position
+when the stream is already at the
+required append offset.
+
+The regular `-TraceJournalIo` option
+now emits two **cumulative** diagnostic
+counters inside each `journal_progress`:
+
+- `event_write_position_setter_calls`
+- `offset_write_position_setter_calls`
+
+They count actual seek *assignments*,
+not pages, disk operations or profiler
+samples. Correctness of backward replay
+and later forward extension is checked
+by a regression test. There is no format
+or public API change. The next unchanged
+1-GiB physical-HDD run is required to
+confirm improvement and verify the
+expected low number of actual setters.

@@ -551,6 +551,13 @@ internal static class MdViewDiskBenchmark
                                 interval_cursor_max_start_line = intervalCursorMaxLine,
                                 interval_cursor_max_journal_before = intervalCursorMaxJournalBefore,
                                 interval_cursor_max_journal_after = intervalCursorMaxJournalAfter,
+                                // Cumulative count of actual Position setters
+                                // on the journal append path; distinct from
+                                // per-row timing samples below.
+                                event_write_position_setter_calls =
+                                    cursor.EventWritePositionSetterCount,
+                                offset_write_position_setter_calls =
+                                    cursor.OffsetWritePositionSetterCount,
                                 // Twelve journal/replay and stream-seek stages;
                                 // Calls, TotalMs, MaxMs, >=100ms counts and
                                 // longest stage source line / journal offset.

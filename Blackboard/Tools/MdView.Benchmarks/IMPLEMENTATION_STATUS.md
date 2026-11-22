@@ -767,3 +767,49 @@ long cursor calls and 1.69-GB
 journal hotspot. Do not claim
 a root cause or hardware failure
 until directly measured.
+
+## 2026-11-22 — physical 1-GiB twelve-stage result and scoped fix
+
+Complete paired JSONL/TXT run
+`mdview-hdd-20261122T150433389Z-44ba10df`,
+on Windows H: HDD with unchanged
+1-GiB fixture, succeeded (200/200
+sampled source-line seeks correct).
+Snapshot **24,956.187 ms**, journal
+**46,506.152 ms**, 807,433 source
+lines and 2,510,275,305 event journal
+bytes. Working set peak **71,368,704 B
+(68.06 MiB)**, GC pause **724.711 ms**.
+
+Twelve stage totals accounted for
+**45,595.327 ms**; synchronous
+`EventWritePosition` **11,659.125 ms**
+and `OffsetWritePosition`
+**25,440.455 ms** dominated. At
+69–70% progress one offset-position
+setter blocked **13,489.504 ms** at
+line 564,885 / journal byte 1,756,107,492;
+70–71% had other multi-second setters.
+The specific blocking API boundary
+is now identified; the underlying
+OS/filesystem cause remains unproven.
+
+A minimal code change skips redundant
+`FileStream.Position` assignments
+when the current write cursor already
+equals the expected event/offset
+append position. After cached backward
+navigation, the cursor is correctly
+restored before the next write. Two
+internal actual-assignment counters
+are added to the benchmark progress
+output and an xUnit regression covers
+3×128 lines with backwards reads and
+fence restoration. Defaults, journal
+bytes, disk budgets and API shape stay
+unchanged.
+
+**NEXT:** GitHub Actions Linux/Windows
+build and regression success; physical
+1-GiB replay to measure impact.
+Do not claim speedup until the latter.

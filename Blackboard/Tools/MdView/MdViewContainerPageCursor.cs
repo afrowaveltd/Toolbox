@@ -101,6 +101,18 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     internal long EventReadRequestCount { get; private set; }
 
     /// <summary>
+    /// Count of actual event stream write-position assignments. Sequential
+    /// appends already at the end do not require setting Position again.
+    /// </summary>
+    internal long EventWritePositionSetterCount { get; private set; }
+
+    /// <summary>
+    /// Count of actual offset stream write-position assignments. Sequential
+    /// appends already at the end do not require setting Position again.
+    /// </summary>
+    internal long OffsetWritePositionSetterCount { get; private set; }
+
+    /// <summary>
     /// Returns at most 128 source-preserving classified physical lines,
     /// without replaying already cached scanner events.
     /// </summary>
@@ -296,7 +308,16 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 var position = _eventBytes;
                 var eventWritePositionStartedAt = timing is null
                     ? 0 : Stopwatch.GetTimestamp();
-                _events.Position = position;
+                // FileStream.Position may synchronously drain its write
+                // buffer even when asked to seek to the current position.
+                // Avoid re-seeking on every sequential journal record.
+                // Readback may have moved this stream: in that case restore
+                // the append position exactly once before the next write.
+                if (_events.Position != position)
+                {
+                    _events.Position = position;
+                    EventWritePositionSetterCount++;
+                }
                 timing?.Record(MdViewJournalScanStage.EventWritePosition,
                     eventWritePositionStartedAt, _scannedLines, position);
                 var size = new byte[sizeof(int)];
@@ -313,7 +334,12 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
 
                 var offsetWritePositionStartedAt = timing is null
                     ? 0 : Stopwatch.GetTimestamp();
-                _offsets.Position = checked(_scannedLines * sizeof(long));
+                var offsetAppendPosition = checked(_scannedLines * sizeof(long));
+                if (_offsets.Position != offsetAppendPosition)
+                {
+                    _offsets.Position = offsetAppendPosition;
+                    OffsetWritePositionSetterCount++;
+                }
                 timing?.Record(MdViewJournalScanStage.OffsetWritePosition,
                     offsetWritePositionStartedAt, _scannedLines, position);
                 var positionBytes = new byte[sizeof(long)];

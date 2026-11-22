@@ -107,6 +107,53 @@ public sealed class MdViewContainerPageCursorTests
     }
 
     [Fact]
+    public async Task SequentialJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream()
+    {
+        using var file = new TestFile();
+        var original = Enumerable.Range(0, 384)
+            .Select(i => i == 2 ? "```md" :
+                i == 350 ? "```" : $"line {i}")
+            .ToArray();
+        var path = await file.WriteAsync(string.Join("\n", original));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+
+        // Each 128-row read creates the next journal page and immediately
+        // replays it. Both streams finish at their append positions; setting
+        // those same positions again would flush buffered I/O unnecessarily.
+        var first = await cursor.ReadAsync(0, 128);
+        Assert.Equal(original.Take(128), first.Select(x => x.Source.Text));
+        Assert.Equal(0, cursor.EventWritePositionSetterCount);
+        Assert.Equal(0, cursor.OffsetWritePositionSetterCount);
+
+        // Replay an earlier subset: both file cursors now point backward.
+        var old = await cursor.ReadAsync(0, 1);
+        Assert.Equal("line 0", old[0].Source.Text);
+        Assert.Equal(0, cursor.EventWritePositionSetterCount);
+        Assert.Equal(0, cursor.OffsetWritePositionSetterCount);
+
+        // One seek per stream restores the true append position, then the
+        // next 127 writes remain sequential. No data or Markdown state lost.
+        var second = await cursor.ReadAsync(128, 128);
+        Assert.Equal(original.Skip(128).Take(128),
+            second.Select(x => x.Source.Text));
+        Assert.Equal(1, cursor.EventWritePositionSetterCount);
+        Assert.Equal(1, cursor.OffsetWritePositionSetterCount);
+
+        // Repeat backwards navigation and extend across a closing fence.
+        Assert.Equal(original.Skip(64).Take(3),
+            (await cursor.ReadAsync(64, 3)).Select(x => x.Source.Text));
+        var third = await cursor.ReadAsync(256, 128);
+        Assert.Equal(original.Skip(256).Take(128),
+            third.Select(x => x.Source.Text));
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, third[350 - 256].Kind);
+        Assert.Equal(2, cursor.EventWritePositionSetterCount);
+        Assert.Equal(2, cursor.OffsetWritePositionSetterCount);
+        Assert.Equal(384, cursor.CachedLineCount);
+        Assert.True(cursor.JournalBytes > 0);
+    }
+
+    [Fact]
     public async Task ForwardAfterBackwardKeepsOriginalFenceState()
     {
         using var file = new TestFile();

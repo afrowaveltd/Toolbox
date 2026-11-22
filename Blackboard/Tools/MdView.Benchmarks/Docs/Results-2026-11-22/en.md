@@ -1001,3 +1001,99 @@ the longest cursor request in the
 Do not assert a physical disk
 seek measurement or a successful
 performance optimization.
+
+## 1-GiB twelve-stage journal trace — 2026-11-22 15:04 UTC
+
+Supplied complete paired physical Windows H:
+files: `mdview-hdd-20261122T150433389Z-44ba10df.{jsonl,txt}`.
+.NET **10.0.15**, one prepared 1-GiB source
+pass, 1% progress, RAM-buffered logs and
+twelve optional journal stages. **All 200
+sampled source seeks matched the source**.
+There were 100 progress events, two
+seek-summary events and a successful
+session-completed record.
+
+| Metric | Value |
+| --- | ---: |
+| Source size / physical source lines | **1,073,741,824 B / 807,433** |
+| Snapshot phase | **24,956.187 ms** |
+| Journal phase | **46,506.152 ms** |
+| Event journal | **2,510,275,305 B** |
+| Journal managed allocations | **13,113,772,008 B** |
+| Journal GC pause | **724.711 ms** |
+| Peak working set | **71,368,704 B (68.06 MiB)** |
+| First / repeated warm seek medians | **0.0666 / 0.0568 ms** |
+| Full twelve-stage accounted time | **45,595.327 ms** |
+
+| Instrumented group | Aggregate (ms) |
+| --- | ---: |
+| Scanner advance | 3,747.503 |
+| JSON event serialization | 1,831.597 |
+| Three async write awaits combined | 276.660 |
+| Offset table read await | 79.647 |
+| Event window read await | 559.918 |
+| JSON event deserialization | 1,850.079 |
+| **Event append position setters** | **11,659.125** |
+| **Offset append position setters** | **25,440.455** |
+| Offset read position setters | 45.544 |
+| Event read position setters | 104.799 |
+| **Total across all twelve** | **45,595.327** |
+
+**Root-cause localization:** the
+69–70% one-percent window consumed
+**13,706.391 ms**, of which
+`OffsetWritePosition` accounted for
+**13,545.21 ms**; its longest individual
+setter took **13,489.504 ms** at
+source line 564,885 / journal byte
+1,756,107,492. The next 70–71%
+window consumed **9,657.322 ms**.
+Its offset append setters totaled
+**5,839.18 ms** and its event append
+setters **3,729.64 ms**; the longest
+individual operations were **2,923.605**
+and **1,506.843 ms**, respectively.
+The two windows together lasted
+**23,363.713 ms**. Overall event +
+offset append position-setting work
+was **37,099.580 ms** (about 79.8%
+of journal wall time).
+
+Unlike the preceding eight-stage
+trace, the main intermittent delays
+are now **inside measured synchronous
+FileStream.Position setters**.
+The evidence supports removing redundant
+position assignments on sequential
+appends, not blaming the Markdown parser
+or individual async write-await calls.
+Whether the runtime is flushing internal
+buffers, how the OS schedules disk I/O,
+and whether device latency contributes
+are not established by these logs.
+
+**Separate implementation change:**
+the cursor now tests whether the event
+and offset streams are already at
+their desired append positions before
+assigning `Position`. Previously the
+setters were called for every source
+record even during sequential appends.
+Tests verify that after backward
+cached reads the needed append
+repositioning happens once per stream
+and no line data or Markdown context
+is lost. Two cumulative actual-setter
+counters appear in progress JSONL,
+while all existing opt-in phase
+timers remain unchanged.
+
+**Next physical experiment after
+green CI**: repeat the same 1-GiB
+source with `-TraceJournalIo` and
+`-ProgressStep 1` and compare
+correctness, median windows, hotspot,
+total journal time and actual setter
+counts. Do not claim an optimization
+speedup before this measurement.
