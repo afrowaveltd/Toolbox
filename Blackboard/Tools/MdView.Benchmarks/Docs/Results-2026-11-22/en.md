@@ -417,3 +417,83 @@ Consider a Windows disk Active Time / response-time trace
 **only if** the new telemetry confirms a cursor-level wait;
 do not infer a hardware failure. The 2-GiB test is still
 pending until this repeated wait is attributed.
+
+## 2026-11-22 13:02 UTC — cursor attribution and isolated log proposal
+
+The supplied paired log files
+`mdview-hdd-20261122T130231087Z-d6558207`
+cover a **successful** 1-GiB, one-pass Windows H:
+`-ProgressStep 1` run with 200/200 correct sampled
+source-line seeks. Runtime: .NET 10.0.15.
+
+- Snapshot: **26,377.7095 ms**, 38.821 MiB/s.
+- Full journal: **50,242.984 ms**, 20.381 MiB/s,
+  **2,510,275,305 bytes**. Managed allocations during
+  journal scan: **13,112,108,976 bytes**, GC pause
+  duration: **1,022.423 ms**, peak process working
+  set: **72,560,640 bytes** (69.20 MiB).
+- The median of all 100 one-percent windows was
+  **350.847 ms**; unlike earlier runs, the
+  **69–70% window was normal** (**362.070 ms**).
+- Instead, notable intervals were **53–54%**:
+  1,985.259 ms with a 1,184.129-ms longest cursor
+  request; **55–56%**: 6,824.672 ms with a
+  2,725.929-ms longest request and 5 requests
+  above 100 ms; **56–57%**: 5,259.895 ms with
+  a 1,899.474-ms longest request and 5 requests
+  above 100 ms.
+- During those three slow windows the previous
+  progress log writes were respectively
+  **0.207 ms, 0.230 ms and 0.229 ms**. The
+  aggregated `interval_cursor_read_total_ms`
+  almost entirely accounts for the intervals'
+  elapsed time. The extra delay therefore occurred
+  **inside measured cursor calls**, not in the
+  diagnostic logger calls in this run.
+- The longest 55–56% request began at physical
+  source line **447,104**, with event journal
+  offset **1,389,922,194 bytes** before the
+  call. This is a localization for further
+  instrumentation, **not** proof of a specific
+  disk operation or a disk fault.
+- Since the long delay no longer falls at the same
+  source line and the number/size of classified
+  events remain stable, a content-specific pathological
+  Markdown construct becomes a weaker hypothesis.
+  OS write-back / filesystem cache pressure /
+  storage latency remains possible but unverified.
+
+### Follow-up: keep diagnostic writes in RAM
+
+The maintainer requested that only genuine Markdown
+workload data be written on the slow disk **during**
+the timed work. That was implemented in two commits:
+`90b733d4214a67f48f7cda29220a56112d484b48`
+(RAM-buffered diagnostic writer and post-test system
+reports on Windows/Linux) and
+`8f1071408328c6874773591618ffcee24306cbe2`
+(CI logger smoke test).
+
+The logger now collects all JSONL and TXT events in
+managed RAM up to a 32-MiB combined UTF-8 ceiling,
+without writing progress to the console during the
+measure. It attempts a post-test export even on a
+handled benchmark exception. It preserves the source
+and test disk's journal/index temp paths, and does
+not flush the Windows OS file cache. This removes
+diagnostic HDD writes but **not the journal's own
+writes** (which are part of the measured workload).
+A RAM buffer does not guarantee the OS never swaps.
+
+Run once more with identical prepared data and
+parameters, after updating the repository, to
+compare behavior under isolated diagnostic logging:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1
+```
+
+A new result is needed to establish whether the
+changed logging affects the stalls. The physical
+2-GiB measurement remains pending.

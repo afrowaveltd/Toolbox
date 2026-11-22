@@ -243,3 +243,60 @@ flushes caches or invokes privileged commands.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).
+
+## RAM-buffered diagnostics (all modes, Windows and Linux)
+
+**The tested filesystem only hosts actual workload data:** the
+synthetic Markdown input, validated source snapshots, temporary
+container-event journal and offsets, and optional visual-page index.
+These remain on the specified HDD for an honest I/O workload.
+
+**Measurement and reporting are separated:**
+
+- During the timed workload, `BenchLog` serializes diagnostic
+  events into bounded managed-memory collections. It performs
+  **no JSONL/TXT file writes and no progress console writes**.
+  Timestamps remain those of the original events.
+- After `session_completed`, the logger creates unique files
+  under `ROOT/logs` and writes the collected `*.jsonl` and
+  `*.txt` in one export stage. On a handled exception it
+  attempts the same export with a `session_failed` event.
+- Windows `run.ps1` and Linux `run.sh` collect their
+  platform/system report in memory before the benchmark
+  and write `system-*.txt` **only after the benchmark process
+  exits**, including when the process reports failure.
+- Diagnostics are limited to **32 MiB total UTF-8 output**
+  across JSONL and TXT. An exceeded quota fails closed
+  rather than spilling intermediate diagnostic writes onto
+  the test disk. Unlike actual MD datasets, log records
+  should stay tiny even on a low-RAM computer.
+- A hard kill, power interruption or process crash cannot
+  export the in-RAM log. This is an intentional trade-off
+  for measurement isolation; normal managed exceptions
+  still trigger a best-effort diagnostic export. Also,
+  this does not pin RAM pages against OS paging.
+- Source creation (`generate` / `prepare`) necessarily writes
+  test data; these are not read-only measurements.
+  The `measure` mode never regenerates the prepared source.
+- The CLI may appear quiet during measurement because
+  even per-progress console output is deliberately withheld
+  until the measured phase completes.
+
+**Isolation verification:** the CI matrix now runs
+`--self-test-log-buffer` on both Ubuntu and Windows.
+The command verifies no log directory/files exist while
+events are collected, then checks exported JSONL/TXT
+contents after explicit persistence. It is a synthetic
+logger unit smoke test on the CI runner's temporary
+directory, **not a real-HDD throughput test**.
+
+After pulling `master`, re-run the already prepared
+1-GiB source without changing the fixture:
+
+```powershell
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1
+```
+
+Logs are saved at the end under `H:\MDViewTest\logs`.
+Linux uses its explicitly supplied test mount path and
+the existing `run.sh` launcher.

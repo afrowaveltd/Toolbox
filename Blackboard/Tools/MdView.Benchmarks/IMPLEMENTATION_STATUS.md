@@ -399,3 +399,62 @@ duration at the 69–70% boundary. The prepared 2-GiB
 dataset is not yet benchmarked. Continue to avoid
 unverified disk-health claims and keep cold-cache
 assumptions explicit.
+
+## 2026-11-22 — RAM-only diagnostics during HDD benchmark
+
+**New maintainer evidence:** the paired 13:02 UTC
+1-GiB logs `mdview-hdd-20261122T130231087Z-d6558207`
+show successful snapshot and journal passes, with
+200/200 correct seek checks. The 1-GiB journal
+was again **2,510,275,305 bytes**, scan time
+**50,242.984 ms**, process peak working set
+**72,560,640 bytes** and entire-scan GC pause
+**1,022.423 ms**.
+
+The previous 69–70% stall **did not recur** (only
+362.070 ms). Instead, 53–54%, 55–56% and
+56–57% took **1,985.259 / 6,824.672 /
+5,259.895 ms**. Their slowest individual
+`cursor.ReadAsync` calls were **1,184.129 /
+2,725.929 / 1,899.474 ms**; prior progress
+diagnostic writes were below **0.24 ms**.
+This is evidence of slow cursor calls with
+variable source-line location, not that logging
+caused those stalls or that the disk is defective.
+
+**User-requested isolation is committed:**
+
+- `BenchLog` now stores JSONL/TXT diagnostic
+  records **only in managed RAM** while any
+  workload is timed (no per-progress file or
+  console writes). Both reports are exported
+  to unique `ROOT/logs` filenames only after
+  `session_completed`, or best-effort after a
+  handled failure.
+- Memory cap: **32 MiB total serialized
+  UTF-8 log output**. The logger will not
+  silently spill its buffered diagnostics to
+  the target HDD under memory pressure.
+  Abrupt process termination may lose logs.
+- Windows `run.ps1` defers its system report
+  until after benchmark process exit; Linux
+  `run.sh` captures the report in a shell
+  variable and likewise exports it after exit.
+  Both launchers still verify the target
+  physical disk/filesystem and keep
+  source/snapshot/journal/index temp data on
+  the selected test drive.
+- The isolated benchmark CI matrix now invokes
+  `--self-test-log-buffer`, which exercises
+  in-memory logging and delayed JSONL/TXT
+  persistence without a physical HDD.
+  A passed CI run is required before claiming
+  the new code is verified on Windows/Linux.
+
+**Next:** inspect the CI results for
+`8f1071408328c6874773591618ffcee24306cbe2`
+and this documentation commit; after successful
+compilation, collect one identical 1-GiB
+`-ProgressStep 1` run for a clean comparison.
+The physical 2-GiB test is not yet performed.
+See [Windows HDD evidence](Docs/Results-2026-11-22/en.md).

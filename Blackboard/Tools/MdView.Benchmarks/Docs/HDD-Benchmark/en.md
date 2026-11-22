@@ -228,3 +228,30 @@ performance measurements.
 
 [Benchmark README](../../README.md) ·
 [MdView implementation status](../../../MdView/IMPLEMENTATION_STATUS.md).
+
+## Keep diagnostics off the HDD during measured work
+
+From 2026-11-22 the benchmark uses **managed-RAM
+buffering** for all JSONL/TXT events, including progress
+and seek records, and emits them to the verified
+`ROOT/logs` directory only **after** measured work
+finishes. The Windows and Linux launchers also defer
+the `system-*.txt` diagnostic output until after the
+child benchmark process finishes. The temporary root,
+source snapshot, event journal, offset table and visual
+page index still use the *target disk*; **those disk
+operations are the point of the benchmark**.
+
+This isolates diagnostic I/O but not managed serialization
+or allocation overhead. The event-buffer quota is
+32 MiB of combined UTF-8 log lines, chosen to remain
+usable on older/low-RAM hosts despite the maintainer's
+128-GB development PC. If a managed exception occurs,
+the harness tries to persist partial logs after stopping.
+A forced kill may lose all in-memory diagnostics.
+
+CI includes the safe `--self-test-log-buffer` test on
+Windows and Linux after compilation. It checks that
+report files do not appear before export, then validates
+both file formats after export. It does not execute any
+benchmark or physical disk guards in hosted CI.
