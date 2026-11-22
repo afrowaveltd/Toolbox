@@ -1,4 +1,4 @@
-# mdview — early terminal Markdown reader
+# mdview — terminal Markdown reader (0.1.0-preview.1 candidate)
 
 > **Current journal I/O behavior (2026-11-22):** Production MdView
 > uses the **original unconditional append-position setters** (mode A),
@@ -9,7 +9,18 @@
 > See [journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md).
 
 
-An independent .NET 10 **source-first CLI prototype** for opening complete Markdown documents with the existing Afrowave parser/renderer. It uses the separate Markdown.Cache library for HTTP(S) documents and public GitHub repository READMEs. This prototype is **not published**, not a native page-based reader and not a finished interactive TUI.
+MdView is an independent .NET 10 **terminal Markdown CLI preview**.
+It supports complete-document rendering and *opt-in* disk-indexed
+local paging (raw source, responsive Markdown and mixed native Spectre
+tables), alongside verified HTTP(S) caching and public GitHub
+repository navigation. **The default full-document renderer still
+loads the entire document into RAM.** The paged reader is not yet the
+default or a finished general-purpose TUI.
+
+A portable **Windows x64 / Linux x64** preview distribution is being
+validated in CI; see [first-preview release scope and instructions]
+(Docs/First-Preview-Release/en.md). Do not mistake CI build artifacts
+for an already published GitHub Release.
 
 ## Start from the Toolbox root
 
@@ -36,7 +47,12 @@ dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj
 dotnet test Toolbox.sln
 ```
 
-The 10 original command grammar tests passed on Windows as part of the user-verified **6,443/6,443** baseline. Eleven additional interactive picker test cases are authored but have not yet been run (no local SDK); manual Windows Terminal, Debian console and SSH output checks remain necessary.
+**Current verification (2026-11-22):** the focused MdView regression
+suite and self-contained packaged CLI smoke tests succeeded on both
+GitHub Windows and Ubuntu runners. Earlier historical test notes
+below describe their original dates and are retained as history.
+Real Windows Terminal, Debian console and SSH interactive visual
+acceptance remains separate from CI.
 
 [CLI topic guide](Docs/CLI/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md) · [Cache source](../../SpectreConsole/Markdown.Cache/README.md).
 

@@ -89,6 +89,33 @@ jobs:
           $basename = [System.IO.Path]::GetFileName($archive)
           [System.IO.File]::WriteAllText("$archive.sha256", "$hash  $basename" + [Environment]::NewLine)
           Write-Host "$basename : $hash"
+      - name: Smoke test extracted archive (not just publish directory)
+        shell: pwsh
+        run: |
+          $name = 'mdview-0.1.0-preview.1-${{ matrix.rid }}'
+          $extracted = 'dist/extracted'
+          New-Item -ItemType Directory -Force -Path $extracted | Out-Null
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath "dist/packages/$name.zip" -DestinationPath $extracted
+            $exe = 'mdview.exe'
+          }
+          else {
+            tar -xzf "dist/packages/$name.tar.gz" -C $extracted
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $exe = 'mdview'
+          }
+          $bin = Join-Path (Resolve-Path $extracted) $exe
+          if (-not (Test-Path -LiteralPath $bin)) { throw 'Packaged executable missing.' }
+          $version = (& $bin --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.1') {
+            throw "Extracted archive smoke test failed: $version"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'LICENSE.txt'))) {
+            throw 'Packaged LICENSE.txt missing.'
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'README.md'))) {
+            throw 'Packaged README.md missing.'
+          }
       - name: Upload smoke-tested preview archive
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,12 @@
-# mdview CLI: first executable slice
+# mdview CLI: early preview interface
 
-**Status:** in-repository .NET 10 executable. The command parser and TextFiles extraction passed the user-provided Windows solution baseline; the new Spectre interactive source picker is authored and awaiting its own test rerun. No public package or system-wide installed command.
+**Current status (2026-11-22):** in-repository .NET 10 executable,
+version 0.1.0-preview.1, with complete rendering, interactive source
+selection, public repository/HTTPS navigation and opt-in disk-backed
+local paging. Dedicated Windows x64 and Linux x64 portable builds
+have passed packaged executable version/help/local-render smoke tests
+in GitHub Actions. **No system-wide installer is provided.**
+See [first preview distribution](../First-Preview-Release/en.md).
 
 ## Source selection
 
@@ -16,6 +22,7 @@ mdview git OWNER REPO
 mdview git OWNER/REPO
 mdview github:OWNER/REPO
 mdview --help
+mdview --version
 ```
 
 With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, **GitHub repository (browse Markdown links)** and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Explicit `browse PATH` and `browse-url HTTPS_URL` commands now provide separate opt-in relative-link navigation with bounded Back/Forward history; this is not yet part of the default source menu. Exact terminal-row scrolling and themes remain future work. Interactive GitHub selection now launches the repository-relative link browser; explicit `git` remains one-shot. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.

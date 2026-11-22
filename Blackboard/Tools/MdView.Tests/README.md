@@ -6,7 +6,14 @@ xUnit tests for command grammar and the independent Spectre.Console interactive 
 dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj
 ```
 
-The original ten command-grammar tests passed in the user-supplied 6,443-green Windows baseline. Eleven new interactive picker cases cover Escape/back behavior, picking real Markdown, GitHub and URL entry, dangerous URL rejection, terminal capability and filename validation. The **new** tests are not yet executed/CI confirmed. Real-terminal visual verification and full command-to-render integration coverage remain pending.
+**Current verification (2026-11-22):** the full focused MdView xUnit
+suite passed on both Windows and Ubuntu CI for the preview packaging
+commit. The packaged executable also passed version/help/local-render
+smoke checks on both systems. Earlier sections below remain
+chronological implementation history; their prior
+"not yet executed" notes do not describe current status.
+Manual interactive acceptance in Windows Terminal, Debian console,
+and SSH is still pending.
 
 [CLI implementation](../MdView/README.md).
 

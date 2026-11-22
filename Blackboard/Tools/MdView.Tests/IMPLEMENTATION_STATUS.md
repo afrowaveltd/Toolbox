@@ -1105,3 +1105,42 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   accesses internal journal counters via its own
   `InternalsVisibleTo` friend assembly, without
   changing consumer API.
+
+## 2026-11-22 — first MdView executable preview candidate
+
+- Set the MdView executable metadata to **0.1.0-preview.1**;
+  `--version` and `version` are parsed as explicit CLI actions,
+  printing the `AssemblyInformationalVersion` with any optional
+  source-revision suffix removed. Added xUnit parsing regressions.
+- Added a separate `.github/workflows/mdview-preview.yml`
+  CI distribution workflow to build self-contained **win-x64**
+  and **linux-x64** archives with native dependencies
+  (single-file untrimmed publish), MIT license,
+  preview README, project README, and SHA-256 checksum.
+- The workflow requires the **entire MdView.Tests suite**
+  to pass on each OS, then smoke tests the *published*
+  executable with `--version`, `--help` and a local
+  Markdown document. It additionally extracts the final
+  archive and checks the executable/version and
+  license/README presence. Ordinary pushes upload
+  preview artifacts only; they do not publish a release.
+- First packaging workflow run
+  https://github.com/afrowaveltd/Toolbox/actions/runs/45056270564
+  succeeded on **Windows x64 and Linux x64** (published
+  binary smoke and archive creation). It predates the
+  additional extracted-archive smoke step.
+- A GitHub prerelease for the fixed version will be
+  published only when a separately named branch
+  `release/mdview-v0.1.0-preview.1` is created and
+  both build/smoke jobs pass. Do not assert a public
+  release exists until GitHub actually reports it.
+- Release text with explicit current capabilities,
+  installation steps and limitations:
+  `Docs/First-Preview-Release/en.md`.
+- **Scope:** full-document render and opt-in local
+  bounded-memory pagers with HTTPS/GitHub navigation.
+  Not a finished native page-based default or a fully
+  accepted interactive TUI. No MSI/DEB installer.
+  Manual Windows Terminal, Debian and SSH terminal
+  acceptance remains pending. No change to the
+  verified-fast unconditional journal append behavior.
