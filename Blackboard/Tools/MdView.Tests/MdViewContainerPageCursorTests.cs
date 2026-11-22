@@ -34,6 +34,52 @@ public sealed class MdViewContainerPageCursorTests
     }
 
     [Fact]
+    public async Task OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("first\n# second\nthird");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var timings = new MdViewJournalScanTimings();
+        cursor.ScanTimings = timings;
+
+        var initial = await cursor.ReadAsync(0, 2);
+        Assert.Equal(new[] { "first", "# second" },
+            initial.Select(line => line.Source.Text));
+        var window = timings.TakeWindowAndReset();
+        Assert.Equal(2, window.ScannerAdvance.Calls);
+        Assert.Equal(2, window.SerializeEvent.Calls);
+        Assert.Equal(2, window.EventLengthWrite.Calls);
+        Assert.Equal(2, window.EventPayloadWrite.Calls);
+        Assert.Equal(2, window.OffsetWrite.Calls);
+        Assert.True(window.AccountedMs >= 0);
+        Assert.Equal(0, window.EventPayloadWrite.CallsAtLeast100Ms);
+
+        // Cached backwards navigation should not rebuild the journal.
+        var bytes = cursor.JournalBytes;
+        Assert.Equal(initial, await cursor.ReadAsync(0, 2));
+        Assert.Equal(bytes, cursor.JournalBytes);
+        var cachedWindow = timings.TakeWindowAndReset();
+        Assert.Equal(0, cachedWindow.ScannerAdvance.Calls);
+        Assert.Equal(0, cachedWindow.OffsetWrite.Calls);
+        Assert.Equal(-1, cachedWindow.OffsetWrite.MaxSourceLine);
+
+        var last = await cursor.ReadAsync(2, 1);
+        Assert.Single(last);
+        var nextWindow = timings.TakeWindowAndReset();
+        Assert.Equal(1, nextWindow.ScannerAdvance.Calls);
+        Assert.Equal(1, nextWindow.SerializeEvent.Calls);
+        Assert.Equal(1, nextWindow.EventLengthWrite.Calls);
+        Assert.Equal(1, nextWindow.EventPayloadWrite.Calls);
+        Assert.Equal(1, nextWindow.OffsetWrite.Calls);
+        Assert.Equal(2, nextWindow.OffsetWrite.MaxSourceLine);
+
+        var emptyWindow = timings.TakeWindowAndReset();
+        Assert.Equal(0, emptyWindow.ScannerAdvance.Calls);
+        Assert.Equal(0, emptyWindow.OffsetWrite.Calls);
+    }
+
+    [Fact]
     public async Task ForwardAfterBackwardKeepsOriginalFenceState()
     {
         using var file = new TestFile();

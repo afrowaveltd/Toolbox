@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Text.Json;
 using Afrowave.Toolbox.Blackboard.TextFiles;
 using Afrowave.Toolbox.ExchangeHouse.Markdown;
@@ -42,6 +43,13 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     private long _eventBytes;
     private bool _faulted;
     private bool _disposed;
+
+    /// <summary>
+    /// Optional single-caller diagnostic counters. Null in production, with
+    /// no per-line timestamp collection unless explicitly enabled by tests
+    /// or the manual benchmark. No disk or console logging occurs here.
+    /// </summary>
+    internal MdViewJournalScanTimings? ScanTimings { get; set; }
 
     /// <summary>Creates a disk-backed cursor without taking ownership of its snapshot.</summary>
     /// <param name="snapshot">Validated snapshot that must outlive this cursor.</param>
@@ -240,7 +248,12 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             while (_scannedLines < requestedEnd)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!await _scanner.MoveNextAsync().ConfigureAwait(false))
+                var timing = ScanTimings;
+                var scannerStart = timing is null ? 0 : Stopwatch.GetTimestamp();
+                var hasNext = await _scanner.MoveNextAsync().ConfigureAwait(false);
+                timing?.Record(MdViewJournalScanStage.ScannerAdvance,
+                    scannerStart, _scannedLines, _eventBytes);
+                if (!hasNext)
                     break;
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -248,7 +261,10 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 if (line.Source.LineNumber != _scannedLines)
                     throw new InvalidDataException("Scanner line numbering is inconsistent.");
 
+                var serializeStart = timing is null ? 0 : Stopwatch.GetTimestamp();
                 var record = JsonSerializer.SerializeToUtf8Bytes(line);
+                timing?.Record(MdViewJournalScanStage.SerializeEvent,
+                    serializeStart, _scannedLines, _eventBytes);
                 if (record.Length > MaximumSerializedEventBytes)
                     throw new InvalidDataException("Container event exceeds the record limit.");
                 if (record.Length + sizeof(int) > _maximumJournalBytes - _eventBytes ||
@@ -259,14 +275,24 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 _events.Position = position;
                 var size = new byte[sizeof(int)];
                 BinaryPrimitives.WriteInt32LittleEndian(size, record.Length);
+                var lengthWriteStart = timing is null ? 0 : Stopwatch.GetTimestamp();
                 await _events.WriteAsync(size, cancellationToken).ConfigureAwait(false);
+                timing?.Record(MdViewJournalScanStage.EventLengthWrite,
+                    lengthWriteStart, _scannedLines, position);
+
+                var payloadWriteStart = timing is null ? 0 : Stopwatch.GetTimestamp();
                 await _events.WriteAsync(record, cancellationToken).ConfigureAwait(false);
+                timing?.Record(MdViewJournalScanStage.EventPayloadWrite,
+                    payloadWriteStart, _scannedLines, position);
 
                 _offsets.Position = checked(_scannedLines * sizeof(long));
                 var positionBytes = new byte[sizeof(long)];
                 BinaryPrimitives.WriteInt64LittleEndian(positionBytes, position);
+                var offsetWriteStart = timing is null ? 0 : Stopwatch.GetTimestamp();
                 await _offsets.WriteAsync(positionBytes, cancellationToken)
                     .ConfigureAwait(false);
+                timing?.Record(MdViewJournalScanStage.OffsetWrite,
+                    offsetWriteStart, _scannedLines, position);
                 _eventBytes = checked(position + sizeof(int) + record.Length);
                 _scannedLines++;
             }
