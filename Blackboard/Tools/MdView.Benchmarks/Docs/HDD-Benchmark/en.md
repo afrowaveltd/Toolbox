@@ -536,5 +536,4 @@ slower but showed **no intermittent
 multi-second journal stall**. The NTFS
 driver differs, warm caches are uncontrolled,
 and one run cannot isolate an OS effect.
-See [detailed cross-platform evidence]
-(../Debian-NTFS-Cross-Platform/en.md).
+See [detailed cross-platform evidence](../Debian-NTFS-Cross-Platform/en.md).

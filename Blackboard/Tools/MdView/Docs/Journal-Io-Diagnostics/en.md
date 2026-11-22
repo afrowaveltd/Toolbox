@@ -415,5 +415,4 @@ damaged drive. Do not automatically
 change mount driver, journal strategy,
 disk limits or production mode.
 Complete method and stage comparison:
-[Debian NTFS cross-platform run]
-(../../../MdView.Benchmarks/Docs/Debian-NTFS-Cross-Platform/en.md).
+[Debian NTFS cross-platform run](../../../MdView.Benchmarks/Docs/Debian-NTFS-Cross-Platform/en.md).

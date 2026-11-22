@@ -586,5 +586,4 @@ which differs from Windows native NTFS.
 No default or code change is warranted
 on these measurements.
 
-[Detailed Linux vs Windows run and the
-12-stage timing table](Docs/Debian-NTFS-Cross-Platform/en.md).
+[Detailed Linux vs Windows run and the 12-stage timing table](Docs/Debian-NTFS-Cross-Platform/en.md).

@@ -1426,5 +1426,4 @@ measurements, not mechanical cold seeks.
 No source-code behavior was changed because of
 this observational run.
 
-[Full Debian vs Windows methodology, stages and
-caveats](../Debian-NTFS-Cross-Platform/en.md).
+[Full Debian vs Windows methodology, stages and caveats](../Debian-NTFS-Cross-Platform/en.md).
