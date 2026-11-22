@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.IMarkdownSyntaxHighlighter">
+            <summary>Optional syntax backend; a fresh session is created for each declared-language code fence.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.IMarkdownSyntaxHighlighter.CreateSession(System.String)">
+            <summary>Return null for unsupported language hints; never execute the supplied code.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.IMarkdownHighlightSession">
+            <summary>Stateful code-line tokenizer. Implementation may retain multiline grammar state.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.IMarkdownHighlightSession.HighlightLine(System.String)">
+            <summary>Ordered non-overlapping spans relative to the given original line.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownHighlightSpan">
+            <summary>Styled half-open source interval within a single code line.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownHighlightSpan.#ctor(System.Int32,System.Int32,Spectre.Console.Style)">
+            <summary>Styled half-open source interval within a single code line.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreRenderer">
+            <summary>
+            Read-only presentation adapter. No filesystem or network access and no link opening.
+            Markdown input is passed through Spectre Text rather than evaluated as Spectre markup.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreRenderer.Render(Spectre.Console.IAnsiConsole,System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme)">
+            <summary>Parse a Markdown string and render it with an optional theme.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreRenderer.Render(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme)">
+            <summary>Render an already parsed Markdown document without parsing it again.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme">
+            <summary>Configurable presentation styles, independent of the ExchangeHouse Markdown syntax model.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Body">
+            <summary>Base paragraph styling.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading1">
+            <summary>Heading level 1.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading2">
+            <summary>Heading level 2.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading3">
+            <summary>Heading level 3.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading4">
+            <summary>Heading level 4.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading5">
+            <summary>Heading level 5.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Heading6">
+            <summary>Heading level 6.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Strong">
+            <summary>Strong inline text.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Emphasis">
+            <summary>Emphasized inline text.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.SyntaxHighlighter">
+            <summary>Source code is never executed; this optional provider only decorates it.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ShowCodeLanguage">
+            <summary>Show the declared language above a fence if delimiters are hidden.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.CodeLanguageStyle">
+            <summary>Fence language-label appearance.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Quote">
+            <summary>Blockquote text appearance.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.QuotePrefix">
+            <summary>Visible prefix for each blockquote nesting level.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.QuoteMarker">
+            <summary>Blockquote prefix appearance.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Code">
+            <summary>Fenced and inline code.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Link">
+            <summary>Link label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.Image">
+            <summary>Style for an image alternative description in text-only terminals.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ImageDestination">
+            <summary>Style for the optional literal image destination.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ImagePrefix">
+            <summary>Prefix used for accessible image descriptions.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ImageSuffix">
+            <summary>Suffix used for accessible image descriptions.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ShowImageDestinations">
+            <summary>Show image resource destinations as plain text, without opening them.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.LinkDestination">
+            <summary>Optional link destination.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ListMarker">
+            <summary>Bullet or ordered-list marker presentation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ListBullet">
+            <summary>Replacement marker for unordered items, unless original markers are enabled.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ListIndent">
+            <summary>Indentation per list nesting level, by default two spaces.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.PreserveUnorderedMarkers">
+            <summary>Display exact source markers (-, + or *) rather than ListBullet for unordered items.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.CodeIndent">
+            <summary>Prefix for fenced code lines.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ShowCodeFenceDelimiters">
+            <summary>Show code fence delimiters as well as their contents.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.ShowLinkDestinations">
+            <summary>Show original link destinations as ordinary text after labels.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme.GetHeadingStyle(System.Int32)">
+            <summary>Get configured style for an ATX heading level 1-6.</summary>
+        </member>
+    </members>
+</doc>

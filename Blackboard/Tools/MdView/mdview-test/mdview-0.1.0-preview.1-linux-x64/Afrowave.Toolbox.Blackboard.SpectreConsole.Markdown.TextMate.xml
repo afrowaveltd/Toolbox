@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.MarkdownTextMateHighlighter">
+            <summary>Optional, source-only TextMate grammar highlighting backend.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.MarkdownTextMateHighlighter.#ctor(TextMateSharp.Grammars.ThemeName)">
+            <summary>Load bundled grammars with a caller-selected TextMate color theme.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.MarkdownTextMateHighlighter.CreateSession(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.MarkdownTextMateHighlighter.NormalizeLanguage(System.String)">
+            <summary>Map common README code-fence spellings to bundled TextMate language IDs.</summary>
+        </member>
+    </members>
+</doc>

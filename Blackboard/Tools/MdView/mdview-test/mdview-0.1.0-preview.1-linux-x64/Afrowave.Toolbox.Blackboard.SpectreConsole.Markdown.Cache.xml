@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CacheDirectory">
+            <summary>Suggests a private per-user cache location. Does not create or secure directories.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CacheDirectory.GetDefaultPath">
+            <summary>Resolves the default per-user Markdown cache path without creating it.</summary>
+            <returns>An absolute location beneath the platform's user cache directory.</returns>
+            <exception cref="T:System.InvalidOperationException">No usable user cache or home directory exists.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeSource">
+            <summary>
+            Reads the preferred public repository README through GitHub's official REST endpoint.
+            This is an independent source adapter; no Markdown parsing, terminal rendering or
+            GitHub branch/filename guessing occurs here.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeSource.#ctor(System.Net.Http.HttpClient,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache)">
+            <summary>Creates a public GitHub README source using a caller-owned HTTP client and verified cache.</summary>
+            <param name="client">HTTP client configured without automatic redirects.</param>
+            <param name="cache">Verified disk cache used for conditional requests and offline fallback.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeSource.OpenAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Retrieves the preferred public README using GitHub's REST API, revalidating a cached copy when available.</summary>
+            <param name="owner">GitHub account or organization login.</param>
+            <param name="repository">Repository name, without branches or file paths.</param>
+            <param name="cancellationToken">Token to cancel network and cache operations.</param>
+            <returns>The verified README and its freshness state, or an error/stale result.</returns>
+            <exception cref="T:System.ArgumentException">The owner or repository name is invalid.</exception>
+            <exception cref="T:System.OperationCanceledException">The caller cancels the request.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryInfo">
+            <summary>One public repository offered for interactive README selection.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryInfo.#ctor(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>One public repository offered for interactive README selection.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState">
+            <summary>Whether a catalog came from GitHub, an unexpired cache or an offline fallback.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState.Downloaded">
+            <summary>A complete bounded catalog was downloaded and verified.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState.FreshCache">
+            <summary>The locally verified catalog is still within its freshness window.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState.Stale">
+            <summary>The last verified catalog is used after an unsuccessful refresh.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState.Error">
+            <summary>No verified catalog is available.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogResult">
+            <summary>Complete bounded repository listing result; a stale result is never called fresh.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogResult.#ctor(System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryInfo},Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogState,System.Boolean,System.String)">
+            <summary>Complete bounded repository listing result; a stale result is never called fresh.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogSource">
+            <summary>
+            Enumerates public GitHub user/organization repositories, with a persistent verified
+            JSON snapshot. Network refresh never replaces a complete snapshot with a partial one.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogSource.#ctor(System.Net.Http.HttpClient,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache,System.TimeProvider)">
+            <summary>Creates a public-only GitHub catalog source using a caller-owned HTTP client.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogSource.ListAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Loads an owner's repository names, checking GitHub at most once per 30 minutes
+            per cache root. Offline failures may return a previously validated stale list.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile">
+            <summary>A precisely identified Markdown file in a public GitHub repository.</summary>
+            <param name="Owner">Account or organization login.</param>
+            <param name="Repository">Repository name.</param>
+            <param name="Reference">Resolved branch, tag or commit, never an assumed default.</param>
+            <param name="Path">Canonical repository-relative Markdown file path.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>A precisely identified Markdown file in a public GitHub repository.</summary>
+            <param name="Owner">Account or organization login.</param>
+            <param name="Repository">Repository name.</param>
+            <param name="Reference">Resolved branch, tag or commit, never an assumed default.</param>
+            <param name="Path">Canonical repository-relative Markdown file path.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile.Owner">
+            <summary>Account or organization login.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile.Repository">
+            <summary>Repository name.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile.Reference">
+            <summary>Resolved branch, tag or commit, never an assumed default.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile.Path">
+            <summary>Canonical repository-relative Markdown file path.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeLocation">
+            <summary>Discovered default-branch README identity and metadata freshness.</summary>
+            <param name="File">Resolved README file in the reported default branch.</param>
+            <param name="State">Freshness of the required repository and README metadata.</param>
+            <param name="Warning">Explicit stale/offline warning when applicable.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeLocation.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState,System.String)">
+            <summary>Discovered default-branch README identity and metadata freshness.</summary>
+            <param name="File">Resolved README file in the reported default branch.</param>
+            <param name="State">Freshness of the required repository and README metadata.</param>
+            <param name="Warning">Explicit stale/offline warning when applicable.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeLocation.File">
+            <summary>Resolved README file in the reported default branch.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeLocation.State">
+            <summary>Freshness of the required repository and README metadata.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubReadmeLocation.Warning">
+            <summary>Explicit stale/offline warning when applicable.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource">
+            <summary>
+            Public GitHub repository Markdown file provider, using official REST
+            metadata and Contents endpoints with the existing verified disk cache.
+            </summary>
+            <remarks>
+            This provider never guesses a default branch or README filename.
+            Metadata is schema-validated before caching. The HTTP client must have
+            automatic redirects disabled. A stale metadata result is visibly marked
+            and the file is still retrieved under its explicit resolved ref.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource.#ctor(System.Net.Http.HttpClient,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache)">
+            <summary>Initializes an adapter with a caller-owned HTTP client and verified cache.</summary>
+            <param name="client">HTTP client configured without automatic redirects.</param>
+            <param name="cache">Disk cache for validated metadata and documents.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource.ResolveReadmeAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Discovers the real default branch and preferred README path through
+            two official metadata requests, retaining verified offline fallback.
+            </summary>
+            <param name="owner">GitHub owner.</param>
+            <param name="repository">Repository name.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Canonical README identity and metadata freshness.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource.OpenAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFile,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a specific Markdown file at its explicitly resolved ref.
+            Offline fallback requires a previously fully verified copy of that
+            exact owner/repository/ref/path identity.
+            </summary>
+            <param name="file">Exact repository file identity.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Verified content and explicit freshness state.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpMarkdownDocumentSource">
+            <summary>Small HTTP(S) document adapter; never renders Markdown or executes received text.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpMarkdownDocumentSource.#ctor(System.Net.Http.HttpClient,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache,System.Boolean)">
+            <summary>Creates a public HTTP(S) Markdown source with explicit control over insecure HTTP.</summary>
+            <param name="client">Caller-owned HTTP client; automatic redirects should be disabled.</param>
+            <param name="cache">Cache for validating and reusing previously downloaded content.</param>
+            <param name="allowInsecureHttp">Whether to permit HTTP URLs in addition to HTTPS (default: false).</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpMarkdownDocumentSource.OpenAsync(System.Uri,System.Threading.CancellationToken)">
+            <summary>Opens a validated public Markdown URL and checks conditional freshness headers.</summary>
+            <param name="uri">Absolute URL without credentials, query parameters or fragment.</param>
+            <param name="cancellationToken">Cancellation token for HTTP and cache operations.</param>
+            <returns>A verified document with download, not-modified, stale or error status.</returns>
+            <exception cref="T:System.ArgumentException">The supplied URL violates the source policy.</exception>
+            <exception cref="T:System.OperationCanceledException">The caller cancels the operation.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState">
+            <summary>Freshness and availability of a remotely requested Markdown document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState.Downloaded">
+            <summary>A new validated copy was downloaded and cached.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState.NotModified">
+            <summary>The server returned HTTP 304 and the existing verified copy remains current.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState.Stale">
+            <summary>Fetching failed; a previously validated copy is available but may be outdated.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState.Error">
+            <summary>No usable validated copy is available.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentResult">
+            <summary>Stale indicates a validated old copy, never a successful HTTP freshness check.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentResult.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentState,System.Nullable{System.Net.HttpStatusCode},System.String)">
+            <summary>Stale indicates a validated old copy, never a successful HTTP freshness check.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache">
+            <summary>
+            Disk-backed, read-only retrieval of fully verified UTF-8 documents.
+            Writes use immutable content blobs and an atomically published metadata index.
+            The caller owns source identities, authorization policy and freshness decisions.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache.#ctor(System.String,System.Int64)">
+            <summary>Initializes a content-addressed cache with an explicit document size limit.</summary>
+            <param name="rootDirectory">Absolute or relative root used for private content blobs and metadata.</param>
+            <param name="maximumDocumentBytes">Maximum bytes accepted for a single validated document (default: 256 MiB).</param>
+            <exception cref="T:System.ArgumentException">The cache location is missing or invalid.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">The size limit is not positive.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache.PutAsync(System.String,System.IO.Stream,System.Threading.CancellationToken,System.String,System.Nullable{System.DateTimeOffset})">
+            <summary>Validates UTF-8 and terminal safety, hashes the content and atomically publishes a cache entry.</summary>
+            <param name="sourceKey">Stable caller-defined identity of the source document.</param>
+            <param name="content">Readable stream of source bytes; ownership remains with the caller.</param>
+            <param name="cancellationToken">Cancellation token for reading, writing and validation.</param>
+            <param name="eTag">Optional HTTP ETag for future conditional requests.</param>
+            <param name="lastModified">Optional HTTP Last-Modified timestamp for revalidation.</param>
+            <returns>Metadata and local path for the fully validated cached document.</returns>
+            <exception cref="T:System.IO.InvalidDataException">Content exceeds its size limit or is unsafe/invalid UTF-8.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache.GetAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Returns null on absent, corrupt or invalid entries; never returns unverified bytes.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.VerifiedDocumentCache.MarkNotModifiedAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Records a successful HTTP 304 only if the same validated content is still indexed.
+            Does not modify content bytes or overwrite a newer concurrent writer.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument">
+            <summary>Metadata for one fully validated immutable local document blob.</summary>
+            <param name="SourceKey">Caller-defined source identity, distinct from the content hash.</param>
+            <param name="Sha256">Lowercase SHA-256 digest of the validated source bytes.</param>
+            <param name="Length">Document length in bytes.</param>
+            <param name="StoredAtUtc">Time the current content was stored in the cache.</param>
+            <param name="ContentPath">Internal validated blob path, not a public download URL.</param>
+            <param name="ETag">Optional HTTP entity tag of the source document.</param>
+            <param name="LastModified">Optional HTTP modification time supplied by the origin.</param>
+            <param name="CheckedAtUtc">Most recent successful origin freshness check, if any.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.#ctor(System.String,System.String,System.Int64,System.DateTimeOffset,System.String,System.String,System.Nullable{System.DateTimeOffset},System.Nullable{System.DateTimeOffset})">
+            <summary>Metadata for one fully validated immutable local document blob.</summary>
+            <param name="SourceKey">Caller-defined source identity, distinct from the content hash.</param>
+            <param name="Sha256">Lowercase SHA-256 digest of the validated source bytes.</param>
+            <param name="Length">Document length in bytes.</param>
+            <param name="StoredAtUtc">Time the current content was stored in the cache.</param>
+            <param name="ContentPath">Internal validated blob path, not a public download URL.</param>
+            <param name="ETag">Optional HTTP entity tag of the source document.</param>
+            <param name="LastModified">Optional HTTP modification time supplied by the origin.</param>
+            <param name="CheckedAtUtc">Most recent successful origin freshness check, if any.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.SourceKey">
+            <summary>Caller-defined source identity, distinct from the content hash.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.Sha256">
+            <summary>Lowercase SHA-256 digest of the validated source bytes.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.Length">
+            <summary>Document length in bytes.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.StoredAtUtc">
+            <summary>Time the current content was stored in the cache.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.ContentPath">
+            <summary>Internal validated blob path, not a public download URL.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.ETag">
+            <summary>Optional HTTP entity tag of the source document.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.LastModified">
+            <summary>Optional HTTP modification time supplied by the origin.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.CachedDocument.CheckedAtUtc">
+            <summary>Most recent successful origin freshness check, if any.</summary>
+        </member>
+    </members>
+</doc>

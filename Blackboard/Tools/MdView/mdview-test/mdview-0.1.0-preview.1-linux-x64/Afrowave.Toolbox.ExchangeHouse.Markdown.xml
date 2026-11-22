@@ -1,0 +1,1039 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.ExchangeHouse.Markdown</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock">
+            <summary>
+            A single source-preserving Markdown line. <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.RawText"/> includes the original
+            line ending; <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Text"/> is its content without markers for recognized headings/lists.
+            </summary>
+            <param name="Kind">Basic syntax category.</param>
+            <param name="Start">Zero-based character offset in the original Markdown string.</param>
+            <param name="Length">Length including any line ending.</param>
+            <param name="Text">Content for inspection, excluding heading/list markers.</param>
+            <param name="RawText">Exact original line including its line ending, if present.</param>
+            <param name="HeadingLevel">Heading level 1-6; zero for all other kinds.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind,System.Int32,System.Int32,System.String,System.String,System.Int32)">
+            <summary>
+            A single source-preserving Markdown line. <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.RawText"/> includes the original
+            line ending; <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Text"/> is its content without markers for recognized headings/lists.
+            </summary>
+            <param name="Kind">Basic syntax category.</param>
+            <param name="Start">Zero-based character offset in the original Markdown string.</param>
+            <param name="Length">Length including any line ending.</param>
+            <param name="Text">Content for inspection, excluding heading/list markers.</param>
+            <param name="RawText">Exact original line including its line ending, if present.</param>
+            <param name="HeadingLevel">Heading level 1-6; zero for all other kinds.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Kind">
+            <summary>Basic syntax category.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Start">
+            <summary>Zero-based character offset in the original Markdown string.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Length">
+            <summary>Length including any line ending.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Text">
+            <summary>Content for inspection, excluding heading/list markers.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.RawText">
+            <summary>Exact original line including its line ending, if present.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.HeadingLevel">
+            <summary>Heading level 1-6; zero for all other kinds.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.Inlines">
+            <summary>Source-offset-aware inline tokens. Empty for blank lines and fenced code.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.ListMarker">
+            <summary>Source-aware list marker, including nesting depth; null for non-list lines.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.ListContinuationMarker">
+            <summary>Source marker of the owning item for attached paragraphs, quotes or code.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.IsLazyListContinuation">
+            <summary>
+            True only for a paragraph continuation accepted without sufficient indentation.
+            False for explicitly indented lines and all non-continuations.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.QuoteDepth">
+            <summary>Quote marker depth, zero for non-quote lines.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.QuoteContainerListOwnerStart">
+            <summary>
+            Absolute source offset of the ordinary list item enclosing this
+            explicitly quoted line. Independent from inner quoted-list ownership.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.QuoteContainerListMarker">
+            <summary>
+            Marker of the enclosing ordinary list item, if any. Used by terminal
+            renderers for the outer indent before a quoted list or code fence.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.CodeFenceStart">
+            <summary>Absolute source offset of the opening code fence, for opener/body/closer.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.CodeFenceInfo">
+            <summary>Unmodified opening fence information string (if recognized).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.CodeLanguage">
+            <summary>First token of the fence information string, not an inferred language.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.IsClosingCodeFence">
+            <summary>True only on the matched closing delimiter of a fenced code block.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.ListContinuationOwnerStart">
+            <summary>
+            Absolute source offset of the owning list item for paragraph, quote or fenced-code
+            content attached to a list item; null for top-level blocks.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlock.ListBlankOwnerStart">
+            <summary>
+            Owner's list-marker source offset when a physical blank or quote-prefixed
+            blank separates explicitly indented content of a loose list item.
+            Null for unrelated blanks. Quote-prefixed separators retain their
+            BlockQuote kind and QuoteDepth so their visible markers are preserved.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind">
+            <summary>First-pass classification of a physical Markdown line; not yet a complete CommonMark AST.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.Blank">
+            <summary>An empty or whitespace-only line.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.Heading">
+            <summary>An ATX heading (levels 1-6).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.Paragraph">
+            <summary>An ordinary line of text that is not a recognized block marker.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.ListItem">
+            <summary>A simple ordered or unordered list item.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.CodeFence">
+            <summary>Opening or closing fenced code delimiter.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.CodeLine">
+            <summary>A line inside a fenced code block.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownBlockKind.BlockQuote">
+            <summary>A conservatively recognized blockquote line (no nested block AST).</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDeferredListOwnershipScanner">
+            <summary>
+            Optional bounded lookahead for assigning loose-list blank separators after
+            a subsequent explicitly indented continuation proves their ownership.
+            </summary>
+            <remarks>
+            Source bytes should be validated in full before showing progressive output
+            to an untrusted terminal. This adapter keeps only a bounded run of pending
+            blank lines and does not retain a complete Markdown document.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDeferredListOwnershipScanner.DefaultMaxPendingBlankLines">
+            <summary>Maximum blank lines buffered before ownership resolution by default.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDeferredListOwnershipScanner.DefaultMaxPendingBlankCharacters">
+            <summary>Default upper bound on the total UTF-16 characters held in pending blanks.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDeferredListOwnershipScanner.ScanAsync(System.IO.TextReader,System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Enumerates physical lines and assigns <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListBlankOwnerUtf16Offset"/>
+            only when the next nonblank event explicitly continues a list in the
+            same quote depth and outer list container.
+            </summary>
+            <param name="source">Already decoded source reader, owned by the caller.</param>
+            <param name="maxLineCharacters">Maximum physical-line length passed to the underlying scanner.</param>
+            <param name="maxPendingBlankLines">Maximum number of blank events held before their ownership is known.</param>
+            <param name="maxPendingBlankCharacters">Maximum sum of UTF-16 characters in buffered blank lines.</param>
+            <param name="cancellationToken">Cancellation token for stream reads and processing.</param>
+            <returns>A forward-only sequence of source-preserving container events.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">A pending buffer budget is not positive.</exception>
+            <exception cref="T:System.IO.InvalidDataException">A pending run exceeds either configured budget.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument">
+            <summary>
+            Immutable source snapshot with a read-only collection of parsed lines.
+            This first increment does not expose a mutable syntax tree.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument.Source">
+            <summary>Exact original source, including encoding-independent character content and line endings.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument.Blocks">
+            <summary>Basic line/block tokens with source offsets in original order.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument.ListRoots">
+            <summary>Top-level list-item nodes, ordered by their physical appearance.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument.QuoteListRoots">
+            <summary>
+            List roots inside explicitly quote-prefixed lines, in source order. Their
+            marker depth is relative to the owning quote level (see Block.QuoteDepth).
+            This bounded grammar does not merge independent quote containers.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind">
+            <summary>
+            Conservative kinds of source spans produced by the incremental block scanner.
+            These are navigation/index units, not a complete Markdown syntax tree.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind.Heading">
+            <summary>A standalone top-level ATX heading line.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind.ParagraphRun">
+            <summary>Consecutive top-level plain paragraph lines, with no parsing of inline content.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind.Blank">
+            <summary>A standalone blank source line.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind.FencedCode">
+            <summary>A top-level fenced-code region, including its opening and optional closing delimiters.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind.OpaqueContainer">
+            <summary>An unparsed quote or list-marker line; nested ownership remains unresolved.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock">
+            <summary>
+            A completed source-range event, without an allocation proportional to the
+            number of lines in the represented block.
+            </summary>
+            <param name="Kind">Conservative block classification.</param>
+            <param name="StartUtf16Offset">Inclusive character offset in decoded UTF-16 code units.</param>
+            <param name="EndUtf16Offset">Exclusive character offset, including the last line terminator.</param>
+            <param name="StartLine">Inclusive zero-based physical line number.</param>
+            <param name="EndLineExclusive">Exclusive zero-based physical line number.</param>
+            <param name="HeadingLevel">ATX heading level (1–6), or zero for other blocks.</param>
+            <param name="CodeLanguage">First language token of a top-level fence, if present.</param>
+            <param name="FenceClosed">False only for a fenced-code block reaching EOF without a closing fence.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlockKind,System.Int64,System.Int64,System.Int64,System.Int64,System.Int32,System.String,System.Boolean)">
+            <summary>
+            A completed source-range event, without an allocation proportional to the
+            number of lines in the represented block.
+            </summary>
+            <param name="Kind">Conservative block classification.</param>
+            <param name="StartUtf16Offset">Inclusive character offset in decoded UTF-16 code units.</param>
+            <param name="EndUtf16Offset">Exclusive character offset, including the last line terminator.</param>
+            <param name="StartLine">Inclusive zero-based physical line number.</param>
+            <param name="EndLineExclusive">Exclusive zero-based physical line number.</param>
+            <param name="HeadingLevel">ATX heading level (1–6), or zero for other blocks.</param>
+            <param name="CodeLanguage">First language token of a top-level fence, if present.</param>
+            <param name="FenceClosed">False only for a fenced-code block reaching EOF without a closing fence.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.Kind">
+            <summary>Conservative block classification.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.StartUtf16Offset">
+            <summary>Inclusive character offset in decoded UTF-16 code units.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.EndUtf16Offset">
+            <summary>Exclusive character offset, including the last line terminator.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.StartLine">
+            <summary>Inclusive zero-based physical line number.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.EndLineExclusive">
+            <summary>Exclusive zero-based physical line number.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.HeadingLevel">
+            <summary>ATX heading level (1–6), or zero for other blocks.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.CodeLanguage">
+            <summary>First language token of a top-level fence, if present.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.FenceClosed">
+            <summary>False only for a fenced-code block reaching EOF without a closing fence.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.Length">
+            <summary>Number of UTF-16 code units occupied by the source range.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.LineCount">
+            <summary>Number of complete physical lines covered by the source range.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalBlockScanner">
+            <summary>
+            Projects a bounded forward-only Markdown line stream into non-overlapping
+            source block spans without retaining the text of a complete code fence or
+            paragraph. Designed for future disk indexing, not for direct rendering.
+            </summary>
+            <remarks>
+            Only top-level ATX headings, fenced code, blank lines and plain paragraph
+            runs are grouped. Lists and blockquotes are emitted as opaque single-line
+            spans, preventing premature claims of CommonMark-compatible containment.
+            Inputs are already decoded; callers must validate an untrusted file in full
+            before displaying any progressively scanned content to a terminal.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalBlockScanner.ScanAsync(System.IO.TextReader,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Enumerates source block spans with one-line lookahead and bounded memory.
+            A fenced-code span is emitted when its closing fence is reached, or at EOF
+            with <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamBlock.FenceClosed"/> set to false.
+            </summary>
+            <param name="source">Decoded source reader, owned and disposed by the caller.</param>
+            <param name="maxLineCharacters">Maximum characters per physical line, passed to the line scanner.</param>
+            <param name="cancellationToken">Cancels reads and the incremental scan.</param>
+            <returns>A forward-only stream of non-overlapping source-range events.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind">
+            <summary>
+            Conservative source span categories for completed forward-only container
+            units. These are not rendered CommonMark blocks or complete list subtrees.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.Heading">
+            <summary>A top-level ATX heading, represented by one physical source line.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.PlainRun">
+            <summary>Contiguous plain top-level lines without a parsed inline structure.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.QuoteRun">
+            <summary>Contiguous explicitly quoted lines in the same quote and outer-list scope.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.ListItem">
+            <summary>One explicit list item marker line, not its entire descendant subtree.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.ListContentRun">
+            <summary>Contiguous list-owned continuation lines with identical owner and lazy flag.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.BlankRun">
+            <summary>Consecutive blank separators with the same resolved or unresolved owner.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind.FencedCode">
+            <summary>One top-level or quoted fenced code region, possibly interrupted or unclosed.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd">
+            <summary>How a fenced-code source span ended.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd.NotApplicable">
+            <summary>The span is not a fenced code region.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd.Closed">
+            <summary>A valid matching closing delimiter was encountered.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd.Interrupted">
+            <summary>A quote or outer-list scope change interrupted the fence.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd.EndOfFile">
+            <summary>The source ended before a closing delimiter was encountered.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan">
+            <summary>
+            A completed, contiguous source span with the ownership metadata needed by
+            a future disk-backed block index. The span retains no source text.
+            </summary>
+            <param name="Kind">Conservative source span category.</param>
+            <param name="StartUtf16Offset">Inclusive zero-based decoded UTF-16 source offset.</param>
+            <param name="EndUtf16Offset">Exclusive UTF-16 offset, including original line terminators.</param>
+            <param name="StartLine">Inclusive zero-based physical line number.</param>
+            <param name="EndLineExclusive">Exclusive zero-based physical line number.</param>
+            <param name="QuoteDepth">Depth of explicitly quoted source, or zero outside a quote.</param>
+            <param name="ListDepth">List depth relative to the current ordinary or quote-local list; -1 if none.</param>
+            <param name="ListOwnerUtf16Offset">Current ordinary or quote-local list item owner, when known.</param>
+            <param name="QuoteContainerListOwnerUtf16Offset">Separately tracked outer ordinary-list owner of a quote, when known.</param>
+            <param name="ListBlankOwnerUtf16Offset">Owner resolved by lookahead for a blank separator run, if any.</param>
+            <param name="IsLazyListContinuation">Whether the run is an unindented lazy list continuation.</param>
+            <param name="HeadingLevel">Top-level ATX heading level, or zero for other spans.</param>
+            <param name="ListMarker">Original list item marker only for a list-item span.</param>
+            <param name="CodeLanguage">First word of a code-fence information string, if known.</param>
+            <param name="FenceStartUtf16Offset">Original opening delimiter offset, only for fenced-code spans.</param>
+            <param name="FenceEnd">Matched, interrupted, or unterminated fence status; not applicable to other spans.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerSpanKind,System.Int64,System.Int64,System.Int64,System.Int64,System.Int32,System.Int32,System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Boolean,System.Int32,System.String,System.String,System.Nullable{System.Int64},Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownFenceSpanEnd)">
+            <summary>
+            A completed, contiguous source span with the ownership metadata needed by
+            a future disk-backed block index. The span retains no source text.
+            </summary>
+            <param name="Kind">Conservative source span category.</param>
+            <param name="StartUtf16Offset">Inclusive zero-based decoded UTF-16 source offset.</param>
+            <param name="EndUtf16Offset">Exclusive UTF-16 offset, including original line terminators.</param>
+            <param name="StartLine">Inclusive zero-based physical line number.</param>
+            <param name="EndLineExclusive">Exclusive zero-based physical line number.</param>
+            <param name="QuoteDepth">Depth of explicitly quoted source, or zero outside a quote.</param>
+            <param name="ListDepth">List depth relative to the current ordinary or quote-local list; -1 if none.</param>
+            <param name="ListOwnerUtf16Offset">Current ordinary or quote-local list item owner, when known.</param>
+            <param name="QuoteContainerListOwnerUtf16Offset">Separately tracked outer ordinary-list owner of a quote, when known.</param>
+            <param name="ListBlankOwnerUtf16Offset">Owner resolved by lookahead for a blank separator run, if any.</param>
+            <param name="IsLazyListContinuation">Whether the run is an unindented lazy list continuation.</param>
+            <param name="HeadingLevel">Top-level ATX heading level, or zero for other spans.</param>
+            <param name="ListMarker">Original list item marker only for a list-item span.</param>
+            <param name="CodeLanguage">First word of a code-fence information string, if known.</param>
+            <param name="FenceStartUtf16Offset">Original opening delimiter offset, only for fenced-code spans.</param>
+            <param name="FenceEnd">Matched, interrupted, or unterminated fence status; not applicable to other spans.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.Kind">
+            <summary>Conservative source span category.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.StartUtf16Offset">
+            <summary>Inclusive zero-based decoded UTF-16 source offset.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.EndUtf16Offset">
+            <summary>Exclusive UTF-16 offset, including original line terminators.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.StartLine">
+            <summary>Inclusive zero-based physical line number.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.EndLineExclusive">
+            <summary>Exclusive zero-based physical line number.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.QuoteDepth">
+            <summary>Depth of explicitly quoted source, or zero outside a quote.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.ListDepth">
+            <summary>List depth relative to the current ordinary or quote-local list; -1 if none.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.ListOwnerUtf16Offset">
+            <summary>Current ordinary or quote-local list item owner, when known.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.QuoteContainerListOwnerUtf16Offset">
+            <summary>Separately tracked outer ordinary-list owner of a quote, when known.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.ListBlankOwnerUtf16Offset">
+            <summary>Owner resolved by lookahead for a blank separator run, if any.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.IsLazyListContinuation">
+            <summary>Whether the run is an unindented lazy list continuation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.HeadingLevel">
+            <summary>Top-level ATX heading level, or zero for other spans.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.ListMarker">
+            <summary>Original list item marker only for a list-item span.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.CodeLanguage">
+            <summary>First word of a code-fence information string, if known.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.FenceStartUtf16Offset">
+            <summary>Original opening delimiter offset, only for fenced-code spans.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.FenceEnd">
+            <summary>Matched, interrupted, or unterminated fence status; not applicable to other spans.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.Length">
+            <summary>Decoded UTF-16 characters in the span, including physical line endings.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerBlockSpan.LineCount">
+            <summary>Number of physical source lines in this span.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerBlockScanner">
+            <summary>
+            Transforms bounded, validated-as-characters container events into disjoint
+            completed source spans. A code fence is emitted only after a closer,
+            interruption or EOF; long runs do not accumulate their source text.
+            </summary>
+            <remarks>
+            List-item spans cover their marker line only. The scanner does not attempt
+            to buffer entire list/quote subtrees or claim full CommonMark equivalence.
+            The caller must validate untrusted original bytes before sending any
+            progressive Markdown content to a terminal.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerBlockScanner.ScanAsync(System.IO.TextReader,System.Int32,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads a decoded Markdown source and yields disjoint completed spans with
+            bounded lookahead for loose-list blank separators.
+            </summary>
+            <param name="source">Decoded reader owned by the caller.</param>
+            <param name="maxLineCharacters">Per-line decoded character budget.</param>
+            <param name="maxPendingBlankLines">Maximum deferred blank lines retained.</param>
+            <param name="maxPendingBlankCharacters">Maximum decoded characters retained in deferred blanks.</param>
+            <param name="cancellationToken">Cancellation token for all source reads.</param>
+            <returns>Completed source spans in physical source order.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind">
+            <summary>Conservative explicit line categories within Markdown quote and list containers.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.Plain">
+            <summary>An unowned ordinary line, including a top-level heading.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.Blank">
+            <summary>A physical blank line; no list ownership is inferred.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.Quote">
+            <summary>An explicitly marked quote line, without a confirmed list item.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.ListItem">
+            <summary>An explicitly marked ordered or unordered list item.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.ListContinuation">
+            <summary>A sufficiently indented continuation of an explicit list marker.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.FenceOpen">
+            <summary>Opening delimiter of a top-level or explicitly quote-prefixed code fence.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.CodeLine">
+            <summary>Literal content inside an active fence, never interpreted as a list or heading.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind.FenceClose">
+            <summary>A matching closing delimiter of an active fence.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine">
+            <summary>
+            One complete physical Markdown line with conservative source container metadata.
+            No nested Markdown document tree or block contents are retained.
+            </summary>
+            <param name="Source">Original physical line, including its decoded UTF-16 offset and terminator.</param>
+            <param name="Kind">Conservative classification; no implicit lazy ownership.</param>
+            <param name="QuoteDepth">Number of explicit quote markers (zero when absent).</param>
+            <param name="ListDepth">Zero-based explicit list nesting level; -1 for lines with no list owner.</param>
+            <param name="ListMarker">Original list marker, if this line opens a list item.</param>
+            <param name="ListOwnerUtf16Offset">Start of the explicit list item for this line, if provable.</param>
+            <param name="FenceStartUtf16Offset">Start of the active fenced region, if any.</param>
+            <param name="CodeLanguage">First language token of the active opening fence, if present.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLineKind,System.Int32,System.Int32,System.String,System.Nullable{System.Int64},System.Nullable{System.Int64},System.String)">
+            <summary>
+            One complete physical Markdown line with conservative source container metadata.
+            No nested Markdown document tree or block contents are retained.
+            </summary>
+            <param name="Source">Original physical line, including its decoded UTF-16 offset and terminator.</param>
+            <param name="Kind">Conservative classification; no implicit lazy ownership.</param>
+            <param name="QuoteDepth">Number of explicit quote markers (zero when absent).</param>
+            <param name="ListDepth">Zero-based explicit list nesting level; -1 for lines with no list owner.</param>
+            <param name="ListMarker">Original list marker, if this line opens a list item.</param>
+            <param name="ListOwnerUtf16Offset">Start of the explicit list item for this line, if provable.</param>
+            <param name="FenceStartUtf16Offset">Start of the active fenced region, if any.</param>
+            <param name="CodeLanguage">First language token of the active opening fence, if present.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.Source">
+            <summary>Original physical line, including its decoded UTF-16 offset and terminator.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.Kind">
+            <summary>Conservative classification; no implicit lazy ownership.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.QuoteDepth">
+            <summary>Number of explicit quote markers (zero when absent).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListDepth">
+            <summary>Zero-based explicit list nesting level; -1 for lines with no list owner.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListMarker">
+            <summary>Original list marker, if this line opens a list item.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListOwnerUtf16Offset">
+            <summary>Start of the explicit list item for this line, if provable.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.FenceStartUtf16Offset">
+            <summary>Start of the active fenced region, if any.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.CodeLanguage">
+            <summary>First language token of the active opening fence, if present.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.QuoteContainerListOwnerUtf16Offset">
+            <summary>
+            Explicit ordinary-list owner containing this quoted source line, if provable.
+            Separate from <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListOwnerUtf16Offset"/>, which identifies a quote-local list.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.QuoteContainerListDepth">
+            <summary>Zero-based outer ordinary-list nesting depth, or -1 when absent.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.QuoteContainerListMarker">
+            <summary>Original marker of the containing ordinary list item, when known.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.IsLazyListContinuation">
+            <summary>
+            True for an unindented paragraph continuation owned by the preceding
+            active list item; never inferred after an unresolved blank separator.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine.ListBlankOwnerUtf16Offset">
+            <summary>
+            Owner of a blank separator resolved by a following explicitly indented
+            continuation. Null means no confirmed separator owner.
+            Only set by the opt-in deferred ownership scanner.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner">
+            <summary>
+            Incrementally recognizes explicit quote/list markers and the lifetime of
+            top-level or quote-owned fences. Produces bounded per-line metadata for
+            later container-aware Markdown block parsing.
+            </summary>
+            <remarks>
+            Indented and unindented paragraph continuations without explicit ownership
+            are deliberately conservative. Quoted lists are kept separate from ordinary
+            lists, while provably indented quotes retain their enclosing ordinary-list
+            owner as separate metadata. This is not full CommonMark or an mdview renderer.
+            Caller must fully validate untrusted file bytes before progressive display.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.ScanAsync(System.IO.TextReader,System.Int32,System.Threading.CancellationToken)">
+            <summary>Reads a decoded stream and yields explicit container state per physical line.</summary>
+            <param name="source">Already decoded source reader, owned by the caller.</param>
+            <param name="maxLineCharacters">Maximum characters per physical line.</param>
+            <param name="cancellationToken">Cancels pending reads and line processing.</param>
+            <returns>One source-preserving metadata event per completed physical line.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine">
+            <summary>
+            Explicit container state machine. Process sequential, previously decoded
+            physical lines, and capture or restore the full bounded parser context.
+            The caller remains responsible for validated source bytes and line framing.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine.NextLineNumber">
+            <summary>Next zero-based physical source line expected by the machine.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine.NextUtf16Offset">
+            <summary>Next decoded document UTF-16 position (without UTF-8 BOM).</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine.Process(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine)">
+            <summary>Classifies one sequential, prevalidated physical line and advances state.</summary>
+            <param name="line">Decoded scanner line with matching number and offset.</param>
+            <returns>Conservative container classification and original source span.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine.Capture">
+            <summary>Captures the scanner's complete logical container context.</summary>
+            <returns>A validated, versioned checkpoint without source identity.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner.StateMachine.Restore(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint)">
+            <summary>Restores a state; callers must bind it to the same validated source.</summary>
+            <param name="checkpoint">Validated state from the same source version.</param>
+            <returns>A machine ready for the next offset-aligned decoded line.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind">
+            <summary>
+            Conservative line classification for a forward-only Markdown stream.
+            Container content is deliberately opaque until a subsequent stateful parser
+            can reproduce the existing list/quote ownership rules.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.Blank">
+            <summary>An empty or whitespace-only physical source line.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.Heading">
+            <summary>A top-level ATX heading with one to six hash signs.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.FenceOpen">
+            <summary>The opening delimiter of a top-level fenced code block.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.CodeLine">
+            <summary>Uninterpreted content of the currently open fenced code block.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.FenceClose">
+            <summary>The closing delimiter of the currently open fenced code block.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.OpaqueContainer">
+            <summary>A line beginning with a list/quote marker; ownership is not inferred.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind.ParagraphLine">
+            <summary>An ordinary line whose multiline container is not yet resolved.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine">
+            <summary>
+            One strictly bounded decoded physical line from a forward-only stream.
+            </summary>
+            <param name="LineNumber">Zero-based physical line number.</param>
+            <param name="Utf16Offset">Zero-based UTF-16 character offset in the supplied decoded reader.</param>
+            <param name="Kind">Conservative syntax classification.</param>
+            <param name="Text">Original line content without its physical line terminator.</param>
+            <param name="Terminator">Original terminator: CRLF, CR, LF, or empty at EOF.</param>
+            <param name="HeadingLevel">ATX heading level, or zero for other lines.</param>
+            <param name="CodeLanguage">Optional first word of the active fence's info string.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.#ctor(System.Int64,System.Int64,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLineKind,System.String,System.String,System.Int32,System.String)">
+            <summary>
+            One strictly bounded decoded physical line from a forward-only stream.
+            </summary>
+            <param name="LineNumber">Zero-based physical line number.</param>
+            <param name="Utf16Offset">Zero-based UTF-16 character offset in the supplied decoded reader.</param>
+            <param name="Kind">Conservative syntax classification.</param>
+            <param name="Text">Original line content without its physical line terminator.</param>
+            <param name="Terminator">Original terminator: CRLF, CR, LF, or empty at EOF.</param>
+            <param name="HeadingLevel">ATX heading level, or zero for other lines.</param>
+            <param name="CodeLanguage">Optional first word of the active fence's info string.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.LineNumber">
+            <summary>Zero-based physical line number.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.Utf16Offset">
+            <summary>Zero-based UTF-16 character offset in the supplied decoded reader.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.Kind">
+            <summary>Conservative syntax classification.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.Text">
+            <summary>Original line content without its physical line terminator.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.Terminator">
+            <summary>Original terminator: CRLF, CR, LF, or empty at EOF.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.HeadingLevel">
+            <summary>ATX heading level, or zero for other lines.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.CodeLanguage">
+            <summary>Optional first word of the active fence's info string.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownStreamLine.Raw">
+            <summary>The complete original decoded physical line.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalLineScanner">
+            <summary>
+            Forward-only bounded Markdown line scanner with top-level fence and heading state.
+            It is an optional precursor to streaming block parsing, not a CommonMark parser.
+            </summary>
+            <remarks>
+            The caller owns the TextReader and must validate untrusted file bytes before
+            exposing partial results to a terminal. Later invalid text may be discovered
+            after earlier events have already been yielded. This scanner rejects unsafe
+            terminal controls, but does not validate source encoding or resolve references,
+            nested list ownership, setext headings or inline markdown.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalLineScanner.DefaultMaxLineCharacters">
+            <summary>Maximum decoded characters of an individual physical line.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownIncrementalLineScanner.ScanAsync(System.IO.TextReader,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Yields individual physical lines while tracking top-level code-fence state.
+            A line is emitted only after its terminator is complete (including CRLF
+            across reader-buffer boundaries), or when EOF ends an unterminated line.
+            </summary>
+            <param name="source">Already decoded TextReader; caller owns its lifetime.</param>
+            <param name="maxLineCharacters">Maximum line length: 1 to 4 Mi characters.</param>
+            <param name="cancellationToken">Cancels pending asynchronous reads.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind">
+            <summary>Supported inline syntax for the initial conservative Markdown scanner.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Text">
+            <summary>Literal text, including unrecognized or malformed syntax.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Emphasis">
+            <summary>Content surrounded by a single * or _ marker.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Strong">
+            <summary>Content surrounded by a double ** or __ marker.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Code">
+            <summary>Literal inline code delimited by matching backtick runs.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Link">
+            <summary>A simple inline Markdown link: [label](destination).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind.Image">
+            <summary>An image with alternative text and protected destination.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode">
+            <summary>
+            A source-preserving inline token. <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Start"/> is an absolute offset
+            into the document when provided by <see cref="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownParser"/>.
+            </summary>
+            <param name="Kind">Recognized syntax category.</param>
+            <param name="Start">Zero-based offset into the source text (including optional base offset).</param>
+            <param name="Length">Complete original token length, including Markdown markers.</param>
+            <param name="RawText">Exact original token including Markdown punctuation.</param>
+            <param name="Text">Inner content before further inline interpretation; for links, visible label.</param>
+            <param name="Destination">Unmodified link target, when applicable; never automatically localized or followed.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineKind,System.Int32,System.Int32,System.String,System.String,System.String)">
+            <summary>
+            A source-preserving inline token. <see cref="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Start"/> is an absolute offset
+            into the document when provided by <see cref="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownParser"/>.
+            </summary>
+            <param name="Kind">Recognized syntax category.</param>
+            <param name="Start">Zero-based offset into the source text (including optional base offset).</param>
+            <param name="Length">Complete original token length, including Markdown markers.</param>
+            <param name="RawText">Exact original token including Markdown punctuation.</param>
+            <param name="Text">Inner content before further inline interpretation; for links, visible label.</param>
+            <param name="Destination">Unmodified link target, when applicable; never automatically localized or followed.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Kind">
+            <summary>Recognized syntax category.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Start">
+            <summary>Zero-based offset into the source text (including optional base offset).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Length">
+            <summary>Complete original token length, including Markdown markers.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.RawText">
+            <summary>Exact original token including Markdown punctuation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Text">
+            <summary>Inner content before further inline interpretation; for links, visible label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Destination">
+            <summary>Unmodified link target, when applicable; never automatically localized or followed.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Children">
+            <summary>Nested label or emphasis elements; empty for literal text and inline code.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.Title">
+            <summary>Optional original title without its quote delimiters.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.DestinationStart">
+            <summary>Absolute start offset of the original destination text.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineNode.DestinationLength">
+            <summary>Character length of the original destination, excluding angle brackets.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineParser">
+            <summary>
+            Conservative inline scanner for Markdown emphasis, code spans, inline links and images.
+            Unsupported or malformed constructs remain literal; no HTML execution or link access occurs.
+            Not yet a CommonMark-compliant delimiter algorithm.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownInlineParser.Parse(System.String,System.Int32)">
+            <summary>
+            Parse an inline text fragment with optional absolute source offset.
+            Recognizes simple inline links/images (optionally titled), strong/emphasis and code spans.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode">
+            <summary>
+            Immutable hierarchy of source-aware list item marker lines and their explicitly
+            indented or paragraph-only lazy continuation lines and their supported blank separators. Full CommonMark
+            loose lists, list containers and embedded compound blocks remain out of scope.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.Block">
+            <summary>Original line, source span, inline nodes and its list marker metadata.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.Children">
+            <summary>Nested list items belonging to this preceding item.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.ContinuationBlocks">
+            <summary>Indented and lazy continuation paragraph lines owned by this item, in source order.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.SeparatorBlocks">
+            <summary>Blank and quote-prefixed blank separator lines preceding an explicitly indented owned continuation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.ContentBlocks">
+            <summary>Owned continuation and separator lines together, in original source order.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.EmbeddedBlocks">
+            <summary>Attached quote and fenced-code lines in original source order.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListItemNode.IsLoose">
+            <summary>Whether the item has at least one owned blank separator between content blocks.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListMarker">
+            <summary>
+            Metadata for a source-preserved list marker and its content indentation.
+            Explicitly indented paragraph continuations can be owned by this marker;
+            blank-separated loose/complete CommonMark list structures remain unsupported.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListMarker.#ctor(System.String,System.Boolean,System.Nullable{System.Int32},System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Metadata for a source-preserved list marker and its content indentation.
+            Explicitly indented paragraph continuations can be owned by this marker;
+            blank-separated loose/complete CommonMark list structures remain unsupported.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListMarker.ContentIndentColumns">
+            <summary>Original source column where the marker line's content begins, using four-column tab stops.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownListMarker.Delimiter">
+            <summary>Original ordered delimiter ('.' or ')'), or null for unordered markers.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownParser">
+            <summary>
+            Dependency-free, source-preserving first-pass Markdown block scanner.
+            Includes conservative inline tokens for headings, paragraphs and list items. Not full CommonMark.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownParser.Parse(System.String)">
+            <summary>Read Markdown without changing content, line endings or protected code text.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame">
+            <summary>
+            One immutable list stack frame stored in a scanner checkpoint.
+            </summary>
+            <param name="MarkerIndent">Indentation of the explicit list marker, in columns.</param>
+            <param name="ContentIndent">Required content indentation, in columns.</param>
+            <param name="StartUtf16Offset">Document-absolute start offset of the list marker.</param>
+            <param name="Marker">Exact list marker text.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame.#ctor(System.Int32,System.Int32,System.Int64,System.String)">
+            <summary>
+            One immutable list stack frame stored in a scanner checkpoint.
+            </summary>
+            <param name="MarkerIndent">Indentation of the explicit list marker, in columns.</param>
+            <param name="ContentIndent">Required content indentation, in columns.</param>
+            <param name="StartUtf16Offset">Document-absolute start offset of the list marker.</param>
+            <param name="Marker">Exact list marker text.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame.MarkerIndent">
+            <summary>Indentation of the explicit list marker, in columns.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame.ContentIndent">
+            <summary>Required content indentation, in columns.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame.StartUtf16Offset">
+            <summary>Document-absolute start offset of the list marker.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame.Marker">
+            <summary>Exact list marker text.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState">
+            <summary>
+            Active fenced-code block context at a scanner checkpoint.
+            </summary>
+            <param name="Marker">Backtick or tilde opening character.</param>
+            <param name="Length">Minimum delimiter length.</param>
+            <param name="QuoteDepth">Owning quote depth.</param>
+            <param name="StartUtf16Offset">Opening delimiter's document offset.</param>
+            <param name="Language">Optional code language.</param>
+            <param name="ListDepth">Owning list depth, or -1.</param>
+            <param name="ListOwnerUtf16Offset">Owning list start, if any.</param>
+            <param name="ContentIndent">Content indentation of the owning list.</param>
+            <param name="OuterListOwnerUtf16Offset">Ordinary outer-list owner of a quote fence.</param>
+            <param name="OuterListDepth">Depth of that outer-list owner, or -1.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.#ctor(System.Char,System.Int32,System.Int32,System.Int64,System.String,System.Int32,System.Nullable{System.Int64},System.Int32,System.Nullable{System.Int64},System.Int32)">
+            <summary>
+            Active fenced-code block context at a scanner checkpoint.
+            </summary>
+            <param name="Marker">Backtick or tilde opening character.</param>
+            <param name="Length">Minimum delimiter length.</param>
+            <param name="QuoteDepth">Owning quote depth.</param>
+            <param name="StartUtf16Offset">Opening delimiter's document offset.</param>
+            <param name="Language">Optional code language.</param>
+            <param name="ListDepth">Owning list depth, or -1.</param>
+            <param name="ListOwnerUtf16Offset">Owning list start, if any.</param>
+            <param name="ContentIndent">Content indentation of the owning list.</param>
+            <param name="OuterListOwnerUtf16Offset">Ordinary outer-list owner of a quote fence.</param>
+            <param name="OuterListDepth">Depth of that outer-list owner, or -1.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.Marker">
+            <summary>Backtick or tilde opening character.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.Length">
+            <summary>Minimum delimiter length.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.QuoteDepth">
+            <summary>Owning quote depth.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.StartUtf16Offset">
+            <summary>Opening delimiter's document offset.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.Language">
+            <summary>Optional code language.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.ListDepth">
+            <summary>Owning list depth, or -1.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.ListOwnerUtf16Offset">
+            <summary>Owning list start, if any.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.ContentIndent">
+            <summary>Content indentation of the owning list.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.OuterListOwnerUtf16Offset">
+            <summary>Ordinary outer-list owner of a quote fence.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState.OuterListDepth">
+            <summary>Depth of that outer-list owner, or -1.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint">
+            <summary>
+            Serializable, bounded checkpoint contract for the incremental container scanner.
+            This is a data contract only: scanner export/restore hooks are a separate stage.
+            </summary>
+            <param name="Version">Checkpoint schema version; currently 1.</param>
+            <param name="NextLineNumber">Next zero-based physical line to process.</param>
+            <param name="NextUtf16Offset">Next decoded document UTF-16 offset (BOM excluded).</param>
+            <param name="OrdinaryLists">Ordered list ownership stack.</param>
+            <param name="QuoteLists">Quoted list ownership stack.</param>
+            <param name="CurrentQuoteDepth">Current explicit quote depth.</param>
+            <param name="CurrentOuterQuoteOwnerUtf16Offset">Current outer ordinary-list owner.</param>
+            <param name="OrdinaryBlankPending">Whether an ordinary list blank separator is unresolved.</param>
+            <param name="QuoteBlankPending">Whether a quoted list blank separator is unresolved.</param>
+            <param name="Fence">Active fenced-code block context, if any.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.#ctor(System.Int32,System.Int64,System.Int64,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame[],Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerListFrame[],System.Int32,System.Nullable{System.Int64},System.Boolean,System.Boolean,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerFenceState)">
+            <summary>
+            Serializable, bounded checkpoint contract for the incremental container scanner.
+            This is a data contract only: scanner export/restore hooks are a separate stage.
+            </summary>
+            <param name="Version">Checkpoint schema version; currently 1.</param>
+            <param name="NextLineNumber">Next zero-based physical line to process.</param>
+            <param name="NextUtf16Offset">Next decoded document UTF-16 offset (BOM excluded).</param>
+            <param name="OrdinaryLists">Ordered list ownership stack.</param>
+            <param name="QuoteLists">Quoted list ownership stack.</param>
+            <param name="CurrentQuoteDepth">Current explicit quote depth.</param>
+            <param name="CurrentOuterQuoteOwnerUtf16Offset">Current outer ordinary-list owner.</param>
+            <param name="OrdinaryBlankPending">Whether an ordinary list blank separator is unresolved.</param>
+            <param name="QuoteBlankPending">Whether a quoted list blank separator is unresolved.</param>
+            <param name="Fence">Active fenced-code block context, if any.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.Version">
+            <summary>Checkpoint schema version; currently 1.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.NextLineNumber">
+            <summary>Next zero-based physical line to process.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.NextUtf16Offset">
+            <summary>Next decoded document UTF-16 offset (BOM excluded).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.OrdinaryLists">
+            <summary>Ordered list ownership stack.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.QuoteLists">
+            <summary>Quoted list ownership stack.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.CurrentQuoteDepth">
+            <summary>Current explicit quote depth.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.CurrentOuterQuoteOwnerUtf16Offset">
+            <summary>Current outer ordinary-list owner.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.OrdinaryBlankPending">
+            <summary>Whether an ordinary list blank separator is unresolved.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.QuoteBlankPending">
+            <summary>Whether a quoted list blank separator is unresolved.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint.Fence">
+            <summary>Active fenced-code block context, if any.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec">
+            <summary>
+            Strict, versioned JSON encoding for a future restorable scanner state.
+            Rejects malformed or unbounded external checkpoint data before use.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec.CurrentVersion">
+            <summary>The only currently supported checkpoint schema version.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec.MaximumEncodedBytes">
+            <summary>Maximum encoded checkpoint size, 32 KiB.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec.Encode(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint)">
+            <summary>Serializes a validated checkpoint to bounded UTF-8 JSON.</summary>
+            <param name="checkpoint">Complete scanner state.</param>
+            <returns>Encoded JSON bytes.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec.Decode(System.ReadOnlySpan{System.Byte})">
+            <summary>Deserializes and validates untrusted UTF-8 JSON checkpoint data.</summary>
+            <param name="data">JSON document bytes.</param>
+            <returns>Validated checkpoint value.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpointCodec.Validate(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownScannerCheckpoint)">
+            <summary>Validates all bounded fields and internal owner references.</summary>
+            <param name="value">Checkpoint to validate.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownWriter">
+            <summary>Source-preserving Markdown writer. Structured editing will be added in a later increment.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownWriter.Write(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownDocument)">
+            <summary>
+            Reconstruct unchanged Markdown byte-for-character from its parsed line spans.
+            The parser preserves CRLF, LF, CR, trailing whitespace and missing final newline.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,794 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTreeNode">
+            <summary>A single expandable directory node of a lazily loaded browser tree.</summary>
+            <param name="Name">Human-readable directory name.</param>
+            <param name="Location">Provider-qualified node location.</param>
+            <param name="CanExpand">Whether the provider permits entering this directory.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTreeNode.#ctor(System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Boolean)">
+            <summary>A single expandable directory node of a lazily loaded browser tree.</summary>
+            <param name="Name">Human-readable directory name.</param>
+            <param name="Location">Provider-qualified node location.</param>
+            <param name="CanExpand">Whether the provider permits entering this directory.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTreeNode.Name">
+            <summary>Human-readable directory name.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTreeNode.Location">
+            <summary>Provider-qualified node location.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTreeNode.CanExpand">
+            <summary>Whether the provider permits entering this directory.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserDirectoryTree">
+            <summary>
+            Supplies directory children only when a caller expands a tree node.
+            </summary>
+            <remarks>
+            It never recursively scans the entire tree, opens files or mutates the
+            process working directory. Rendering and expanded/collapsed UI state
+            belong to a separate Spectre.Console adapter.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserDirectoryTree.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource)">
+            <summary>Creates a lazy tree bound to a read-only storage source.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserDirectoryTree.GetChildrenAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Threading.CancellationToken)">
+            <summary>Lists immediate directory children of one tree node.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserEntryPresentation">
+            <summary>Creates plain-text file picker labels with optional icons and a small file indent.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserEntryPresentation.Format(System.String,System.Boolean,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind)">
+            <summary>
+            Formats one entry, placing files exactly one ASCII space farther right than folders.
+            </summary>
+            <remarks>
+            This is display text, not a filesystem path or Spectre markup. Render it as plain
+            Spectre.Console Text (not Markup); callers must never select by matching this label.
+            Emoji may occupy multiple terminal cells, so pixel-perfect alignment is the
+            responsibility of the actual terminal renderer.
+            </remarks>
+            <param name="entryName">The original entry name.</param>
+            <param name="isDirectory">Whether the entry is a directory.</param>
+            <param name="icons">The configured file type resolver.</param>
+            <param name="mode">The decorative-icon policy.</param>
+            <param name="terminal">Current terminal capability hints.</param>
+            <param name="knownFolder">Optional role for a recognized local directory.</param>
+            <returns>Plain display text, never a modified selection path.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileFilter">
+            <summary>
+            Filters file entries by semantic type and/or extension while keeping directories
+            available for navigation by default.
+            </summary>
+            <remarks>
+            Filtering inspects only the entry name; it never opens or downloads a file.
+            A null set means no constraint, while an explicitly empty set matches no files.
+            Within each set values are OR-ed; supplying both sets combines them with AND.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileFilter.#ctor(System.Collections.Generic.IEnumerable{Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind},System.Collections.Generic.IEnumerable{System.String},System.Boolean,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher)">
+            <summary>Creates a lightweight, reusable file type filter.</summary>
+            <param name="includedKinds">Optional allowed semantic file kinds.</param>
+            <param name="includedExtensions">Optional allowed extensions, e.g. ".json" or ".tar.gz".</param>
+            <param name="includeDirectories">Keep directories visible for navigation (default true).</param>
+            <param name="classifier">Optional customized file-kind classifier.</param>
+            <param name="nameMatcher">Optional wildcard-mask list or bounded regular expression.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileFilter.IncludeDirectories">
+            <summary>Whether directories remain visible even when files are filtered.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileFilter.Allows(System.String,System.Boolean)">
+            <summary>Indicates whether a directory or file should be displayed.</summary>
+            <param name="entryName">The file/directory name, not the full source path.</param>
+            <param name="isDirectory">Whether the entry is a directory.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind">
+            <summary>Semantic file categories that may receive different display icons.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Unknown">
+            <summary>A file whose type is not recognized.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Directory">
+            <summary>A directory or folder.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Text">
+            <summary>A plain-text or Markdown document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Code">
+            <summary>Source code or a script.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Json">
+            <summary>Structured JSON data.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Configuration">
+            <summary>An application configuration file.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Document">
+            <summary>A word-processing document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Pdf">
+            <summary>A PDF document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Spreadsheet">
+            <summary>A spreadsheet or tabular data file.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Presentation">
+            <summary>A slide presentation.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Image">
+            <summary>An image.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Audio">
+            <summary>Music or other audio.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Video">
+            <summary>A video recording.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Archive">
+            <summary>A compressed archive.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Executable">
+            <summary>An executable, application installer or installable package.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Database">
+            <summary>A database file.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind.Font">
+            <summary>A font file.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode">
+            <summary>Controls decorative icon rendering independently of actual filenames.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode.Auto">
+            <summary>Use terminal capability hints and conservative fallbacks.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode.On">
+            <summary>Force rich emoji icons, even when the terminal may not support them.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode.Off">
+            <summary>Hide icons in every terminal.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities">
+            <summary>Terminal capability hints, supplied by the hosting console adapter.</summary>
+            <param name="SupportsUnicode">Whether the terminal appears able to display Unicode.</param>
+            <param name="IsInteractive">Whether the output is an interactive terminal.</param>
+            <param name="SupportsEmoji">Whether emoji support has been explicitly confirmed by the host.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities.#ctor(System.Boolean,System.Boolean,System.Boolean)">
+            <summary>Terminal capability hints, supplied by the hosting console adapter.</summary>
+            <param name="SupportsUnicode">Whether the terminal appears able to display Unicode.</param>
+            <param name="IsInteractive">Whether the output is an interactive terminal.</param>
+            <param name="SupportsEmoji">Whether emoji support has been explicitly confirmed by the host.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities.SupportsUnicode">
+            <summary>Whether the terminal appears able to display Unicode.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities.IsInteractive">
+            <summary>Whether the output is an interactive terminal.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities.SupportsEmoji">
+            <summary>Whether emoji support has been explicitly confirmed by the host.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons">
+            <summary>
+            Classifies file names into familiar categories and supplies optional display glyphs.
+            </summary>
+            <remarks>
+            Classification uses only the entry name and source-provided directory flag; it does
+            not inspect content, open files, alter console encoding or modify selected paths.
+            Optional overrides apply to a resolver instance, not to the entire process.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons.#ctor(System.Collections.Generic.IReadOnlyDictionary{System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind},System.Collections.Generic.IReadOnlyDictionary{System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind})">
+            <summary>Creates the default classifications, with optional per-instance overrides.</summary>
+            <param name="extensionOverrides">Extensions such as ".abc" mapped to a file kind.</param>
+            <param name="fileNameOverrides">Exact entry names, for instance "my.data".</param>
+            <exception cref="T:System.ArgumentException">An override has an invalid key or category.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons.Classify(System.String,System.Boolean)">
+            <summary>Determines a file category from its name without reading file contents.</summary>
+            <param name="fileName">A single entry name, not a full path.</param>
+            <param name="isDirectory">The authoritative directory flag supplied by the source.</param>
+            <returns>The semantic category.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons.GetIcon(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities)">
+            <summary>Selects the display glyph for a file type and terminal's effective icon policy.</summary>
+            <param name="kind">Semantic file type.</param>
+            <param name="mode">Automatic, force-enabled or disabled icons.</param>
+            <param name="terminal">Capabilities already detected by the presentation adapter.</param>
+            <returns>An optional glyph, or an empty string for icon-free output.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons.GetLabel(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind)">
+            <summary>Returns the English name of a file category for icon-free navigation and accessibility.</summary>
+            <param name="kind">Semantic file type.</param>
+            <returns>A label suitable for optional caller localization.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform">
+            <summary>Path conventions used when identifying well-known local directories.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform.Windows">
+            <summary>Microsoft Windows drive paths.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform.Linux">
+            <summary>Linux POSIX paths.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform.MacOS">
+            <summary>macOS POSIX paths.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform.Other">
+            <summary>An unidentified platform; only explicitly supplied home paths are recognized.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind">
+            <summary>Well-known local directory roles, independent of their displayed names.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.None">
+            <summary>No safely identifiable special directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.UserProfiles">
+            <summary>The directory containing user profiles, such as /home or C:\Users.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.UserHome">
+            <summary>The current user's home directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.SystemConfiguration">
+            <summary>The system configuration directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.Logs">
+            <summary>The system log directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.Temporary">
+            <summary>The system temporary-files directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.Applications">
+            <summary>A platform-standard applications directory.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders">
+            <summary>
+            Identifies a small number of well-known local folders using full paths,
+            never just a directory's display name.
+            </summary>
+            <remarks>
+            This classifier does not access the filesystem, resolve symlinks or infer paths for
+            non-local sources. FTP/SFTP providers must not apply local platform conventions.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPlatform,System.String)">
+            <summary>Creates an environment-independent classifier, suitable for testing.</summary>
+            <param name="platform">The platform whose path conventions apply.</param>
+            <param name="userHomeDirectory">Optional absolute local home directory for the current user.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders.ForCurrentPlatform">
+            <summary>Creates a classifier for the running system and its current user profile.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders.Classify(System.String,System.Boolean)">
+            <summary>Recognizes the meaning of an absolute local directory path.</summary>
+            <param name="fullPath">Absolute local path, rather than the entry name.</param>
+            <param name="isDirectory">Whether the entry is known to be a directory.</param>
+            <returns>A known role, or <see cref="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind.None"/>.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders.GetLabel(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind)">
+            <summary>Returns the English fallback description of a special folder.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolders.GetIcon(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserKnownFolderKind,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserIconMode,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalCapabilities)">
+            <summary>Returns a special-folder glyph, respecting terminal icon settings.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocalSource">
+            <summary>
+            Read-only access to local filesystem directories for a generic file browser.
+            </summary>
+            <remarks>
+            Directory symlinks and Windows reparse points are displayed but are not traversed
+            by recursive search or tree expansion, preventing common filesystem cycles.
+            This is not a security sandbox; the host must enforce its own access policy.
+            </remarks>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocalSource.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocalSource.IsCaseSensitive">
+            <inheritdoc />
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocalSource.ListAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocalSource.GetParentAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPatternMode">
+            <summary>How custom filename criteria are interpreted.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPatternMode.Wildcard">
+            <summary>One or more semicolon-separated filename masks using '*' and '?'.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPatternMode.RegularExpression">
+            <summary>A .NET regular expression applied to a single filename.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher">
+            <summary>
+            Reusable filename matcher for directory filters and recursive search.
+            </summary>
+            <remarks>
+            Wildcard masks are OR-combined, case rules are configurable, and a regular
+            expression uses a bounded evaluation timeout. Nothing inspects file contents.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher.#ctor(System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPatternMode,System.Boolean,System.Nullable{System.TimeSpan})">
+            <summary>Creates an immutable filename matcher from a mask list or a regular expression.</summary>
+            <param name="pattern">Example "*.ajis;*.json", "*", or regex "^[^.]+\\.(ajis|json)$".</param>
+            <param name="mode">Wildcard by default, optional regular expression.</param>
+            <param name="ignoreCase">Case-insensitive by default; sources may override.</param>
+            <param name="regexTimeout">Optional bounded regex timeout (1 ms through 5 seconds).</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher.Pattern">
+            <summary>The original user-entered filter or search expression.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher.Mode">
+            <summary>Filename matching mode.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNameMatcher.Matches(System.String)">
+            <summary>Matches one filename; callers handle directory traversal separately.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions">
+            <summary>Limits recursive file searches so large volumes and remote sources stay responsive.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.MaxDepth">
+            <summary>Maximum directory nesting below the starting directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.MaxDirectories">
+            <summary>Maximum number of directories to enumerate.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.MaxResults">
+            <summary>Maximum number of matching entries to return.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.MaxEntriesPerDirectory">
+            <summary>Maximum number of entries processed from one directory listing.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.PatternMode">
+            <summary>Interpret the search expression as wildcard mask(s) or regex.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.IncludeDirectories">
+            <summary>Also match directory names, rather than files only.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions.Filter">
+            <summary>Optional additional file-kind or extension constraint on matches.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchStatus">
+            <summary>How completely a recursive search explored the accessible tree.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchStatus.Completed">
+            <summary>Every reachable directory within the chosen search scope was visited.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchStatus.Partial">
+            <summary>Some directories could not be read; results may be incomplete.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchStatus.LimitReached">
+            <summary>A depth, directory, match or entries-per-directory limit was reached.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch">
+            <summary>A match with its parent folder, so no path parsing is needed to navigate to it.</summary>
+            <param name="Entry">Matched file or directory.</param>
+            <param name="ParentDirectory">Directory containing the entry.</param>
+            <param name="Depth">Depth of the parent directory, relative to the search origin.</param>
+            <param name="RelativeDirectories">
+            Exact sequence of traversed directory names from the search origin to the parent.
+            These are display segments, not an interpretation of provider-native paths.
+            </param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Int32,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>A match with its parent folder, so no path parsing is needed to navigate to it.</summary>
+            <param name="Entry">Matched file or directory.</param>
+            <param name="ParentDirectory">Directory containing the entry.</param>
+            <param name="Depth">Depth of the parent directory, relative to the search origin.</param>
+            <param name="RelativeDirectories">
+            Exact sequence of traversed directory names from the search origin to the parent.
+            These are display segments, not an interpretation of provider-native paths.
+            </param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch.Entry">
+            <summary>Matched file or directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch.ParentDirectory">
+            <summary>Directory containing the entry.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch.Depth">
+            <summary>Depth of the parent directory, relative to the search origin.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch.RelativeDirectories">
+            <summary>
+            Exact sequence of traversed directory names from the search origin to the parent.
+            These are display segments, not an interpretation of provider-native paths.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult">
+            <summary>Search results and completeness diagnostics, without changing current navigation.</summary>
+            <param name="Origin">Directory searched from.</param>
+            <param name="Matches">Matches, which may have duplicate display names at different locations.</param>
+            <param name="Status">Indicates whether traversal was exhaustive.</param>
+            <param name="VisitedDirectories">Number of directories enumerated.</param>
+            <param name="SkippedDirectories">Number of unreadable directories skipped.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchMatch},Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchStatus,System.Int32,System.Int32)">
+            <summary>Search results and completeness diagnostics, without changing current navigation.</summary>
+            <param name="Origin">Directory searched from.</param>
+            <param name="Matches">Matches, which may have duplicate display names at different locations.</param>
+            <param name="Status">Indicates whether traversal was exhaustive.</param>
+            <param name="VisitedDirectories">Number of directories enumerated.</param>
+            <param name="SkippedDirectories">Number of unreadable directories skipped.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.Origin">
+            <summary>Directory searched from.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.Matches">
+            <summary>Matches, which may have duplicate display names at different locations.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.Status">
+            <summary>Indicates whether traversal was exhaustive.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.VisitedDirectories">
+            <summary>Number of directories enumerated.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult.SkippedDirectories">
+            <summary>Number of unreadable directories skipped.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserRecursiveSearch">
+            <summary>
+            Finds files or optionally directories recursively using '*' and '?' filename patterns.
+            </summary>
+            <remarks>
+            Searches in breadth-first order, never follows provider-declared non-traversable
+            links, and never navigates, opens, modifies or downloads files. The user interface
+            must explicitly choose a match before changing the browser's current folder.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserRecursiveSearch.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource)">
+            <summary>Binds a search engine to a read-only storage source.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserRecursiveSearch.FindAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions,System.Threading.CancellationToken)">
+            <summary>
+            Searches from one directory. Wildcards apply to a single file/folder name,
+            not to full paths; no wildcard means an exact name. Multiple masks may
+            be separated with semicolons; use PatternMode for an optional regex.
+            </summary>
+            <param name="origin">Source-qualified starting directory.</param>
+            <param name="pattern">File name or simple glob such as "*.json" or "config?.xml".</param>
+            <param name="options">Optional bounded search configuration.</param>
+            <param name="cancellationToken">Stops promptly and propagates cancellation.</param>
+            <returns>Matches and information about incomplete or limited traversal.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession">
+            <summary>
+            Tracks the current folder and selection independently of searches and tree browsing.
+            </summary>
+            <remarks>
+            Searching is read-only and never navigates by itself. A UI explicitly confirms a
+            chosen result, then calls <see cref="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.SelectSearchResult(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult,System.Int32)"/>. A failed/no-hit search
+            leaves both the current directory and highlighted entry unchanged.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation)">
+            <summary>Creates a session starting in one source-qualified directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.CurrentDirectory">
+            <summary>The current browsing folder, unaffected by a search until a match is chosen.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.HighlightedEntry">
+            <summary>The selected entry to highlight after navigation, if any.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.NavigateTo(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation)">
+            <summary>Moves to an explicitly chosen directory without altering process CWD.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.SearchAsync(System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchOptions,System.Threading.CancellationToken)">
+            <summary>Searches without changing current directory or highlighted selection.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserNavigationSession.SelectSearchResult(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult,System.Int32)">
+            <summary>
+            Navigates to the parent folder of one explicitly chosen result and highlights it.
+            Returns false for no matches, invalid indices and stale/different-source results.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow">
+            <summary>
+            A selectable search result with its complete path relative to the search origin.
+            </summary>
+            <param name="MatchIndex">Index into the unmodified search result's matches.</param>
+            <param name="RelativePath">Plain-text display path (not a provider path or Spectre markup).</param>
+            <param name="Kind">Semantic type suitable for the existing icon policy.</param>
+            <param name="Location">Original source-qualified location for the matched entry.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow.#ctor(System.Int32,System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileKind,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation)">
+            <summary>
+            A selectable search result with its complete path relative to the search origin.
+            </summary>
+            <param name="MatchIndex">Index into the unmodified search result's matches.</param>
+            <param name="RelativePath">Plain-text display path (not a provider path or Spectre markup).</param>
+            <param name="Kind">Semantic type suitable for the existing icon policy.</param>
+            <param name="Location">Original source-qualified location for the matched entry.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow.MatchIndex">
+            <summary>Index into the unmodified search result's matches.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow.RelativePath">
+            <summary>Plain-text display path (not a provider path or Spectre markup).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow.Kind">
+            <summary>Semantic type suitable for the existing icon policy.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchDisplayRow.Location">
+            <summary>Original source-qualified location for the matched entry.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode">
+            <summary>One branch or matched leaf in a search-results-only directory tree.</summary>
+            <param name="Name">Plain-text entry name.</param>
+            <param name="IsDirectory">Whether this row is a containing directory.</param>
+            <param name="MatchIndex">Match index for a selectable result; null for structural folders.</param>
+            <param name="Children">Matching descendants only, not unrelated filesystem entries.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode.#ctor(System.String,System.Boolean,System.Nullable{System.Int32},System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode})">
+            <summary>One branch or matched leaf in a search-results-only directory tree.</summary>
+            <param name="Name">Plain-text entry name.</param>
+            <param name="IsDirectory">Whether this row is a containing directory.</param>
+            <param name="MatchIndex">Match index for a selectable result; null for structural folders.</param>
+            <param name="Children">Matching descendants only, not unrelated filesystem entries.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode.Name">
+            <summary>Plain-text entry name.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode.IsDirectory">
+            <summary>Whether this row is a containing directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode.MatchIndex">
+            <summary>Match index for a selectable result; null for structural folders.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchTreeNode.Children">
+            <summary>Matching descendants only, not unrelated filesystem entries.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResultsPresentation">
+            <summary>
+            Presents every returned search match as a relative path or a pruned tree.
+            Results are never silently collapsed to one match or moved into a folder.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResultsPresentation.CreateRows(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons,System.Boolean)">
+            <summary>
+            Produces a sorted list such as 'Folder/Subfolder/config.json', preserving
+            each result's original index for the eventual keyboard selection UI.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResultsPresentation.CreateTree(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSearchResult,System.Boolean)">
+            <summary>
+            Creates a compact tree containing only directories leading to matches.
+            Each matched file or folder retains its original selectable match index.
+            </summary>
+            <remarks>
+            This builds only from already collected results and makes no additional
+            filesystem or remote calls. Directory branches have no selection action.
+            </remarks>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation">
+            <summary>A storage-provider-qualified location, not necessarily a local filesystem path.</summary>
+            <remarks>
+            The value is opaque outside its source. In particular, consumers must never treat
+            an FTP/SFTP location as an ordinary path that can be opened with System.IO.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation.#ctor(System.String,System.String)">
+            <summary>Creates a location owned by a specific storage source.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation.SourceId">
+            <summary>The registered provider's stable source identifier.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation.Value">
+            <summary>An opaque path or identifier interpreted only by its provider.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry">
+            <summary>One file or directory returned by a file-browser storage source.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry.#ctor(System.String,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Boolean,System.Boolean)">
+            <summary>Creates an entry returned by a storage provider.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry.Name">
+            <summary>The exact entry name; never derive a filesystem path from this label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry.Location">
+            <summary>The opaque, source-qualified identity of the entry.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry.IsDirectory">
+            <summary>Whether the entry is a directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserSourceEntry.CanTraverse">
+            <summary>
+            Whether recursive navigation is permitted. Providers should return false
+            for symlinks/reparse points unless safe cycle detection is explicitly provided.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource">
+            <summary>
+            Read-only source contract for directory-tree and recursive-search operations.
+            </summary>
+            <remarks>
+            Only the source owns native path parsing, case rules, connections and listing.
+            No writes, downloads, uploads or implicit authentication are part of this contract.
+            </remarks>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource.Id">
+            <summary>A stable identifier qualifying every location returned by this source.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource.IsCaseSensitive">
+            <summary>Whether filename wildcard matching is case-sensitive for this source.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource.ListAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Threading.CancellationToken)">
+            <summary>Lists a single directory without recursively traversing its descendants.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource.GetParentAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Threading.CancellationToken)">
+            <summary>Returns the parent directory, or null for a root location.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalDetection">
+            <summary>
+            Conservative supplemental Unix terminal detection for hosts where the Spectre.Console
+            Unicode capability flag is unavailable or falsely negative.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalDetection.SupportsUnicode(System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.String,System.String)">
+            <summary>
+            Decides whether Auto mode may display conservative Unicode symbols.
+            Never infers emoji support from UTF-8.
+            </summary>
+            <remarks>
+            The caller must supply the effective Spectre profile and real terminal conditions.
+            A UTF-8 locale is only a fallback for Unix interactive terminals; it must never
+            override redirected output, a dumb terminal or a noninteractive Spectre console.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserTerminalDetection.GetEffectiveLocale">
+            <summary>Returns the first defined POSIX locale in precedence order.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickMode">
+            <summary>Select an existing file or directory.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickMode.File">
+            <summary>Select an existing file.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickMode.Directory">
+            <summary>Select an existing directory.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult">
+            <summary>Selected provider-qualified location, or an explicit cancellation.</summary>
+            <param name="Location">Null on cancellation.</param>
+            <param name="IsDirectory">Whether the selected location is a directory.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,System.Boolean)">
+            <summary>Selected provider-qualified location, or an explicit cancellation.</summary>
+            <param name="Location">Null on cancellation.</param>
+            <param name="IsDirectory">Whether the selected location is a directory.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult.Location">
+            <summary>Null on cancellation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult.IsDirectory">
+            <summary>Whether the selected location is a directory.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult.IsSelected">
+            <summary>Whether the user selected a location.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickResult.Cancelled">
+            <summary>Returns an explicit cancellation result.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions">
+            <summary>Options for an independent, read-only Spectre.Console file picker.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.PageSize">
+            <summary>Number of visible items in each paged selection prompt.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.IconMode">
+            <summary>Choose Unicode/emoji/plain-text icons.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.FileFilter">
+            <summary>Optional initial filename filter.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.SearchOptions">
+            <summary>Safety limits for recursive searching.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.SearchTreePreviewLimit">
+            <summary>Maximum number of matches shown in the optional tree preview.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.EmojiConfirmed">
+            <summary>True only when the user or host has explicitly confirmed emoji rendering.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions.Labels">
+            <summary>Caller-provided localization; English is the reliable fallback.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels">
+            <summary>Replaceable user-interface strings, without a localization-framework dependency.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Browse">
+            <summary>File picker heading.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Choose">
+            <summary>Selection prompt heading.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.SelectFolder">
+            <summary>Action for current folder selection.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Parent">
+            <summary>Action for navigating upward.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Search">
+            <summary>Search action.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Tree">
+            <summary>Directory tree action.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Filter">
+            <summary>File filter action.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Back">
+            <summary>Cancel/back action.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Pattern">
+            <summary>Prompt for user-entered mask/regex.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Masks">
+            <summary>Wildcard mode label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Regex">
+            <summary>Regex mode label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.All">
+            <summary>All filenames filter.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Json">
+            <summary>JSON files filter.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Text">
+            <summary>Text files filter.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Images">
+            <summary>Image files filter.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.UseFolder">
+            <summary>Folder tree label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.NothingFound">
+            <summary>Search completed without results.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Limited">
+            <summary>Search was not exhaustive.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Partial">
+            <summary>Some directories were inaccessible.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.ListingError">
+            <summary>Directory listing failure.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Empty">
+            <summary>No visible file/folder entries.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserLabels.Matches">
+            <summary>Heading for all matching paths.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowser">
+            <summary>
+            Interactive Spectre.Console adapter for read-only sources, with folder selection,
+            universal filename filtering, a lazy folder tree and multi-result recursive search.
+            </summary>
+            <remarks>
+            Prompts are sequential, never clear the host screen, and never change process-wide
+            CWD, output encoding, files or credentials. Do not share one console between concurrent
+            picker sessions. An interactive terminal is required for selection.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowser.#ctor(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.IFileBrowserSource,Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserFileIcons)">
+            <summary>Constructs a picker with a chosen storage provider and console.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowser.PickAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserLocation,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.FileBrowserPickMode,Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.SpectreFileBrowserOptions,System.Threading.CancellationToken)">
+            <summary>Opens a picker and returns an existing file/folder or explicit cancellation.</summary>
+        </member>
+    </members>
+</doc>

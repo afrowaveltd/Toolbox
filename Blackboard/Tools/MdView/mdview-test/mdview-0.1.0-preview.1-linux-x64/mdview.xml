@@ -1,0 +1,2601 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>mdview</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCenteredPromptRenderHook">
+            <summary>
+            Indents the actual live Spectre selection prompt at the render-pipeline
+            stage, including its selected arrow, title and all list choices.
+            </summary>
+            <remarks>
+            Spectre's SelectionPrompt creates a ListPromptRenderHook and emits a
+            live renderable *after* IAnsiConsole.Write has been called. Wrapping
+            IAnsiConsole.Write with a Padder therefore cannot position that menu.
+            This hook is attached before opening the prompt, so Spectre's own
+            later-attached live hook runs first and this hook pads its result.
+            Control sequences are passed through to preserve native cursor
+            movement, Enter, Escape and the live redraw machinery.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCenteredPromptRenderHook.#ctor(System.Int32)">
+            <summary>Creates a render hook for an already validated horizontal gutter.</summary>
+            <param name="leftGutter">Nonnegative columns to indent the live menu.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCenteredPromptRenderHook.Process(Spectre.Console.Rendering.RenderOptions,System.Collections.Generic.IEnumerable{Spectre.Console.Rendering.IRenderable})">
+            <inheritdoc />
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCenteredPrompt">
+            <summary>
+            Opens native Spectre selection prompts with optional horizontal
+            positioning of their real-time live renderable.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCenteredPrompt.ShowAsync``1(Spectre.Console.IAnsiConsole,Spectre.Console.SelectionPrompt{``0},System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Shows a bounded native selection prompt without replacing its
+            keyboard input, cursor or terminal profile.
+            </summary>
+            <typeparam name="T">Non-null value type of selectable choices.</typeparam>
+            <param name="console">Original Spectre console.</param>
+            <param name="prompt">Native Spectre selection prompt.</param>
+            <param name="leftGutter">Reading-column horizontal gutter.</param>
+            <param name="cancellationToken">Prompt cancellation token.</param>
+            <returns>Selected value, or the prompt's own Escape result.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPosition">
+            <summary>
+            Opaque resume point owned by a single validated-snapshot checkpoint reader.
+            It binds a scanner checkpoint to its source without exposing a reusable
+            untrusted checkpoint-to-file association.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPosition.NextLineNumber">
+            <summary>Next zero-based physical source line to classify.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPosition.NextUtf16Offset">
+            <summary>Next decoded document UTF-16 source offset, excluding the BOM.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPage">
+            <summary>
+            One independently resumed, bounded Markdown container page and its next
+            checkpoint. This opt-in reader does not replace the existing disk journal.
+            </summary>
+            <param name="Lines">Classified source lines, up to the requested page size.</param>
+            <param name="Next">Snapshot-bound position following the returned lines.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPage.#ctor(System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine},Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPosition)">
+            <summary>
+            One independently resumed, bounded Markdown container page and its next
+            checkpoint. This opt-in reader does not replace the existing disk journal.
+            </summary>
+            <param name="Lines">Classified source lines, up to the requested page size.</param>
+            <param name="Next">Snapshot-bound position following the returned lines.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPage.Lines">
+            <summary>Classified source lines, up to the requested page size.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPage.Next">
+            <summary>Snapshot-bound position following the returned lines.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPageReader">
+            <summary>
+            Restarts Markdown container classification directly from a validated snapshot
+            and a snapshot-bound scanner checkpoint, without replaying earlier lines.
+            </summary>
+            <remarks>
+            The caller owns and must outlive this reader's validated snapshot and
+            UTF-16 index. Checkpoints are created only by this instance. No claim is
+            made that an arbitrary unseen line is reachable without first processing
+            the preceding context or obtaining a trusted checkpoint for it.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPageReader.#ctor(Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot,Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex)">
+            <summary>Creates a reader on a snapshot and its corresponding UTF-16 index.</summary>
+            <param name="snapshot">Validated immutable-by-convention source copy.</param>
+            <param name="positions">UTF-16 index created from snapshot.Lines.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPageReader.Start">
+            <summary>Initial source-bound checkpoint before the first physical line.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPageReader.ReadAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCheckpointPosition,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Classifies up to 128 physical lines from a checkpoint without replaying
+            previous lines. The next checkpoint can be reused for future navigation.
+            </summary>
+            <param name="position">A checkpoint returned by this reader.</param>
+            <param name="maxLines">Maximum number of source lines, from 1 to 128.</param>
+            <param name="cancellationToken">Cancels source mapping and classification.</param>
+            <returns>Classified lines and the next snapshot-bound checkpoint.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind">
+            <summary>Supported modes and source types for the mdview command-line reader.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.Interactive">
+            <summary>Open the interactive Spectre.Console source selection menu.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.Local">
+            <summary>Read a local Markdown document with full rendering.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.Url">
+            <summary>Read a public HTTP(S) Markdown document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.GitHub">
+            <summary>Read a GitHub README or browse an owner's public repositories.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.Help">
+            <summary>Print command-line usage and exit.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.Version">
+            <summary>Print the actual informational assembly version and exit.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.SourcePager">
+            <summary>Navigate a local UTF-8 file as indexed raw source lines.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.FormattedPreview">
+            <summary>Preview one bounded source page with the Markdown renderer.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.MixedPreview">
+            <summary>Opt-in mixed Markdown page preview with inline native Spectre grids.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.LocalLinkBrowser">
+            <summary>Browse local Markdown links with explicit keyboard navigation.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.HttpsLinkBrowser">
+            <summary>Browse same-origin HTTPS Markdown links with verified caching.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind.GitHubLinkBrowser">
+            <summary>Browse Markdown files in a public GitHub repository.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand">
+            <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
+            <param name="Kind">Selected reader mode or command action.</param>
+            <param name="Value">Local path, remote URL or GitHub owner, depending on the mode.</param>
+            <param name="Repository">Optional GitHub repository; null requests owner-only browsing.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourceKind,System.String,System.String)">
+            <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
+            <param name="Kind">Selected reader mode or command action.</param>
+            <param name="Value">Local path, remote URL or GitHub owner, depending on the mode.</param>
+            <param name="Repository">Optional GitHub repository; null requests owner-only browsing.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.Kind">
+            <summary>Selected reader mode or command action.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.Value">
+            <summary>Local path, remote URL or GitHub owner, depending on the mode.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.Repository">
+            <summary>Optional GitHub repository; null requests owner-only browsing.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.MaximumContentColumns">
+            <summary>
+            Optional maximum visible content columns for preview-native; zero
+            retains automatic full terminal width. Not used by other commands.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.CenterContent">
+            <summary>
+            Whether the opt-in mixed preview reading column is horizontally
+            centered within unused terminal columns. No effect on pagination.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.LongNativeTables">
+            <summary>
+            Explicitly enables source-complete long Spectre table fragments
+            with repeated headings. The compact default is unchanged.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand.Parse(System.String[])">
+            <summary>Converts command-line tokens to a strongly typed source command.</summary>
+            <param name="args">CLI arguments, excluding the executable name.</param>
+            <returns>A command describing the selected source or interactive/help action.</returns>
+            <exception cref="T:System.ArgumentNullException">The argument array is null.</exception>
+            <exception cref="T:System.ArgumentException">The source or command syntax is invalid.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor">
+            <summary>
+            Bounded Markdown container cursor with a disk-backed event journal.
+            Forward scanning adds classified events once; previously scanned source
+            ranges are read from the journal without replaying the parser.
+            </summary>
+            <remarks>
+            The snapshot is caller-owned. This journal stores complete classified
+            line events, including their text, in temporary files, not in RAM.
+            Jumping beyond the scanned high-water mark still scans intervening lines.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.DefaultMaximumJournalBytes">
+            <summary>Default maximum serialized event journal size (512 MiB).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.DefaultMaximumOffsetBytes">
+            <summary>Default maximum offset table size (256 MiB).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.MaximumContiguousEventReadBytes">
+            <summary>
+            Maximum contiguous event-journal read for ordinary source rows.
+            An individual valid record larger than this is read on its own,
+            never rejected merely for exceeding the batching threshold.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.ScanTimings">
+            <summary>
+            Optional single-caller diagnostic counters. Null in production, with
+            no per-line timestamp collection unless explicitly enabled by tests
+            or the manual benchmark. No disk or console logging occurs here.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.#ctor(Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot,System.Int64,System.Int64)">
+            <summary>Creates a disk-backed cursor without taking ownership of its snapshot.</summary>
+            <param name="snapshot">Validated snapshot that must outlive this cursor.</param>
+            <param name="maximumJournalBytes">Maximum temporary bytes for serialized events.</param>
+            <param name="maximumOffsetBytes">Maximum temporary bytes for line offsets.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.CachedLineCount">
+            <summary>Number of classified lines currently stored on disk.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.JournalBytes">
+            <summary>Serialized event bytes currently stored on disk.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.ReadRequestCount">
+            <summary>
+            Diagnostic count of validated source read requests. Internal so
+            tests can verify I/O batching without introducing public API.
+            This counts API requests, not the lower-level journal read calls.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.EventReadRequestCount">
+            <summary>
+            Diagnostic number of event-journal bulk stream reads. Each
+            validated contiguous window uses one ReadExactlyAsync operation;
+            this is not the number of physical disk I/O operations.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.EventWritePositionSetterCount">
+            <summary>
+            Count of event stream write-position assignments, including
+            unconditional assignments to an unchanged offset in the default mode.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.OffsetWritePositionSetterCount">
+            <summary>
+            Count of offset stream write-position assignments, including
+            unconditional assignments to an unchanged offset in the default mode.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.UseUnconditionalJournalAppendPositionSetters">
+            <summary>
+            Uses the verified fast, original journal append mode by default:
+            explicitly restore the append Position before each record. The
+            benchmark can opt into the slower experimental conditional mode.
+            Do not change this default without a physical-HDD A/B regression.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.ReadAsync(System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns at most 128 source-preserving classified physical lines,
+            without replaying already cached scanner events.
+            </summary>
+            <param name="firstLine">Zero-based physical source line.</param>
+            <param name="maxLines">Page size from 1 to 128 physical lines.</param>
+            <param name="cancellationToken">Cancels scanning and disk access.</param>
+            <returns>Line metadata from the validated copy.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor.DisposeAsync">
+            <summary>Disposes scanner and both temporary disk journals, not the snapshot.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex">
+            <summary>
+            Optional disk-backed, snapshot-local sparse Markdown scanner checkpoints.
+            Enables bounded replay from the nearest indexed context, without retaining
+            one classified event for every physical source line.
+            </summary>
+            <remarks>
+            Building the index classifies the full validated document in one sequential source pass.
+            This is a context index, not a rendering journal or full CommonMark parser.
+            The caller owns the source snapshot and the UTF-16 index.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.DefaultStride">
+            <summary>Default interval between persisted scanner contexts (1,024 lines).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.DefaultMaximumIndexBytes">
+            <summary>Default combined disk budget for checkpoint data and offsets (256 MiB).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.Stride">
+            <summary>Source lines between adjacent stored contexts.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.CheckpointCount">
+            <summary>Number of checkpoints stored on disk, including the initial one.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.IndexedLineCount">
+            <summary>Total physical source lines in the validated snapshot.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.IndexBytes">
+            <summary>Combined current checkpoint data and offset bytes.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.CreateAsync(Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot,Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Classifies a validated source once and stores bounded, versioned
+            scanner contexts every <paramref name="stride"/> physical lines.
+            </summary>
+            <param name="snapshot">Validated source; ownership remains with caller.</param>
+            <param name="positions">Document UTF-16 index for this snapshot.</param>
+            <param name="stride">Checkpoint interval: 1 through 65,536 lines.</param>
+            <param name="maximumIndexBytes">Combined temporary disk-space budget.</param>
+            <param name="cancellationToken">Cancels construction and deletes temporary files.</param>
+            <returns>Independent disk-backed checkpoint index.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.ReadAsync(System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads a requested page after restoring the nearest preceding stored
+            scanner context. Replays at most <see cref="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.Stride"/> preceding lines.
+            </summary>
+            <param name="firstLine">Zero-based physical source line, including EOF.</param>
+            <param name="maxLines">Requested page size, from 1 to 128 lines.</param>
+            <param name="cancellationToken">Cancels index access or replay.</param>
+            <returns>Container-classified page and its next snapshot-bound position.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskCheckpointIndex.DisposeAsync">
+            <summary>Closes and deletes both temporary index files; does not dispose the source.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind">
+            <summary>Types of source coordinates stored in the disk-backed Markdown index.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind.Heading">
+            <summary>Recognized top-level ATX heading outside fenced code.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind.Link">
+            <summary>Inline Markdown link outside fenced code.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem">
+            <summary>One source navigation result; no document or AST is retained.</summary>
+            <param name="Kind">Heading or link.</param>
+            <param name="LineNumber">Zero-based physical line in the validated snapshot.</param>
+            <param name="Utf16Offset">Zero-based decoded document UTF-16 source offset.</param>
+            <param name="Label">Bounded heading title or link label.</param>
+            <param name="Destination">Original inline link destination, or null for a heading.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind,System.Int64,System.Int64,System.String,System.String)">
+            <summary>One source navigation result; no document or AST is retained.</summary>
+            <param name="Kind">Heading or link.</param>
+            <param name="LineNumber">Zero-based physical line in the validated snapshot.</param>
+            <param name="Utf16Offset">Zero-based decoded document UTF-16 source offset.</param>
+            <param name="Label">Bounded heading title or link label.</param>
+            <param name="Destination">Original inline link destination, or null for a heading.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.Kind">
+            <summary>Heading or link.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.LineNumber">
+            <summary>Zero-based physical line in the validated snapshot.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.Utf16Offset">
+            <summary>Zero-based decoded document UTF-16 source offset.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.Label">
+            <summary>Bounded heading title or link label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedNavigationItem.Destination">
+            <summary>Original inline link destination, or null for a heading.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex">
+            <summary>
+            Source-bound, disk-backed heading/link catalog built from one sequential
+            scan of a fully validated private UTF-8 snapshot.
+            </summary>
+            <remarks>
+            Three temporary files hold bounded records and per-kind 64-bit offsets.
+            The caller owns the snapshot; the index owns and deletes only its temp
+            files. No full Markdown document, link list or heading list is retained
+            in RAM. This conservative first pass recognizes ATX headings and inline
+            links on individual lines, excluding fenced code, but not reference links
+            or links split across physical lines. Indexed links are source positions,
+            not automatically approved navigation destinations.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.DefaultMaximumIndexBytes">
+            <summary>Combined default maximum temporary record/offset storage: 128 MiB.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.MaximumLabelCharacters">
+            <summary>Maximum heading or link label length stored in UTF-16 code units.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.MaximumDestinationCharacters">
+            <summary>Maximum eligible inline link destination length in UTF-16 units.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.MaximumPageItems">
+            <summary>Maximum number of results returned by a single disk read.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.HeadingCount">
+            <summary>Number of indexed heading locations.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.LinkCount">
+            <summary>Number of indexed inline link locations.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.SourceLineCount">
+            <summary>Number of source lines scanned from the validated snapshot.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.IndexBytes">
+            <summary>Disk bytes occupied by records and both offset tables.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.CreateAsync(Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot,System.Int64,System.Threading.CancellationToken)">
+            <summary>Builds a bounded disk index without loading the source document into RAM.</summary>
+            <param name="snapshot">Completed, caller-owned validated UTF-8 snapshot.</param>
+            <param name="maximumIndexBytes">Combined disk budget including both offset tables.</param>
+            <param name="cancellationToken">Cancels scanning, deletes partial indexes.</param>
+            <returns>Snapshot-local index that must be disposed before its snapshot.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.ReadAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind,System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>Reads one bounded ordered page of heading or link source coordinates.</summary>
+            <param name="kind">Result category.</param>
+            <param name="firstIndex">Zero-based ordinal among entries of that category.</param>
+            <param name="maxItems">Maximum results, between 1 and 128.</param>
+            <param name="cancellationToken">Cancels reading without changing the index.</param>
+            <returns>Immutable snapshot-independent result values for the selected page.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex.DisposeAsync">
+            <summary>Deletes the temporary index files without disposing the caller's snapshot.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationPicker">
+            <summary>
+            Keyboard selection of disk-indexed source locations in bounded batches.
+            The selector never loads a whole source file or follows a link.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationPicker.ResultsPerPage">
+            <summary>Number of displayed navigation entries per selection page.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationPicker.#ctor(Spectre.Console.IAnsiConsole,System.Int32)">
+            <summary>Creates a picker using the caller's interactive terminal.</summary>
+            <param name="console">Spectre terminal instance.</param>
+            <param name="leftGutter">Optional column shared with the centered document.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationPicker.PickAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDiskNavigationIndex,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewIndexedItemKind,System.Threading.CancellationToken)">
+            <summary>Finds one indexed heading or link by browsing small result pages.</summary>
+            <param name="index">Completed, caller-owned disk navigation index.</param>
+            <param name="kind">Heading or link source positions.</param>
+            <param name="cancellationToken">Cancels prompt or disk access.</param>
+            <returns>Chosen source position, or null on Escape/Back/empty catalog.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCompletionAction">
+            <summary>Action chosen at the end of a fully displayed Markdown document.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCompletionAction.Exit">
+            <summary>End the viewer session.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCompletionAction.MainMenu">
+            <summary>Return to the source-selection menu.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentCompletionPrompt">
+            <summary>
+            Reserves simple, explicit document-end keys. Unknown keys are ignored,
+            leaving them available for future search and page-navigation commands.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentCompletionPrompt.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Build a prompt using the same console as the Markdown renderer.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentCompletionPrompt.WaitAsync(System.Threading.CancellationToken)">
+            <summary>
+            Wait for Enter (main menu) or Escape (exit). Returns Exit immediately
+            for noninteractive consoles or when the input stream ends.
+            The caller must also check redirected stdin/stdout before invoking this
+            prompt in a CLI pipeline.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink">
+            <summary>A navigable Markdown link with an exact original source offset.</summary>
+            <param name="Label">Visible Markdown label.</param>
+            <param name="Destination">Unmodified destination from the Markdown parser.</param>
+            <param name="SourceOffset">Zero-based UTF-16 source offset of the opening link marker.</param>
+            <param name="Target">Resolved document and optional fragment.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink.#ctor(System.String,System.String,System.Int32,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink)">
+            <summary>A navigable Markdown link with an exact original source offset.</summary>
+            <param name="Label">Visible Markdown label.</param>
+            <param name="Destination">Unmodified destination from the Markdown parser.</param>
+            <param name="SourceOffset">Zero-based UTF-16 source offset of the opening link marker.</param>
+            <param name="Target">Resolved document and optional fragment.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink.Label">
+            <summary>Visible Markdown label.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink.Destination">
+            <summary>Unmodified destination from the Markdown parser.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink.SourceOffset">
+            <summary>Zero-based UTF-16 source offset of the opening link marker.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink.Target">
+            <summary>Resolved document and optional fragment.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkExtractor">
+            <summary>
+            Bounded opt-in link extraction using the existing source-aware Markdown AST.
+            Does not treat fenced code, inline code, images or escaped syntax as links.
+            </summary>
+            <remarks>
+            This first slice parses a complete, small Markdown string. It is not
+            intended for huge documents; streaming indexed discovery is future work.
+            Unsupported/external links are skipped rather than opened automatically.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkExtractor.MaximumDocumentCharacters">
+            <summary>Maximum UTF-16 characters accepted for in-memory link extraction.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkExtractor.MaximumLinks">
+            <summary>Maximum links retained from one document.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkExtractor.Extract(System.String,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin)">
+            <summary>Extracts resolvable document links without file or network access.</summary>
+            <param name="source">Complete trusted decoded document text.</param>
+            <param name="origin">Typed origin used to resolve each link target.</param>
+            <returns>Links in document order, preserving their source positions.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkPicker">
+            <summary>
+            Explicit keyboard selection of previously parsed Markdown links.
+            This selector never opens or downloads a destination.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkPicker.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Creates a selector on an injected console.</summary>
+            <param name="console">Interactive Spectre console.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLinkPicker.PickAsync(System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentLink},System.Threading.CancellationToken)">
+            <summary>
+            Selects one document link, or returns null on Escape/Back.
+            </summary>
+            <param name="links">Already validated and resolved candidates.</param>
+            <param name="cancellationToken">Cancels selection.</param>
+            <returns>Explicitly selected link; null when cancelled or empty.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewFormattedPreviewPager">
+            <summary>
+            Experimental local Markdown pager with a viewport-specific disk page index,
+            source-aware code classification and bounded visual row rendering.
+            </summary>
+            <remarks>
+            Recomputes page boundaries on the next drawing after terminal resizing.
+            Ordinary prose wraps near sentence, clause or word breaks. Fenced source
+            code is not wrapped and shows a right-arrow if clipped to the viewport.
+            Complex Markdown list/quote continuity and exact proportional-font
+            terminal rendering remain experimental.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewFormattedPreviewPager.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Creates a pager that renders to the supplied terminal.</summary>
+            <param name="console">Interactive terminal for formatted preview.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewFormattedPreviewPager.RunAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Displays a source-bound visual page fitted to the terminal dimensions,
+            with lazy disk-indexed heading and link source-position navigation.
+            </summary>
+            <param name="path">Local UTF-8 Markdown document.</param>
+            <param name="linesPerPage">Zero for automatic viewport height, or an explicit 1–128 visual row cap.</param>
+            <param name="cancellationToken">Cancels validation, indexing or navigation.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkBrowser">
+            <summary>
+            Interactive GitHub Markdown document browsing using official metadata,
+            exact-ref file retrieval, verified cache and bounded navigation history.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkBrowser.#ctor(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource)">
+            <summary>Creates a terminal browser with a caller-owned GitHub file provider.</summary>
+            <param name="console">Interactive terminal.</param>
+            <param name="source">GitHub file provider with validated cache.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkBrowser.RunAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Browses the actual preferred README and links in its repository.</summary>
+            <param name="owner">GitHub account name.</param>
+            <param name="repository">Public repository name.</param>
+            <param name="cancellationToken">Cancels terminal and network operations.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkedDocument">
+            <summary>Verified repository Markdown document at an exact source location.</summary>
+            <param name="Target">Canonical repository source and optional fragment.</param>
+            <param name="Result">Verified bytes and freshness status.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkedDocument.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentResult)">
+            <summary>Verified repository Markdown document at an exact source location.</summary>
+            <param name="Target">Canonical repository source and optional fragment.</param>
+            <param name="Result">Verified bytes and freshness status.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkedDocument.Target">
+            <summary>Canonical repository source and optional fragment.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubLinkedDocument.Result">
+            <summary>Verified bytes and freshness status.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession">
+            <summary>
+            Bounded GitHub Markdown navigation, using a resolved default branch,
+            a verified README path and exact-ref repository file retrieval.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.DefaultMaximumDocumentBytes">
+            <summary>Maximum Markdown bytes displayed in this interactive mode.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.Readme">
+            <summary>Resolved README identity and metadata freshness.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.Current">
+            <summary>Current verified source and document content.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.History">
+            <summary>Bounded source and fragment Back/Forward history.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.OpenAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryFileSource,System.String,System.String,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>Discovers and opens the repository's actual default-branch README.</summary>
+            <param name="source">Caller-owned GitHub file provider.</param>
+            <param name="owner">GitHub owner.</param>
+            <param name="repository">Repository name.</param>
+            <param name="historyCapacity">Maximum retained locations.</param>
+            <param name="maximumDocumentBytes">Maximum Markdown bytes per source.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Verified README navigation session.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.FollowAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Follows a validated repository-relative Markdown link.</summary>
+            <param name="href">Relative path or same-document anchor.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.BackAsync(System.Threading.CancellationToken)">
+            <summary>Reopens the preceding history location when available.</summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>True if the history position changed.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubNavigationSession.ForwardAsync(System.Threading.CancellationToken)">
+            <summary>Reopens the next history location when available.</summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>True if the history position changed.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubRepositoryPicker">
+            <summary>Read-only, cancellable selection of a public GitHub repository README.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubRepositoryPicker.#ctor(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.GitHubRepositoryCatalogSource)">
+            <summary>Constructs a terminal selector with an injected catalog source.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubRepositoryPicker.PickBrowseAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Selects a repository for the interactive Markdown link browser instead
+            of the legacy one-shot GitHub README display.
+            </summary>
+            <param name="owner">GitHub account or organization.</param>
+            <param name="token">Cancels selection.</param>
+            <returns>GitHub link browser command, or null when cancelled.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewGitHubRepositoryPicker.PickAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Lists repositories for an owner and returns an explicit README command,
+            or null when the user presses Escape. Never fetches any README itself.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor">
+            <summary>One recognized Markdown heading and its unique document anchor.</summary>
+            <param name="Anchor">Normalized heading slug, including duplicate suffix.</param>
+            <param name="Title">Recognized heading text.</param>
+            <param name="SourceOffset">UTF-16 position of the heading in the document.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor.#ctor(System.String,System.String,System.Int32)">
+            <summary>One recognized Markdown heading and its unique document anchor.</summary>
+            <param name="Anchor">Normalized heading slug, including duplicate suffix.</param>
+            <param name="Title">Recognized heading text.</param>
+            <param name="SourceOffset">UTF-16 position of the heading in the document.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor.Anchor">
+            <summary>Normalized heading slug, including duplicate suffix.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor.Title">
+            <summary>Recognized heading text.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor.SourceOffset">
+            <summary>UTF-16 position of the heading in the document.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingIndex">
+            <summary>
+            In-memory heading index for the opt-in small-document browser.
+            Uses existing Markdown block classification so fenced-code headings
+            are never indexed.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingIndex.Create(System.String)">
+            <summary>Indexes recognized ATX headings in a bounded Markdown document.</summary>
+            <param name="markdown">Complete decoded Markdown text.</param>
+            <returns>Ordered headings with unique, GitHub-style lowercase slugs.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingIndex.Find(System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHeadingAnchor},System.String)">
+            <summary>Finds an exact normalized anchor; returns null if absent.</summary>
+            <param name="headings">Heading index for the current document.</param>
+            <param name="fragment">Fragment without the leading #.</param>
+            <returns>Recognized destination, if any.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHighlighting">
+            <summary>Creates a Markdown theme with optional bundled TextMate code-fence grammars.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHighlighting.CreateTheme">
+            <summary>
+            Enable all available TextMate grammars without coupling the parser or base
+            renderer to native syntax assets. Unavailable native assets safely degrade
+            to plain code instead of making the document unreadable.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkBrowser">
+            <summary>
+            Opt-in HTTPS Markdown link browser. Reads only fully validated cached
+            documents and requires explicit same-origin link selection.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkBrowser.#ctor(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpMarkdownDocumentSource)">
+            <summary>Creates a browser with caller-owned HTTP/cache infrastructure.</summary>
+            <param name="console">Interactive terminal.</param>
+            <param name="source">Verified document adapter; disable automatic redirects on its client.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkBrowser.RunAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Opens and navigates same-origin HTTPS Markdown documents.</summary>
+            <param name="url">Initial HTTPS Markdown URL without query or fragment.</param>
+            <param name="cancellationToken">Cancels terminal prompts and network operations.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkedDocument">
+            <summary>A verified HTTPS document and its precise navigation location.</summary>
+            <param name="Target">Current document origin and heading fragment.</param>
+            <param name="Result">Verified cache result and explicitly reported freshness state.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkedDocument.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpDocumentResult)">
+            <summary>A verified HTTPS document and its precise navigation location.</summary>
+            <param name="Target">Current document origin and heading fragment.</param>
+            <param name="Result">Verified cache result and explicitly reported freshness state.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkedDocument.Target">
+            <summary>Current document origin and heading fragment.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsLinkedDocument.Result">
+            <summary>Verified cache result and explicitly reported freshness state.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession">
+            <summary>
+            Opt-in HTTPS Markdown navigation. Uses the existing verified HTTP/cache
+            adapter, retains only one current document and bounded location history.
+            </summary>
+            <remarks>
+            All target paths must stay on the original HTTPS origin. Each changed
+            document is fetched/revalidated before history is changed. Same-document
+            anchor jumps reuse already validated content. Caller owns the source's
+            HttpClient and cache, including its no-automatic-redirect policy.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.DefaultMaximumDocumentBytes">
+            <summary>Maximum single-document UTF-8 bytes for whole-render browsing.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.Current">
+            <summary>The current verified Markdown content and its freshness state.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.History">
+            <summary>Bounded Back/Forward history of URLs and fragments.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.OpenAsync(Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.HttpMarkdownDocumentSource,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>Opens the first HTTPS source through the verified cache.</summary>
+            <param name="source">Caller-configured HTTPS document adapter.</param>
+            <param name="origin">Absolute HTTPS source identity.</param>
+            <param name="historyCapacity">Maximum retained history entries.</param>
+            <param name="maximumDocumentBytes">Maximum source bytes displayed in browser.</param>
+            <param name="cancellationToken">Cancellation of source retrieval.</param>
+            <returns>A navigation session rooted at the verified source.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.FollowAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Follows a same-origin Markdown link after verifying its destination.
+            A failed fetch leaves the current page and history unchanged.
+            </summary>
+            <param name="href">Relative path or heading anchor.</param>
+            <param name="cancellationToken">Cancels navigation.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.BackAsync(System.Threading.CancellationToken)">
+            <summary>Moves backward after revalidating a changed remote source.</summary>
+            <param name="cancellationToken">Cancels navigation.</param>
+            <returns>False when there is no preceding location.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewHttpsNavigationSession.ForwardAsync(System.Threading.CancellationToken)">
+            <summary>Moves forward after revalidating a changed remote source.</summary>
+            <param name="cancellationToken">Cancels navigation.</param>
+            <returns>False when there is no following location.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewInteractiveSourcePicker">
+            <summary>
+            Interactive source selection for mdview. Only selects a source; downloading and
+            rendering stay in the command execution path. Cancellation never reads a file.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewInteractiveSourcePicker.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Create the picker for an interactive Spectre.Console terminal.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewInteractiveSourcePicker.PickAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Selects an existing local Markdown file or an HTTPS/GitHub identity.
+            Returns null when the user cancels from the main menu.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewInteractiveSourcePicker.IsMarkdownPath(System.String)">
+            <summary>Checks the extension independently of interactive browser filters.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalScanStage">
+            <summary>
+            Internal, opt-in stages of scanning and reading the event journal.
+            These are logical asynchronous operations, NOT physical disk IO events.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow">
+            <summary>Immutable statistics for one timed journal operation in a progress window.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow.#ctor(System.Int64,System.Double,System.Double,System.Int64,System.Int64,System.Int64)">
+            <summary>Immutable statistics for one timed journal operation in a progress window.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalTimingWindow">
+            <summary>Optional journal build and readback timings per progress window.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalTimingWindow.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalStageWindow)">
+            <summary>Optional journal build and readback timings per progress window.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalTimingWindow.AccountedMs">
+            <summary>Sum of instrumented stages including the journal readback path.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalScanTimings">
+            <summary>
+            Single-caller, bounded-memory timing accumulator for an optional HDD
+            diagnostic run. No log output, disk writes, timers or per-event
+            allocations. Production cursors leave it null.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalScanTimings.Record(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalScanStage,System.Int64,System.Int64,System.Int64)">
+            <summary>Records one completed logical operation on the scanning caller.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewJournalScanTimings.TakeWindowAndReset">
+            <summary>
+            Takes a completed progress-window snapshot and starts a fresh window.
+            Only call from the same sequential scanning task between ReadAsync calls.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOriginKind">
+            <summary>Origin type used by the optional Markdown relative-link resolver.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOriginKind.Local">
+            <summary>A local Markdown file within a configured navigation root.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOriginKind.Https">
+            <summary>A public HTTPS Markdown resource.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOriginKind.GitHub">
+            <summary>A Markdown file within a specific GitHub repository and ref.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin">
+            <summary>
+            Typed source identity for resolving relative Markdown links. A local
+            navigation root is a lexical boundary, not a symlink or filesystem ACL.
+            </summary>
+            <param name="Kind">Source type.</param>
+            <param name="Location">Absolute local filename, absolute HTTPS URL, or repository-relative file path.</param>
+            <param name="LocalRoot">Permitted local directory tree for local navigation.</param>
+            <param name="Owner">GitHub repository owner.</param>
+            <param name="Repository">GitHub repository name.</param>
+            <param name="Ref">Explicit GitHub branch, tag or commit identifier.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOriginKind,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Typed source identity for resolving relative Markdown links. A local
+            navigation root is a lexical boundary, not a symlink or filesystem ACL.
+            </summary>
+            <param name="Kind">Source type.</param>
+            <param name="Location">Absolute local filename, absolute HTTPS URL, or repository-relative file path.</param>
+            <param name="LocalRoot">Permitted local directory tree for local navigation.</param>
+            <param name="Owner">GitHub repository owner.</param>
+            <param name="Repository">GitHub repository name.</param>
+            <param name="Ref">Explicit GitHub branch, tag or commit identifier.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.Kind">
+            <summary>Source type.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.Location">
+            <summary>Absolute local filename, absolute HTTPS URL, or repository-relative file path.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.LocalRoot">
+            <summary>Permitted local directory tree for local navigation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.Owner">
+            <summary>GitHub repository owner.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.Repository">
+            <summary>GitHub repository name.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.Ref">
+            <summary>Explicit GitHub branch, tag or commit identifier.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.FromLocal(System.String,System.String)">
+            <summary>Creates a local source with a caller-selected navigation root.</summary>
+            <param name="file">Current local document filename.</param>
+            <param name="root">Directory allowed for relative navigation.</param>
+            <returns>Canonical local origin.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.FromHttps(System.String)">
+            <summary>Creates an HTTPS document origin without a fragment.</summary>
+            <param name="url">Absolute HTTPS document URI.</param>
+            <returns>Canonical HTTPS origin.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin.FromGitHub(System.String,System.String,System.String,System.String)">
+            <summary>Creates a file origin within a specified GitHub repository and resolved ref.</summary>
+            <param name="owner">Repository owner.</param>
+            <param name="repository">Repository name.</param>
+            <param name="reference">Resolved ref, not a guessed default branch.</param>
+            <param name="path">Repository-relative Markdown filename.</param>
+            <returns>Canonical GitHub file origin.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink">
+            <summary>A resolved same-source Markdown link; no I/O or navigation is performed.</summary>
+            <param name="Origin">Target source, preserving the original source type.</param>
+            <param name="Fragment">Optional decoded fragment without its leading hash.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin,System.String)">
+            <summary>A resolved same-source Markdown link; no I/O or navigation is performed.</summary>
+            <param name="Origin">Target source, preserving the original source type.</param>
+            <param name="Fragment">Optional decoded fragment without its leading hash.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink.Origin">
+            <summary>Target source, preserving the original source type.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink.Fragment">
+            <summary>Optional decoded fragment without its leading hash.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLinkResolver">
+            <summary>
+            Pure resolver for relative Markdown documents and anchors. It never opens,
+            downloads or executes the target. Cross-origin and unsafe schemes are rejected.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLinkResolver.Resolve(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin,System.String)">
+            <summary>Resolves a Markdown link relative to the referring document.</summary>
+            <param name="source">Typed current document origin.</param>
+            <param name="href">Relative Markdown target or same-document fragment.</param>
+            <returns>Canonical target origin and optional anchor.</returns>
+            <exception cref="T:System.ArgumentException">A target is unsupported or leaves the permitted scope.</exception>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkBrowser">
+            <summary>
+            Opt-in keyboard-first navigation of local Markdown documents using one
+            validated snapshot, bounded history and explicit link selection.
+            </summary>
+            <remarks>
+            The current whole-document renderer and link extractor are deliberately
+            capped at 1 MiB of UTF-8 source per visited document. Large documents
+            should use the separate indexed preview until streaming link indexing
+            becomes available. No HTTP/GitHub or external links are followed here.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkBrowser.MaximumDocumentBytes">
+            <summary>Maximum UTF-8 source bytes rendered in this browsing mode (1 MiB).</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkBrowser.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Creates the opt-in browser using an injected terminal.</summary>
+            <param name="console">Interactive Spectre.Console terminal.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkBrowser.RunAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Opens a local Markdown document and allows Follow / Back / Forward / Exit.
+            Follows only links resolved within the initial document directory.
+            </summary>
+            <param name="path">Existing .md or .markdown source file.</param>
+            <param name="cancellationToken">Cancels reading and terminal prompts.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkedDocument">
+            <summary>
+            A local linked Markdown document backed by an independently owned,
+            validated temporary UTF-8 snapshot. Dispose it after reading.
+            </summary>
+            <param name="Target">Resolved document origin and optional fragment.</param>
+            <param name="Snapshot">Fully validated copy; owned by this result.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkedDocument.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink,Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot)">
+            <summary>
+            A local linked Markdown document backed by an independently owned,
+            validated temporary UTF-8 snapshot. Dispose it after reading.
+            </summary>
+            <param name="Target">Resolved document origin and optional fragment.</param>
+            <param name="Snapshot">Fully validated copy; owned by this result.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkedDocument.Target">
+            <summary>Resolved document origin and optional fragment.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkedDocument.Snapshot">
+            <summary>Fully validated copy; owned by this result.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkedDocument.DisposeAsync">
+            <summary>Releases the validated copy and its temporary index.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkLoader">
+            <summary>
+            Opens only explicitly requested local Markdown links inside a lexical root,
+            rejecting symlink/reparse-point paths before copying into a validated snapshot.
+            </summary>
+            <remarks>
+            Path checks are best-effort checks before opening, not race-free or a
+            malicious same-user filesystem sandbox. A concurrent directory substitution
+            can occur between checking and opening. Do not treat this as authorization
+            to follow arbitrary untrusted file trees without stronger OS-level controls.
+            Online/GitHub links require separate network and cache loaders.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalLinkLoader.OpenAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin,System.String,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Resolves and opens a local Markdown link into a bounded, fully validated
+            private snapshot without loading the entire document into RAM.
+            </summary>
+            <param name="source">Current local document and its permitted navigation root.</param>
+            <param name="href">Relative local Markdown path, optionally with a fragment.</param>
+            <param name="maximumSnapshotBytes">Maximum source bytes staged on disk.</param>
+            <param name="cancellationToken">Cancels opening and validation.</param>
+            <returns>Caller-owned local linked document and its snapshot.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession">
+            <summary>
+            Opt-in local Markdown navigation controller. Owns one validated snapshot
+            at a time and keeps a bounded path/fragment history, not file contents.
+            </summary>
+            <remarks>
+            Each transition validates and opens its destination before modifying
+            history. On failure the previous page and history remain usable.
+            This is not connected to the interactive mdview CLI yet.
+            </remarks>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.History">
+            <summary>Bounded location history; callers must not mutate it independently.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.Current">
+            <summary>Currently open validated local Markdown document.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.OpenAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDocumentOrigin,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Opens the initial local Markdown document in its permitted navigation root.
+            </summary>
+            <param name="origin">Initial local source and root.</param>
+            <param name="historyCapacity">Maximum retained navigation locations.</param>
+            <param name="maximumSnapshotBytes">Per-open temporary snapshot budget.</param>
+            <param name="cancellationToken">Cancels initialization.</param>
+            <returns>Owner of the current validated document and history.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.FollowAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Follows a relative Markdown link, committing history only after
+            the destination has been validated and opened.
+            </summary>
+            <param name="href">Relative Markdown path or same-document fragment.</param>
+            <param name="cancellationToken">Cancels navigation.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.BackAsync(System.Threading.CancellationToken)">
+            <summary>Opens and navigates to the previous location if available.</summary>
+            <param name="cancellationToken">Cancels navigation.</param>
+            <returns>False if there is no previous location.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.ForwardAsync(System.Threading.CancellationToken)">
+            <summary>Opens and navigates to the next location if available.</summary>
+            <param name="cancellationToken">Cancels navigation.</param>
+            <returns>False if there is no next location.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLocalNavigationSession.DisposeAsync">
+            <summary>Disposes the currently open snapshot and session synchronization.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLongNativeTableEligibility">
+            <summary>
+            Streaming, bounded-memory eligibility preflight for displaying every
+            source row of a long Markdown table as native Spectre fragments.
+            </summary>
+            <remarks>
+            This does not store a table or any fragment widgets. It scans a validated
+            source table through at most six-row native plans, rejecting the entire
+            native mode if even one later fragment cannot fit a fresh visual page.
+            The fixed fragment limit prevents expensive full-source scans on extremely
+            large tables; those use the existing compact layout instead.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLongNativeTableEligibility.MaximumFragments">
+            <summary>
+            Maximum bounded fragments checked before choosing compact fallback.
+            Supports up to 12,288 short source rows per table (six per fragment).
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewLongNativeTableEligibility.CanRenderEntireTableAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader,Spectre.Console.IAnsiConsole,System.Int32,System.Int32,System.Threading.CancellationToken,System.Int32)">
+            <summary>
+            Verifies complete source-table native viability without drawing or
+            retaining previous fragments in memory.
+            </summary>
+            <param name="cursor">Previously validated, disk-backed source cursor.</param>
+            <param name="header">Confirmed table header and alignment delimiters.</param>
+            <param name="console">Physical Spectre profile used for measurement.</param>
+            <param name="contentRows">Visual rows available to one fresh page.</param>
+            <param name="maximumContentColumns">Optional content-column width cap.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="maximumFragments">Bounded fragment scan limit, 1–2048; lowered only in test scenarios.</param>
+            <returns>True only if every source row fits a native fresh-page fragment.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentAlignment">
+            <summary>
+            Optional horizontal positioning of the mixed Markdown reading column
+            while preserving its exact content width and visual row count.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentAlignment.LeftGutter(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Returns the left gutter needed to center the existing reading column
+            in the physical terminal. Zero also preserves the default layout.
+            </summary>
+            <param name="terminalWidth">Actual terminal width in columns.</param>
+            <param name="maximumContentColumns">Optional Markdown content width cap; zero means automatic.</param>
+            <param name="centerContent">True to center the reading column within available free space.</param>
+            <returns>Non-negative number of columns to indent each visible content row.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentAlignment.IndentTable(Spectre.Console.Table,System.Int32)">
+            <summary>
+            Wraps a native Spectre table with only horizontal left padding.
+            Top and bottom padding are deliberately zero to preserve page height.
+            </summary>
+            <param name="table">Measured native table widget.</param>
+            <param name="leftGutter">Calculated non-negative left indentation.</param>
+            <returns>The original widget when no gutter is needed, or a padded widget.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth">
+            <summary>
+            Shared deterministic content-width policy for the opt-in mixed Markdown
+            preview. The physical terminal is never resized or misreported.
+            </summary>
+            <remarks>
+            The width limit concerns visible Markdown content columns, not physical
+            terminal columns. Native Spectre tables use the identical effective width,
+            including the usual two-column terminal margin.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth.MinimumColumns">
+            <summary>Minimum explicitly requested content width.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth.MaximumColumns">
+            <summary>Maximum explicitly requested content width.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth.Validate(System.Int32)">
+            <summary>
+            Validates the requested maximum; zero retains the full terminal width.
+            </summary>
+            <param name="maximumColumns">Zero or 40–4096 visible content columns.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth.EffectiveTerminalWidth(System.Int32,System.Int32)">
+            <summary>
+            Returns physical columns available to the shared visual planner
+            including its existing two-column outer margin.
+            </summary>
+            <param name="terminalWidth">Actual terminal width in columns.</param>
+            <param name="maximumColumns">Zero, or requested maximum content width.</param>
+            <returns>Effective terminal columns for rendering and native table measurement.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedContentWidth.ContentColumns(System.Int32,System.Int32)">
+            <summary>
+            Gets the precise text layout width, preserving the existing
+            minimum-eight-column safe layout contract.
+            </summary>
+            <param name="terminalWidth">Actual terminal columns.</param>
+            <param name="maximumColumns">Optional content column limit.</param>
+            <returns>Markdown layout columns, from 8 to 4096.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedPreviewPager">
+            <summary>
+            Opt-in interactive local Markdown pager using disk-indexed mixed visual
+            pages with small native Spectre tables between ordinary styled text.
+            </summary>
+            <remarks>
+            The established "preview" command remains compact by default. This
+            pager uses the validated source snapshot, disk-backed mixed page
+            index and source-navigation index. A resize rebuilds visual page
+            boundaries from the current physical source-line anchor.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedPreviewPager.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Creates a mixed-page viewer for an interactive terminal.</summary>
+            <param name="console">Console used for all rendering and navigation.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedPreviewPager.RunAsync(System.String,System.Int32,System.Threading.CancellationToken,System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Opens a validated local Markdown file in an explicitly selected mixed
+            visual preview, including native tables and canonical source jumps.
+            </summary>
+            <param name="path">Local UTF-8 Markdown source file.</param>
+            <param name="linesPerPage">Zero for terminal height minus controls, else 1–128 rows.</param>
+            <param name="cancellationToken">Cancels reading, indexing or interaction.</param>
+            <param name="maximumContentColumns">Optional width cap for visible Markdown and native table content; zero uses full width.</param>
+            <param name="centerContent">True to center the capped reading column in the terminal.</param>
+            <param name="longNativeTables">Opt in to repeated-header long Spectre fragments after whole-table preflight.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualIndexedRenderer">
+            <summary>
+            Renders canonical pages from a disk-backed mixed-document index using
+            exactly the same source-bound planner as index construction.
+            </summary>
+            <remarks>
+            The full planned page is checked against its disk record before any
+            output is written. A resize or substituted source cursor invalidates
+            the index; the caller must rebuild it for the new document/viewport.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualIndexedRenderer.RenderPageAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Spectre.Console.IAnsiConsole,System.Int64,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Reconstructs and displays one indexed mixed Markdown/native-table
+            page after checking the complete source and visual-row contract.
+            </summary>
+            <param name="index">Caller-owned mixed visual page index.</param>
+            <param name="cursor">The same validated cursor used to build the index.</param>
+            <param name="console">Target terminal with unchanged geometry.</param>
+            <param name="pageNumber">Zero-based canonical document page number.</param>
+            <param name="theme">Existing Markdown styles shared with the compact reader.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="centerContent">Whether to center the planned reading column without changing its indexed rows.</param>
+            <returns>Verified source-bound index record for the displayed page.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage">
+            <summary>
+            Persistent disk record describing one measured mixed Markdown visual page.
+            Both source positions carry the compact-table continuation state.
+            </summary>
+            <param name="Start">Exact source position at the beginning of this page.</param>
+            <param name="Next">First unconsumed source/visual position.</param>
+            <param name="VisualRows">Number of measured content rows on this page.</param>
+            <param name="AtEnd">True only on the final indexed page.</param>
+            <param name="ContainsClippedCode">Whether this page contains horizontally clipped code.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition,System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Persistent disk record describing one measured mixed Markdown visual page.
+            Both source positions carry the compact-table continuation state.
+            </summary>
+            <param name="Start">Exact source position at the beginning of this page.</param>
+            <param name="Next">First unconsumed source/visual position.</param>
+            <param name="VisualRows">Number of measured content rows on this page.</param>
+            <param name="AtEnd">True only on the final indexed page.</param>
+            <param name="ContainsClippedCode">Whether this page contains horizontally clipped code.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.Start">
+            <summary>Exact source position at the beginning of this page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.Next">
+            <summary>First unconsumed source/visual position.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.VisualRows">
+            <summary>Number of measured content rows on this page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.AtEnd">
+            <summary>True only on the final indexed page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedIndexedPage.ContainsClippedCode">
+            <summary>Whether this page contains horizontally clipped code.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex">
+            <summary>
+            Disk-backed page-start index for an entire validated Markdown document,
+            combining the existing styled text layout and bounded native table blocks.
+            </summary>
+            <remarks>
+            Each record stores source/wrap/compact-table state at both ends of one
+            visual page, plus measured content rows and flags. The page planner
+            itself is the only source of layout geometry; no second table-height
+            approximation or whole-document in-memory list is maintained.
+            The index is a temporary file deleted when disposed. It does not replace
+            the established compact preview until its separate UI is verified.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.DefaultMaximumIndexBytes">
+            <summary>Default disk budget for mixed-document page records (64 MiB).</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.RecordBytes">
+            <summary>
+            Two source positions (24 bytes each), a 32-bit row count and
+            a 32-bit flag field, stored in little-endian format.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.PageCount">
+            <summary>Number of indexed pages; at least one, including an empty file.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.SourceLineCount">
+            <summary>Total physical source lines in the validated document.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.TerminalWidth">
+            <summary>Terminal width used for planning and index construction.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.TerminalHeight">
+            <summary>Terminal height used for planning and index construction.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.ContentRows">
+            <summary>Maximum content display rows allocated to each page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.Unicode">
+            <summary>Whether the measured terminal supported Unicode.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.MaximumContentColumns">
+            <summary>Optional Markdown/native table content width cap; zero uses the full terminal.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.LongNativeTables">
+            <summary>
+            Whether bounded repeated-header native fragments are enabled for
+            the indexed document. Stored as index metadata, not per-page bytes.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.CreateAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Spectre.Console.IAnsiConsole,System.Int32,System.Int64,System.Threading.CancellationToken,System.Int32,System.Boolean)">
+            <summary>
+            Builds a complete disk index using the same bounded planner that
+            will later be used to render individual pages.
+            </summary>
+            <param name="cursor">Caller-owned validated and disk-backed source cursor.</param>
+            <param name="console">Terminal with the viewport and Spectre capabilities.</param>
+            <param name="contentRows">Content row budget, from 1 to 128.</param>
+            <param name="maximumIndexBytes">Maximum temporary index bytes.</param>
+            <param name="cancellationToken">Cancels the scan and index writes.</param>
+            <param name="maximumContentColumns">Optional content width cap, or zero for physical terminal width.</param>
+            <param name="longNativeTables">Opt-in bounded native continuation for long pipe tables.</param>
+            <returns>Owned disk-backed index that must be disposed.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.GetPageAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Reads a page record without loading other page records.</summary>
+            <param name="pageNumber">Zero-based page number.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Exact start/end source state and measured page height.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.FindPageAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Finds the canonical visual page containing the start of one physical
+            source line, including lines inside a native table or compact block.
+            </summary>
+            <param name="sourceLine">Zero-based physical source line.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Zero-based page number.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.FindPageAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition,System.Threading.CancellationToken)">
+            <summary>
+            Finds the canonical visual page containing the supplied physical
+            line/soft-wrap row position by binary search on disk page starts.
+            </summary>
+            <param name="position">Source line and within-line visual row.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Zero-based canonical page containing the position.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.DisposeAsync">
+            <summary>Deletes the temporary disk index and releases its resources.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageIndex.UsesSourceCursor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor)">
+            <summary>True only for the validated source cursor used to build this index.</summary>
+            <param name="cursor">Source cursor proposed for rendering.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition">
+            <summary>
+            Resumable source position for a mixed Markdown/native-table visual page.
+            A compact table retains its header and column count across page breaks.
+            </summary>
+            <param name="Line">Zero-based physical source line.</param>
+            <param name="WrapRow">First remaining visual row within the source line.</param>
+            <param name="CompactHeaderLine">Header line of the active table, or -1 when not in a table. Also stores the repeated native header line during opt-in continuation.</param>
+            <param name="CompactColumns">Compact table column count, zero when inactive, or -1 for opt-in native continuation.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.#ctor(System.Int64,System.Int32,System.Int64,System.Int32)">
+            <summary>
+            Resumable source position for a mixed Markdown/native-table visual page.
+            A compact table retains its header and column count across page breaks.
+            </summary>
+            <param name="Line">Zero-based physical source line.</param>
+            <param name="WrapRow">First remaining visual row within the source line.</param>
+            <param name="CompactHeaderLine">Header line of the active table, or -1 when not in a table. Also stores the repeated native header line during opt-in continuation.</param>
+            <param name="CompactColumns">Compact table column count, zero when inactive, or -1 for opt-in native continuation.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.Line">
+            <summary>Zero-based physical source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.WrapRow">
+            <summary>First remaining visual row within the source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.CompactHeaderLine">
+            <summary>Header line of the active table, or -1 when not in a table. Also stores the repeated native header line during opt-in continuation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.CompactColumns">
+            <summary>Compact table column count, zero when inactive, or -1 for opt-in native continuation.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.Beginning">
+            <summary>Beginning of a new Markdown document.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.IsNativeContinuation">
+            <summary>
+            True when the existing fixed-size page record stores a long native
+            table's repeating header rather than a compact table column count.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition.NativeContinuation(System.Int64,System.Int64)">
+            <summary>
+            Constructs the exact next-source-line state for a continuing native
+            table without increasing the 56-byte disk-page record size.
+            </summary>
+            <param name="headerLine">Original, validated table header line.</param>
+            <param name="nextDataLine">First unconsumed physical table data line.</param>
+            <returns>Source-aware native table continuation point.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualBlock">
+            <summary>One bounded visual block in a planned mixed Markdown page.</summary>
+            <param name="VisualRows">Actual number of occupied terminal display rows.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualBlock.#ctor(System.Int32)">
+            <summary>One bounded visual block in a planned mixed Markdown page.</summary>
+            <param name="VisualRows">Actual number of occupied terminal display rows.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualBlock.VisualRows">
+            <summary>Actual number of occupied terminal display rows.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTextBlock">
+            <summary>Source-classified ordinary or compact Markdown display rows.</summary>
+            <param name="Source">Original container-classified physical source line.</param>
+            <param name="Rows">Bounded styled rows from the existing common layout.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTextBlock.#ctor(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow})">
+            <summary>Source-classified ordinary or compact Markdown display rows.</summary>
+            <param name="Source">Original container-classified physical source line.</param>
+            <param name="Rows">Bounded styled rows from the existing common layout.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTextBlock.Source">
+            <summary>Original container-classified physical source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTextBlock.Rows">
+            <summary>Bounded styled rows from the existing common layout.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock">
+            <summary>One complete, native Spectre grid inside a mixed document page.</summary>
+            <param name="HeaderLine">Zero-based original table-header source line.</param>
+            <param name="NextSourceLine">First source line after this complete table.</param>
+            <param name="DataRows">Number of original data rows shown in the widget.</param>
+            <param name="Height">Actual measured Spectre widget height, including its border.</param>
+            <param name="Widget">Bounded Spectre table, formatted as literal source data.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.#ctor(System.Int64,System.Int64,System.Int32,System.Int32,Spectre.Console.Table)">
+            <summary>One complete, native Spectre grid inside a mixed document page.</summary>
+            <param name="HeaderLine">Zero-based original table-header source line.</param>
+            <param name="NextSourceLine">First source line after this complete table.</param>
+            <param name="DataRows">Number of original data rows shown in the widget.</param>
+            <param name="Height">Actual measured Spectre widget height, including its border.</param>
+            <param name="Widget">Bounded Spectre table, formatted as literal source data.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.HeaderLine">
+            <summary>Zero-based original table-header source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.NextSourceLine">
+            <summary>First source line after this complete table.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.DataRows">
+            <summary>Number of original data rows shown in the widget.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.Height">
+            <summary>Actual measured Spectre widget height, including its border.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualTableBlock.Widget">
+            <summary>Bounded Spectre table, formatted as literal source data.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage">
+            <summary>
+            Planned page with explicit source resume state and bounded visual blocks.
+            Rendering and future disk page indexing can consume the same plan.
+            </summary>
+            <param name="Start">Source and compact-table state at the page beginning.</param>
+            <param name="Next">Precise first unconsumed source row/state.</param>
+            <param name="Rows">Visual rows occupied by all blocks.</param>
+            <param name="ContainsClippedCode">True if a displayed literal code row was clipped.</param>
+            <param name="AtEnd">True if the next source position is the document end.</param>
+            <param name="TerminalWidth">Terminal columns used to plan the page.</param>
+            <param name="TerminalHeight">Terminal rows used to plan the page.</param>
+            <param name="Unicode">Unicode capability used for Spectre measurement.</param>
+            <param name="Blocks">Ordered bounded blocks to render without reparsing source.</param>
+            <param name="MaximumContentColumns">Optional shared content width cap, or zero for automatic.</param>
+            <param name="LongNativeTables">Whether opt-in long native table continuation is enabled for this page.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Int32,System.Boolean,System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualBlock},System.Int32,System.Boolean)">
+            <summary>
+            Planned page with explicit source resume state and bounded visual blocks.
+            Rendering and future disk page indexing can consume the same plan.
+            </summary>
+            <param name="Start">Source and compact-table state at the page beginning.</param>
+            <param name="Next">Precise first unconsumed source row/state.</param>
+            <param name="Rows">Visual rows occupied by all blocks.</param>
+            <param name="ContainsClippedCode">True if a displayed literal code row was clipped.</param>
+            <param name="AtEnd">True if the next source position is the document end.</param>
+            <param name="TerminalWidth">Terminal columns used to plan the page.</param>
+            <param name="TerminalHeight">Terminal rows used to plan the page.</param>
+            <param name="Unicode">Unicode capability used for Spectre measurement.</param>
+            <param name="Blocks">Ordered bounded blocks to render without reparsing source.</param>
+            <param name="MaximumContentColumns">Optional shared content width cap, or zero for automatic.</param>
+            <param name="LongNativeTables">Whether opt-in long native table continuation is enabled for this page.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.Start">
+            <summary>Source and compact-table state at the page beginning.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.Next">
+            <summary>Precise first unconsumed source row/state.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.Rows">
+            <summary>Visual rows occupied by all blocks.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.ContainsClippedCode">
+            <summary>True if a displayed literal code row was clipped.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.AtEnd">
+            <summary>True if the next source position is the document end.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.TerminalWidth">
+            <summary>Terminal columns used to plan the page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.TerminalHeight">
+            <summary>Terminal rows used to plan the page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.Unicode">
+            <summary>Unicode capability used for Spectre measurement.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.Blocks">
+            <summary>Ordered bounded blocks to render without reparsing source.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.MaximumContentColumns">
+            <summary>Optional shared content width cap, or zero for automatic.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage.LongNativeTables">
+            <summary>Whether opt-in long native table continuation is enabled for this page.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPagePlanner">
+            <summary>
+            Experimental one-page planner mixing formatted Markdown rows and complete
+            small native Spectre tables under one visual row budget.
+            </summary>
+            <remarks>
+            This does not replace MdViewTerminalPageIndex. By default only confirmed
+            whole tables fitting a fresh page use native Spectre. When explicitly
+            enabled, source-complete long tables that pass a bounded streaming
+            preflight can use repeated-header, six-row native fragments across pages.
+            Unsafe or excessively long tables remain compact in their entirety.
+            Source access uses the validated disk-backed cursor; planning writes no output.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPagePlanner.PlanAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPosition,Spectre.Console.IAnsiConsole,System.Int32,System.Threading.CancellationToken,System.Int32,System.Boolean)">
+            <summary>
+            Creates a bounded page plan from a resumable source position.
+            </summary>
+            <param name="cursor">Caller-owned validated source cursor.</param>
+            <param name="start">Source position, including an active compact table if any.</param>
+            <param name="console">Spectre terminal whose actual geometry is used.</param>
+            <param name="contentRows">Available visible content rows, 1–128.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="maximumContentColumns">Optional maximum content width; zero retains full terminal width.</param>
+            <param name="longNativeTables">Opt in to source-complete, repeated-header long native fragments.</param>
+            <returns>One page with an exact next source position and renderable blocks.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageRenderer">
+            <summary>
+            Renders a bounded mixed visual-page plan, preserving the exact source
+            continuation and the Markdown styles of the existing compact renderer.
+            </summary>
+            <remarks>
+            Before writing, the renderer verifies terminal geometry and all native
+            table heights against the actual Spectre render-segment pipeline. It
+            never parses untrusted Markdown as Spectre markup. This separate
+            experimental component is not yet connected to the default pager.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPageRenderer.Render(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMixedVisualPage,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme,System.Boolean)">
+            <summary>
+            Writes a previously planned mixed page after checking viewport and
+            measured-widget parity. Source files and disk indexes are unchanged.
+            </summary>
+            <param name="console">Target Spectre console.</param>
+            <param name="plan">Bounded, source-aware page plan.</param>
+            <param name="theme">Existing Markdown presentation theme.</param>
+            <param name="centerContent">Whether to center the reading column inside the physical terminal.</param>
+            <returns>Exact resume position recorded by the page planner.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment">
+            <summary>
+            One measured native table fragment stored as a fixed-size disk record.
+            Its source interval contains data rows only; the source header is
+            repeated visually and included in the measured visual row count.
+            </summary>
+            <param name="FirstDataLine">Inclusive zero-based source data line.</param>
+            <param name="NextDataLine">Exclusive first unconsumed source data line.</param>
+            <param name="DataRows">Count of consumed physical data lines (0–6).</param>
+            <param name="VisualRows">Measured native Spectre table height, including its frame and header.</param>
+            <param name="HasMore">Whether a matching source data line immediately follows.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.#ctor(System.Int64,System.Int64,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            One measured native table fragment stored as a fixed-size disk record.
+            Its source interval contains data rows only; the source header is
+            repeated visually and included in the measured visual row count.
+            </summary>
+            <param name="FirstDataLine">Inclusive zero-based source data line.</param>
+            <param name="NextDataLine">Exclusive first unconsumed source data line.</param>
+            <param name="DataRows">Count of consumed physical data lines (0–6).</param>
+            <param name="VisualRows">Measured native Spectre table height, including its frame and header.</param>
+            <param name="HasMore">Whether a matching source data line immediately follows.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.FirstDataLine">
+            <summary>Inclusive zero-based source data line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.NextDataLine">
+            <summary>Exclusive first unconsumed source data line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.DataRows">
+            <summary>Count of consumed physical data lines (0–6).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.VisualRows">
+            <summary>Measured native Spectre table height, including its frame and header.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragment.HasMore">
+            <summary>Whether a matching source data line immediately follows.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex">
+            <summary>
+            Disk-backed, source-bound index for one Markdown table's measured native
+            fragments. The validated source snapshot and its cursor remain caller-owned.
+            </summary>
+            <remarks>
+            This indexes only a confirmed single table, not a complete mixed Markdown
+            document. Each fixed-size record is stored in a temporary file that is
+            deleted on disposal. A fragment is reconstructed from the same planner
+            when eventually rendered; no native widget is kept in the index's RAM.
+            On any unsafe fragment geometry, the entire table requests the existing
+            compact fallback, rather than returning a partially indexed native table.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.DefaultMaximumIndexBytes">
+            <summary>Maximum temporary bytes allocated for fragment records.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.RecordBytes">
+            <summary>Bytes in one indexed fragment: two longs and three ints.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.HeaderLine">
+            <summary>Physical source line containing the validated table header.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.FragmentCount">
+            <summary>Number of native fragments indexed on disk, zero on fallback.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.SourceDataRows">
+            <summary>Number of data source lines covered by the native fragments.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.NextDataLine">
+            <summary>
+            First unconsumed source data line; header + 2 if compact fallback
+            was requested before any table data was accepted.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.TerminalWidth">
+            <summary>Terminal columns used for exact Spectre measurement.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.TerminalHeight">
+            <summary>Terminal height used when establishing the index geometry.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.Unicode">
+            <summary>Whether the source Spectre terminal supported Unicode.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.ContentRows">
+            <summary>Fixed available visual row budget for each fragment.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.FallbackReason">
+            <summary>
+            Entire-table compact fallback reason, or None when a complete native
+            table fragment index was constructed.
+            </summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.IsNative">
+            <summary>True only when every source data row is indexed natively.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.CreateAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader,Spectre.Console.IAnsiConsole,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Builds a bounded disk index by measuring successive source fragments.
+            Source is always read through the previously validated cursor.
+            </summary>
+            <param name="cursor">Caller-owned disk-backed Markdown source cursor.</param>
+            <param name="header">Previously validated source-bound table header.</param>
+            <param name="console">Spectre console with the intended viewport profile.</param>
+            <param name="contentRows">Page content height from 1 to 128 rows.</param>
+            <param name="maximumIndexBytes">Disk budget, at least one record.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Disposable disk index or an explicit entire-table fallback.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.GetFragmentAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Reads exactly one indexed fragment without loading its neighbors.</summary>
+            <param name="fragmentNumber">Zero-based fragment number.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Measured native fragment source coordinates and visual height.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.FindFragmentAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Finds the native fragment containing an original physical source
+            line. The table header and delimiter map to fragment zero.
+            </summary>
+            <param name="sourceLine">Zero-based original Markdown source line.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Matching zero-based fragment index, or null beyond the table.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.UsesSourceCursor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor)">
+            <summary>
+            Confirms that rendering is using the exact validated source cursor
+            from which this temporary index was built.
+            </summary>
+            <param name="cursor">Cursor proposed for fragment reconstruction.</param>
+            <returns>True only for the original caller-owned source cursor.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex.DisposeAsync">
+            <summary>Releases and deletes the temporary fragment index.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentRenderer">
+            <summary>
+            Renders a single indexed native Spectre table fragment after verifying
+            that its measured source coordinates still match the disk record.
+            </summary>
+            <remarks>
+            This table-only renderer is not yet connected to the ordinary Markdown
+            page UI. It intentionally uses the same bounded planner as indexing;
+            a resized console must rebuild the index before any widget is written.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentRenderer.RenderAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFragmentIndex,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader,Spectre.Console.IAnsiConsole,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Reconstructs the requested native table fragment and writes it only
+            after index/renderer geometry and source-resume parity are checked.
+            </summary>
+            <param name="index">Complete, caller-owned native table fragment index.</param>
+            <param name="cursor">Validated Markdown source cursor.</param>
+            <param name="header">Previously validated table source header.</param>
+            <param name="console">Destination terminal with unchanged geometry.</param>
+            <param name="fragmentNumber">Zero-based indexed fragment number.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Source and visual geometry of the displayed fragment.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason">
+            <summary>Why a native table cannot be safely placed into the requested visual page.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason.None">
+            <summary>A native table was measured and is ready for display.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason.NarrowTerminal">
+            <summary>The viewport cannot show the ordinary multi-column native grid.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason.HeaderTooTall">
+            <summary>The rounded border and native header alone exceed the row budget.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason.FirstRowTooTall">
+            <summary>Even one source data row would exceed the remaining row budget.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason.NoContinuationRow">
+            <summary>A continuation was requested after the table data had ended.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk">
+            <summary>
+            Measured native table fragment, including exact source continuation.
+            No rows are consumed if <see cref="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.FallbackReason"/> is not None.
+            </summary>
+            <param name="HeaderLine">Physical source line containing the original Markdown header.</param>
+            <param name="FirstDataLine">First physical data line considered for this fragment.</param>
+            <param name="NextDataLine">First unconsumed data line, safe to resume on another page.</param>
+            <param name="DataRows">Number of physical source data rows included in the widget.</param>
+            <param name="VisualRows">Actual Spectre-rendered height of the widget, including borders.</param>
+            <param name="HasMore">True if the immediate next source line belongs to this table.</param>
+            <param name="Widget">Bounded native table to render, or null when compact fallback is required.</param>
+            <param name="FallbackReason">Reason the native fragment cannot be used.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.#ctor(System.Int64,System.Int64,System.Int64,System.Int32,System.Int32,System.Boolean,Spectre.Console.Table,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTableFallbackReason)">
+            <summary>
+            Measured native table fragment, including exact source continuation.
+            No rows are consumed if <see cref="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.FallbackReason"/> is not None.
+            </summary>
+            <param name="HeaderLine">Physical source line containing the original Markdown header.</param>
+            <param name="FirstDataLine">First physical data line considered for this fragment.</param>
+            <param name="NextDataLine">First unconsumed data line, safe to resume on another page.</param>
+            <param name="DataRows">Number of physical source data rows included in the widget.</param>
+            <param name="VisualRows">Actual Spectre-rendered height of the widget, including borders.</param>
+            <param name="HasMore">True if the immediate next source line belongs to this table.</param>
+            <param name="Widget">Bounded native table to render, or null when compact fallback is required.</param>
+            <param name="FallbackReason">Reason the native fragment cannot be used.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.HeaderLine">
+            <summary>Physical source line containing the original Markdown header.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.FirstDataLine">
+            <summary>First physical data line considered for this fragment.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.NextDataLine">
+            <summary>First unconsumed data line, safe to resume on another page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.DataRows">
+            <summary>Number of physical source data rows included in the widget.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.VisualRows">
+            <summary>Actual Spectre-rendered height of the widget, including borders.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.HasMore">
+            <summary>True if the immediate next source line belongs to this table.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.Widget">
+            <summary>Bounded native table to render, or null when compact fallback is required.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.FallbackReason">
+            <summary>Reason the native fragment cannot be used.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePageChunk.IsNative">
+            <summary>Whether this fragment has a measured, renderable native table.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePagePlanner">
+            <summary>
+            Measures bounded source-table fragments for a future native in-page
+            Spectre layout. Does not write output or change the existing page index.
+            </summary>
+            <remarks>
+            The caller supplies the *remaining* visual content-row budget, not the
+            full terminal height. This planner produces exactly one native widget
+            with its source-bound resume line, or requests the compact fallback
+            without consuming any source line. Wide grid rendering deliberately
+            follows the native inspector's conservative width rule; narrow displays
+            retain the existing compact source layout until table-aware indexing
+            and transpose-source navigation are supported.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePagePlanner.MaximumSourceRows">
+            <summary>Maximum source rows in a measured native page fragment.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePagePlanner.SupportsNativeGrid(System.Int32,System.Int32)">
+            <summary>
+            Determines whether a native multi-column grid can fit horizontally.
+            </summary>
+            <param name="terminalWidth">Live terminal columns.</param>
+            <param name="columnCount">Validated header cell count.</param>
+            <returns>False when the compact format is safer.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNativeTablePagePlanner.PlanAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader,System.Int64,Spectre.Console.IAnsiConsole,System.Int32,System.Int32,System.Threading.CancellationToken,System.Int32)">
+            <summary>
+            Plans one height-measured source fragment without writing to the
+            target console or reading more than six data rows plus one lookahead.
+            </summary>
+            <param name="cursor">Caller-owned validated disk-backed source cursor.</param>
+            <param name="header">Header returned by the source-bound block reader.</param>
+            <param name="firstDataLine">Initial data line (header + 2), or an earlier fragment's NextDataLine.</param>
+            <param name="console">Console whose actual render capabilities are used for measurement.</param>
+            <param name="availableContentRows">Remaining viewport content rows, from 1 to 128.</param>
+            <param name="maximumSourceRows">Source row cap from 1 to 6.</param>
+            <param name="cancellationToken">Cancels source reads and bounded measurement.</param>
+            <param name="maximumContentColumns">Optional maximum visual content width; zero uses the terminal.</param>
+            <returns>Measured widget and exact resume line, or zero-consumption compact fallback.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory">
+            <summary>
+            Bounded document-and-fragment navigation history, independent of source IO.
+            Callers should record a visit only after the target has opened successfully.
+            </summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.DefaultCapacity">
+            <summary>Default maximum retained locations, including current (128).</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.#ctor(System.Int32)">
+            <summary>Creates a bounded history without an initial location.</summary>
+            <param name="capacity">Maximum retained locations, 1 through 4096.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.Capacity">
+            <summary>Maximum number of retained locations.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.Current">
+            <summary>Current location or null before the first visit.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.CanGoBack">
+            <summary>Whether a previous location exists.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.CanGoForward">
+            <summary>Whether a forward location exists.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.Count">
+            <summary>Number of retained history locations.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.BackTarget">
+            <summary>Next location if moving backward, without changing history.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.ForwardTarget">
+            <summary>Next location if moving forward, without changing history.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.Visit(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewResolvedLink)">
+            <summary>Records one successfully opened document/fragment location.</summary>
+            <param name="target">New resolved location.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.GoBack">
+            <summary>Moves to the previously visited location; returns false at the beginning.</summary>
+            <returns>True if the history position changed.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewNavigationHistory.GoForward">
+            <summary>Moves to the next location; returns false at the end.</summary>
+            <returns>True if the history position changed.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDisplayResult">
+            <summary>Result of opening a source, distinguishing displayed content from cancellation.</summary>
+            <param name="ExitCode">CLI exit code (zero for success/cancel).</param>
+            <param name="Displayed">Whether a document was actually shown to the user.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDisplayResult.#ctor(System.Int32,System.Boolean)">
+            <summary>Result of opening a source, distinguishing displayed content from cancellation.</summary>
+            <param name="ExitCode">CLI exit code (zero for success/cancel).</param>
+            <param name="Displayed">Whether a document was actually shown to the user.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDisplayResult.ExitCode">
+            <summary>CLI exit code (zero for success/cancel).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDisplayResult.Displayed">
+            <summary>Whether a document was actually shown to the user.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSession">
+            <summary>
+            Coordinates repeated document selection without coupling navigation to HTTP,
+            FileBrowser or Markdown rendering. All document readers remain independent.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSession.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Create a session using the viewer's existing terminal.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSession.RunAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand}},System.Func{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewCommand,System.Threading.CancellationToken,System.Threading.Tasks.Task{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewDisplayResult}},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Runs the initial command, optionally returning to the source menu after
+            each successful full-document render. Noninteractive callers do not wait.
+            The raw source pager owns its own navigation and is not double-prompted.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownPageSegment">
+            <summary>One source-bounded Markdown display fragment, independent of terminal rows.</summary>
+            <param name="Text">Validated source fragment or literal fenced-code line.</param>
+            <param name="IsLiteralCode">True for a block classified as fenced source code.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownPageSegment.#ctor(System.String,System.Boolean)">
+            <summary>One source-bounded Markdown display fragment, independent of terminal rows.</summary>
+            <param name="Text">Validated source fragment or literal fenced-code line.</param>
+            <param name="IsLiteralCode">True for a block classified as fenced source code.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownPageSegment.Text">
+            <summary>Validated source fragment or literal fenced-code line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownPageSegment.IsLiteralCode">
+            <summary>True for a block classified as fenced source code.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage">
+            <summary>One bounded source-line page of Markdown display segments.</summary>
+            <param name="FirstLine">First zero-based physical source line.</param>
+            <param name="NextLine">Exclusive next physical line.</param>
+            <param name="LineCount">Total physical source lines in the bounded document.</param>
+            <param name="Segments">Ordered Markdown/literal-code segments.</param>
+            <param name="HasMore">Whether further lines remain.</param>
+            <param name="TruncatedLine">Whether one oversized line was shortened for display.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.#ctor(System.Int32,System.Int32,System.Int32,System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownPageSegment},System.Boolean,System.Boolean)">
+            <summary>One bounded source-line page of Markdown display segments.</summary>
+            <param name="FirstLine">First zero-based physical source line.</param>
+            <param name="NextLine">Exclusive next physical line.</param>
+            <param name="LineCount">Total physical source lines in the bounded document.</param>
+            <param name="Segments">Ordered Markdown/literal-code segments.</param>
+            <param name="HasMore">Whether further lines remain.</param>
+            <param name="TruncatedLine">Whether one oversized line was shortened for display.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.FirstLine">
+            <summary>First zero-based physical source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.NextLine">
+            <summary>Exclusive next physical line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.LineCount">
+            <summary>Total physical source lines in the bounded document.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.Segments">
+            <summary>Ordered Markdown/literal-code segments.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.HasMore">
+            <summary>Whether further lines remain.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage.TruncatedLine">
+            <summary>Whether one oversized line was shortened for display.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex">
+            <summary>
+            Bounded source-line pagination for the existing at-most-1-MiB
+            whole-document Markdown browser. Uses full-parser block classification
+            to keep code fences literal across page boundaries.
+            </summary>
+            <remarks>
+            This is intentionally not the disk-backed multi-gigabyte pager or a
+            visual-terminal-row layout engine. A long source line is displayed only
+            up to the per-page character budget. Ordinary list/quote fragments may
+            lose context at a source page boundary; fenced code is never reparsed
+            as Markdown prose.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.DefaultPageLines">
+            <summary>Default source lines shown in each interactive page.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.MaximumPageCharacters">
+            <summary>Maximum displayed UTF-16 characters per source page.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.#ctor(System.String)">
+            <summary>Parses a bounded verified Markdown document once.</summary>
+            <param name="markdown">Complete decoded Markdown input.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.LineCount">
+            <summary>Total physical source lines recognized by the shared parser.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.FindSourceLine(System.Int32)">
+            <summary>Locates a heading or link source offset by physical source line.</summary>
+            <param name="sourceOffset">Zero-based UTF-16 offset in the original document.</param>
+            <returns>Zero-based line containing the source offset.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.GetPage(System.Int32,System.Int32)">
+            <summary>Builds one source-line page without rendering other lines.</summary>
+            <param name="firstLine">Zero-based first physical line.</param>
+            <param name="linesPerPage">Source line budget (1–128).</param>
+            <returns>Segments safe to hand to the existing Markdown renderer.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSmallMarkdownPageIndex.RenderPage(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewMarkdownSourcePage,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme)">
+            <summary>Renders only the supplied page; fenced source stays literal.</summary>
+            <param name="console">Destination terminal.</param>
+            <param name="page">Bounded display page from this index.</param>
+            <param name="theme">Markdown theme for ordinary prose.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourcePager">
+            <summary>
+            Read-only, low-memory navigation of raw UTF-8 source lines using an on-disk
+            offset index. This is intentionally not a rendered Markdown pager.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourcePager.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Use an interactive Spectre.Console terminal.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSourcePager.RunAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Browse physical lines with Next, Previous, Jump and Exit. Every displayed
+            line was validated before the first page; no entire document is loaded.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader">
+            <summary>
+            Source-bound header of an explicitly framed, top-level Markdown pipe table.
+            The delimiter cells are preserved for future Spectre column alignment.
+            </summary>
+            <param name="SourceLine">Zero-based physical line containing the table header.</param>
+            <param name="Columns">Decoded header cells, in source order.</param>
+            <param name="Separators">Original GFM alignment delimiter cells.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader.#ctor(System.Int64,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Source-bound header of an explicitly framed, top-level Markdown pipe table.
+            The delimiter cells are preserved for future Spectre column alignment.
+            </summary>
+            <param name="SourceLine">Zero-based physical line containing the table header.</param>
+            <param name="Columns">Decoded header cells, in source order.</param>
+            <param name="Separators">Original GFM alignment delimiter cells.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader.SourceLine">
+            <summary>Zero-based physical line containing the table header.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader.Columns">
+            <summary>Decoded header cells, in source order.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader.Separators">
+            <summary>Original GFM alignment delimiter cells.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk">
+            <summary>
+            One bounded, contiguous group of Markdown data rows. The next line is the
+            exact resume point, so no row is skipped or repeated between chunks.
+            </summary>
+            <param name="FirstDataLine">Zero-based first requested data line.</param>
+            <param name="NextDataLine">Zero-based first source line not consumed.</param>
+            <param name="Rows">Decoded data cells for at most six physical source rows.</param>
+            <param name="HasMore">True when the immediately following line is also a data row.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk.#ctor(System.Int64,System.Int64,System.Collections.Generic.IReadOnlyList{System.Collections.Generic.IReadOnlyList{System.String}},System.Boolean)">
+            <summary>
+            One bounded, contiguous group of Markdown data rows. The next line is the
+            exact resume point, so no row is skipped or repeated between chunks.
+            </summary>
+            <param name="FirstDataLine">Zero-based first requested data line.</param>
+            <param name="NextDataLine">Zero-based first source line not consumed.</param>
+            <param name="Rows">Decoded data cells for at most six physical source rows.</param>
+            <param name="HasMore">True when the immediately following line is also a data row.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk.FirstDataLine">
+            <summary>Zero-based first requested data line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk.NextDataLine">
+            <summary>Zero-based first source line not consumed.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk.Rows">
+            <summary>Decoded data cells for at most six physical source rows.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableChunk.HasMore">
+            <summary>True when the immediately following line is also a data row.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader">
+            <summary>
+            Small, source-aware pipe-table block reader shared by the native inspector
+            and the future table-block visual paginator.
+            </summary>
+            <remarks>
+            Header recognition uses a two-line lookahead, including across a visual
+            page boundary; data rows must be immediately contiguous and match the
+            header width. This component never scans or buffers a complete table.
+            Source text is read only through the validated disk-backed cursor.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader.MaximumRowsPerChunk">
+            <summary>Maximum source data rows in a single bounded chunk.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader.ReadHeaderAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Reads a genuine header and the immediately following matching
+            delimiter row. Returns null for loose pipe text or unsafe containers.
+            </summary>
+            <param name="cursor">Validated, caller-owned source cursor.</param>
+            <param name="headerLine">Zero-based candidate header line.</param>
+            <param name="cancellationToken">Cancels the bounded read.</param>
+            <returns>Validated header and delimiters, or null.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader.FindFirstHeaderAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,System.Int64,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Finds the first table whose header begins in the requested visible
+            physical-line range. A delimiter just beyond the page may be inspected
+            but does not change the visible page's source boundaries.
+            </summary>
+            <param name="cursor">Validated, caller-owned source cursor.</param>
+            <param name="firstLine">Inclusive first visible source line.</param>
+            <param name="lastLineExclusive">Exclusive last visible source line.</param>
+            <param name="cancellationToken">Cancels bounded lookahead.</param>
+            <returns>First matching header, or null.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader.ReadChunkAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeader,System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads at most six matching data lines from an already validated header
+            and identifies whether a following contiguous data line remains.
+            </summary>
+            <param name="cursor">Validated, caller-owned source cursor.</param>
+            <param name="header">Previously validated header.</param>
+            <param name="firstDataLine">Resume line, at or after header + delimiter.</param>
+            <param name="maximumRows">Requested data rows, from 1 to 6.</param>
+            <param name="cancellationToken">Cancels bounded reads.</param>
+            <returns>Bounded chunk with an exact next source position.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableBlockReader.TryReadDataRow(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,System.Int32,System.Collections.Generic.IReadOnlyList{System.String}@)">
+            <summary>
+            Recognizes one contiguous data row of exactly the specified width.
+            Fences, lists, quotes and delimiter rows are excluded.
+            </summary>
+            <param name="line">Container-classified source line.</param>
+            <param name="expectedColumns">Header column count, 2–32.</param>
+            <param name="cells">Decoded source cells or an empty list on failure.</param>
+            <returns>True when the row belongs to the current table.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableFactory">
+            <summary>
+            Shared bounded native Spectre table construction and literal cell
+            presentation for both the modal inspector and future page layout.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableFactory.CreateTable(System.Int32,System.Boolean,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>Creates the same bordered, aligned native widget used by the inspector.</summary>
+            <param name="width">Detected physical terminal width.</param>
+            <param name="grid">True for an ordinary multi-column grid; otherwise two-column transpose.</param>
+            <param name="headings">Decoded source header cells.</param>
+            <param name="separators">Matching GFM alignment cells.</param>
+            <returns>New, caller-owned native Spectre table.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableFactory.PlainCell(System.String,System.Int32)">
+            <summary>Formats a validated source cell as clipped literal Spectre text.</summary>
+            <param name="source">Decoded Markdown cell source.</param>
+            <param name="maximumCharacters">Clipping budget, at least 2 characters.</param>
+            <returns>Safe visible label, never terminal markup.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeight">
+            <summary>
+            Measures the actual visual row count of a bounded native Spectre renderable
+            using the same rendering pipeline and terminal profile as console output.
+            </summary>
+            <remarks>
+            <see cref="T:Spectre.Console.Rendering.IRenderable"/> measurement reports width, not height. Native
+            table borders, headers and wrapped cells must be counted from rendered
+            segments. Only bounded chunk widgets are passed here; callers must never
+            render a complete unbounded document to measure its height.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeight.MaximumMeasuredRows">
+            <summary>Upper bound on inspected rendered rows for a single widget.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableHeight.CountRows(Spectre.Console.Rendering.IRenderable,Spectre.Console.IAnsiConsole,System.Int32)">
+            <summary>
+            Counts actual Spectre output rows at the supplied console's width.
+            </summary>
+            <param name="renderable">Small, caller-owned native Spectre widget.</param>
+            <param name="console">Target terminal with current width and capabilities.</param>
+            <param name="maximumRows">Early stop budget from 1 to 512.</param>
+            <returns>Rendered rows, or maximumRows + 1 when the budget is exceeded.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer">
+            <summary>
+            Optional, bounded native Spectre.Console table inspector for validated
+            Markdown pipe tables, independent of the source-page height model.
+            </summary>
+            <remarks>
+            Only a small chunk of source rows is loaded at once. Narrow displays use
+            a real two-column Spectre table (field/value), with column paging for
+            wide Markdown records. Larger terminals show an ordinary multi-column
+            rounded Spectre table. This is a modal view, not a replacement for the
+            existing disk-indexed visual source pages.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.MaximumRowsPerChunk">
+            <summary>Maximum physical Markdown data rows in one table chunk.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.MaximumFieldsPerChunk">
+            <summary>Maximum field columns in one transposed modal table chunk.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.MaximumCellCharacters">
+            <summary>Maximum source characters inspected per displayed cell.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.#ctor(Spectre.Console.IAnsiConsole)">
+            <summary>Creates the native table viewer for a Spectre terminal.</summary>
+            <param name="console">Interactive terminal that owns table rendering.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.FindFirstTableAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,System.Int64,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Searches at most one visible source page for an explicit pipe
+            header followed immediately by a matching delimiter row.
+            </summary>
+            <param name="cursor">Caller-owned validated source cursor.</param>
+            <param name="firstLine">First visible physical source line.</param>
+            <param name="lastLineExclusive">End of current visible range.</param>
+            <param name="cancellationToken">Cancels bounded source reads.</param>
+            <returns>First matching zero-based header line, or null.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewSpectreTableViewer.RunAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Interactively browses a real Spectre table from a validated header.
+            Keeps at most six data rows and at most eight transpose fields on
+            screen per chunk, allowing next-chunk navigation without loading
+            the full table. Escape restores the existing Markdown preview.
+            </summary>
+            <param name="cursor">Caller-owned disk-backed source cursor.</param>
+            <param name="headerLine">Zero-based validated Markdown table header line.</param>
+            <param name="cancellationToken">Cancels reads and terminal prompts.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole">
+            <summary>Semantic display roles for source-bound Markdown text spans.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Body">
+            <summary>Ordinary prose.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Heading">
+            <summary>A heading.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Marker">
+            <summary>A list or quote marker and continuation indentation.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Quote">
+            <summary>Quoted prose.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Strong">
+            <summary>Strong emphasis.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Emphasis">
+            <summary>Emphasis.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Link">
+            <summary>Visible label of an inline link.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Code">
+            <summary>Inline or fenced source code.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole.Image">
+            <summary>Image alternative description.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalStyledSpan">
+            <summary>Literal visible text and its semantic presentation role.</summary>
+            <param name="Text">Text to print without interpreting terminal markup.</param>
+            <param name="Role">Presentation role used by the renderer.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalStyledSpan.#ctor(System.String,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole)">
+            <summary>Literal visible text and its semantic presentation role.</summary>
+            <param name="Text">Text to print without interpreting terminal markup.</param>
+            <param name="Role">Presentation role used by the renderer.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalStyledSpan.Text">
+            <summary>Text to print without interpreting terminal markup.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalStyledSpan.Role">
+            <summary>Presentation role used by the renderer.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow">
+            <summary>One formatted terminal row and the source-code clipping flag.</summary>
+            <param name="Spans">Ordered visible spans that occupy exactly one layout row.</param>
+            <param name="IsClippedCode">True when its code source continues beyond the viewport.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow.#ctor(System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalStyledSpan},System.Boolean)">
+            <summary>One formatted terminal row and the source-code clipping flag.</summary>
+            <param name="Spans">Ordered visible spans that occupy exactly one layout row.</param>
+            <param name="IsClippedCode">True when its code source continues beyond the viewport.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow.Spans">
+            <summary>Ordered visible spans that occupy exactly one layout row.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow.IsClippedCode">
+            <summary>True when its code source continues beyond the viewport.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow.Text">
+            <summary>Visible plain text, useful for source-preserving layout tests.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalLineLayout">
+            <summary>
+            Bounded, line-local Markdown presentation used identically by the disk
+            visual-page index and by the terminal page renderer.
+            </summary>
+            <remarks>
+            Links use their visible labels rather than destinations; list and quote
+            prefixes occupy real display cells and wrapped continuations retain their
+            hanging indentation. This is conservative Markdown, not full CommonMark.
+            The shared container scanner protects active code fences from inline
+            parsing; original input and disk-backed source indexes are not modified.
+            </remarks>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalLineLayout.Layout(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,System.Int32)">
+            <summary>
+            Produces exactly the rows counted by visual-page pagination, without
+            materializing other source lines or evaluating markup from the input.
+            </summary>
+            <param name="line">Already container-classified source line.</param>
+            <param name="columns">Available terminal content width, 8–4096 cells.</param>
+            <returns>At least one visible row with safe styles and widths.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalLineLayout.LayoutStyledContents(System.String,System.Int32,System.String,System.String,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole)">
+            <summary>
+            Formats the visible contents of a source line or one table cell
+            with consistent hanging prefixes and Unicode-safe inline styling.
+            </summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition">
+            <summary>Source position within a physical Markdown line and its wrapped display rows.</summary>
+            <param name="Line">Zero-based physical source line.</param>
+            <param name="WrapRow">Zero-based visual row within that source line.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition.#ctor(System.Int64,System.Int32)">
+            <summary>Source position within a physical Markdown line and its wrapped display rows.</summary>
+            <param name="Line">Zero-based physical source line.</param>
+            <param name="WrapRow">Zero-based visual row within that source line.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition.Line">
+            <summary>Zero-based physical source line.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition.WrapRow">
+            <summary>Zero-based visual row within that source line.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex">
+            <summary>
+            Disk-backed exact page starts for a specific terminal geometry.
+            Scans a validated snapshot once and never materializes all page positions.
+            </summary>
+            <remarks>
+            The page count is exact for this deterministic source-line wrapping
+            model, not for arbitrary proportional terminal fonts or the full
+            CommonMark renderer. A changed terminal geometry requires rebuilding
+            these temporary offsets; no stale page geometry is reused.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.DefaultMaximumIndexBytes">
+            <summary>Default temporary byte budget for viewport-dependent page starts.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.ReservedTerminalRows">
+            <summary>Space reserved for gray header, footer and navigation prompt.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.PageCount">
+            <summary>Number of source-display pages for this viewport.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.SourceLineCount">
+            <summary>Total physical source lines used to construct the index.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.Columns">
+            <summary>Available content columns, excluding a two-column margin.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.RowsPerPage">
+            <summary>Maximum content display rows per page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.TerminalWidth">
+            <summary>Raw detected terminal width used for this index.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.TerminalHeight">
+            <summary>Raw detected terminal height used for this index.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.CreateAsync(Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot,System.Int32,System.Int32,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>Creates page boundaries for the provided current viewport.</summary>
+            <param name="snapshot">Caller-owned validated immutable snapshot.</param>
+            <param name="width">Detected terminal width.</param>
+            <param name="height">Detected terminal height.</param>
+            <param name="maximumSourceLinesPerPage">Zero for automatic viewport height, otherwise an explicit 1–128 row limit.</param>
+            <param name="maximumIndexBytes">Maximum temporary page-index storage.</param>
+            <param name="cancellationToken">Cancels the sequential scan.</param>
+            <returns>Owned disk index to dispose before the source snapshot.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.GetStartAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Gets the exact start of a numbered page without loading other pages.</summary>
+            <param name="pageNumber">Zero-based page number.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Physical line plus within-line visual-row offset.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.FindPageAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Finds the first canonical page containing a source line.</summary>
+            <param name="lineNumber">Zero-based physical source line.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Zero-based canonical page where that physical line begins.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.FindPageAsync(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition,System.Threading.CancellationToken)">
+            <summary>Finds the canonical page containing a source line and wrap-row offset.</summary>
+            <param name="position">Source position within the validated document.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>Zero-based canonical page number.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.DisposeAsync">
+            <summary>Releases and deletes the temporary viewport-dependent index.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageIndex.IsLiteralCode(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine)">
+            <summary>True only for source lines that must retain code whitespace.</summary>
+            <param name="line">Container-classified Markdown source line.</param>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage">
+            <summary>Visual page rendered from a source-bound start, including its next resume point.</summary>
+            <param name="Start">Source-and-wrap position at the start of the page.</param>
+            <param name="Next">The first source visual row after the rendered page.</param>
+            <param name="Rows">Number of displayed visual content rows.</param>
+            <param name="ContainsClippedCode">True if any code line extends beyond the viewport.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage.#ctor(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition,System.Int32,System.Boolean)">
+            <summary>Visual page rendered from a source-bound start, including its next resume point.</summary>
+            <param name="Start">Source-and-wrap position at the start of the page.</param>
+            <param name="Next">The first source visual row after the rendered page.</param>
+            <param name="Rows">Number of displayed visual content rows.</param>
+            <param name="ContainsClippedCode">True if any code line extends beyond the viewport.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage.Start">
+            <summary>Source-and-wrap position at the start of the page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage.Next">
+            <summary>The first source visual row after the rendered page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage.Rows">
+            <summary>Number of displayed visual content rows.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalRenderedPage.ContainsClippedCode">
+            <summary>True if any code line extends beyond the viewport.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageRenderer">
+            <summary>
+            Renders a bounded number of visual Markdown lines from the existing
+            disk-backed container cursor, using the same layout as the page index.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageRenderer.RenderAsync(Spectre.Console.IAnsiConsole,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewContainerPageCursor,Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewVisualPosition,System.Int32,System.Int32,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme,System.Threading.CancellationToken)">
+            <summary>Renders at most the requested visual rows.</summary>
+            <param name="console">Target Spectre terminal.</param>
+            <param name="cursor">Validated snapshot's persistent source-aware cursor.</param>
+            <param name="start">Start physical line and optional soft-wrap row.</param>
+            <param name="columns">Available text columns.</param>
+            <param name="contentRows">Visual row budget.</param>
+            <param name="theme">Existing Markdown presentation theme.</param>
+            <param name="cancellationToken">Cancels source reading and output.</param>
+            <returns>Exact next source/row location for a following page.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPageRenderer.ResolveStyle(Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalSpanRole,Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.MarkdownSpectreTheme)">
+            <summary>
+            Resolves the same Markdown styles for ordinary and mixed visual rows.
+            </summary>
+            <param name="role">Inline semantic role.</param>
+            <param name="source">Classified original Markdown source line.</param>
+            <param name="theme">Existing Markdown presentation theme.</param>
+            <returns>Literal-safe Spectre style for the displayed segment.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPipeTableLayout">
+            <summary>
+            Conservative, line-local GFM-style pipe-table view for small terminals.
+            A source table row becomes numbered cell rows so a reader never loses
+            columns off the right edge or needs a full-document/table allocation.
+            </summary>
+            <remarks>
+            Only explicitly framed, unquoted pipe rows with 2–32 cells are handled.
+            Separator rows are represented by a single divider. This deliberately
+            avoids guessing at ambiguous delimiter-free pipe paragraphs and does
+            not claim full GFM table alignment, column widths or header semantics.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPipeTableLayout.MaximumColumns">
+            <summary>Maximum columns accepted in one source pipe row.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPipeTableLayout.TryLayout(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,System.Int32,System.Collections.Generic.IReadOnlyList{Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalDisplayRow}@)">
+            <summary>
+            Recognizes and lays out one clearly framed table row outside source code.
+            Both the disk page index and renderer consume the returned visual rows.
+            </summary>
+            <param name="line">Container-classified validated source line.</param>
+            <param name="columns">Current terminal content width (8–4096).</param>
+            <param name="rows">Formatted visual rows, or empty on non-table lines.</param>
+            <returns>True only when the full framed row was recognized.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalPipeTableLayout.TryReadCells(Afrowave.Toolbox.ExchangeHouse.Markdown.MarkdownContainerLine,System.Collections.Generic.IReadOnlyList{System.String}@,System.Boolean@)">
+            <summary>
+            Reads a conservatively recognized pipe row as bounded decoded cells.
+            Shared by the compact reader and the opt-in native Spectre table
+            inspector; it never treats fences, quoted text or list text as tables.
+            </summary>
+            <param name="line">Validated, container-classified source line.</param>
+            <param name="cells">Unescaped cell contents, owned by the caller.</param>
+            <param name="isSeparator">True for an all-delimiter alignment row.</param>
+            <returns>True for a clearly framed two-to-32-column pipe row.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWordWrap">
+            <summary>Deterministic visual-width-aware source-line wrapping for terminal preview.</summary>
+            <remarks>
+            Prose prefers sentence punctuation, clauses and word boundaries, while
+            fenced code is never soft-wrapped: a long code line is clipped with a
+            right-arrow indicator and the validated source remains unchanged.
+            Width is measured in terminal cells, not UTF-16 code units.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWordWrap.CodeOverflowMarker">
+            <summary>Default right-side marker for horizontally clipped code.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWordWrap.Wrap(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Lays out one physical source line into display rows for a known width.
+            The result is also used to build exact deterministic page boundaries.
+            </summary>
+            <param name="source">One validated physical line without newline.</param>
+            <param name="columns">Available terminal columns, 8–4096.</param>
+            <param name="code">True for code fence, code body or closing fence.</param>
+            <returns>One or more display rows, preserving source content where possible.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWordWrap.SliceProse(System.String,System.Int32)">
+            <summary>
+            Returns source-positioned rows of already display-normalized prose.
+            Unlike a list of strings, each slice identifies the exact visible
+            characters needed to retain inline styling across soft line breaks.
+            </summary>
+            <param name="text">Display text with tabs already expanded.</param>
+            <param name="columns">Content width measured in terminal cells.</param>
+            <returns>At least one row, with UTF-16-safe start and length offsets.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWordWrap.MeasureColumns(System.String)">
+            <summary>Counts visual terminal cells, with a conservative wide-rune model.</summary>
+            <param name="source">Unicode text.</param>
+            <returns>Measured columns, treating combining marks as zero width.</returns>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWrapSlice">
+            <summary>
+            Displayed prose segment with exact UTF-16 coordinates in its
+            previously normalized visible text, not the original Markdown source.
+            </summary>
+            <param name="Start">Zero-based display-text offset.</param>
+            <param name="Length">Displayed UTF-16 length.</param>
+            <param name="Text">Visible row text.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWrapSlice.#ctor(System.Int32,System.Int32,System.String)">
+            <summary>
+            Displayed prose segment with exact UTF-16 coordinates in its
+            previously normalized visible text, not the original Markdown source.
+            </summary>
+            <param name="Start">Zero-based display-text offset.</param>
+            <param name="Length">Displayed UTF-16 length.</param>
+            <param name="Text">Visible row text.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWrapSlice.Start">
+            <summary>Zero-based display-text offset.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWrapSlice.Length">
+            <summary>Displayed UTF-16 length.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.Tools.MdView.MdViewTerminalWrapSlice.Text">
+            <summary>Visible row text.</summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,1105 @@
+# mdview — terminal Markdown reader (0.1.0-preview.1 candidate)
+
+> **Current journal I/O behavior (2026-11-22):** Production MdView
+> uses the **original unconditional append-position setters** (mode A),
+> restored after the physical HDD B–A–B experiment showed the
+> conditional-setter variant (B) was reproducibly **2.64× slower**.
+> B is available only through an explicit benchmark flag;
+> stored journal format, bounded buffers, and correctness are unchanged.
+> See [journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+
+MdView is an independent .NET 10 **terminal Markdown CLI preview**.
+It supports complete-document rendering and *opt-in* disk-indexed
+local paging (raw source, responsive Markdown and mixed native Spectre
+tables), alongside verified HTTP(S) caching and public GitHub
+repository navigation. **The default full-document renderer still
+loads the entire document into RAM.** The paged reader is not yet the
+default or a finished general-purpose TUI.
+
+A portable **Windows x64 / Linux x64** preview distribution is being
+validated in CI; see [first-preview release scope and instructions](Docs/First-Preview-Release/en.md).
+Do not mistake CI build artifacts
+for an already published GitHub Release.
+
+## Start from the Toolbox root
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- --help
+dotnet run --project Blackboard/Tools/MdView -- local README.md
+dotnet run --project Blackboard/Tools/MdView -- README.md
+dotnet run --project Blackboard/Tools/MdView -- url https://example.org/manual.md
+dotnet run --project Blackboard/Tools/MdView -- git afrowaveltd toolbox
+dotnet run --project Blackboard/Tools/MdView -- github:AfrowaveLtd/Toolbox
+dotnet run --project Blackboard/Tools/MdView
+```
+
+Without arguments, a **Spectre.Console source menu** offers an interactive local Markdown FileBrowser, HTTPS URL prompt, **GitHub repository Markdown link browsing** (owner or owner/repo), and Exit. Escape from FileBrowser returns to the source menu; Escape from the source menu exits. See [interactive source selection](Docs/Interactive-Source-Picker/en.md). The command parser accepts verbs without case sensitivity but never changes Linux local path casing or ref/path names. `mdview` is the compiled executable assembly name; it is not installed as a system command.
+
+Local files support `.md` and `.markdown` and reuse the complete, strict Unicode/control-safe reader from [Blackboard.TextFiles](../../TextFiles/README.md). Remote sources use fully verified UTF-8 cache entries, ETag/Last-Modified checks and explicit stale status when offline. Public GitHub README retrieval uses the preferred REST endpoint, not guessed filenames or branches. HTTP(S) URLs with query strings, fragments or embedded credentials are rejected by the current generic provider; plain HTTP is disabled by default. GitHub private repositories, redirects and links to other files are not supported.
+
+**Safety and resource limits:** input is rendered as literal Spectre text; fenced code is never executed. The CLI currently materializes a full Markdown string and parser model in RAM and dumps the entire result to the terminal. A large file warning is informational, **not** silent truncation; for large documents choose a future paged reader when implemented. Network timeout is 30 seconds; redirects and transparent HTTP decompression are disabled. The configured cache enforces the per-document limit (256 MiB by default), distinct from Markdown render size. The cache should be used only with a trusted user-owned directory, and never for authenticated/private content in this release.
+
+## Verification
+
+```bash
+dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj
+dotnet test Toolbox.sln
+```
+
+**Current verification (2026-11-22):** the focused MdView regression
+suite and self-contained packaged CLI smoke tests succeeded on both
+GitHub Windows and Ubuntu runners. Earlier historical test notes
+below describe their original dates and are retained as history.
+Real Windows Terminal, Debian console and SSH interactive visual
+acceptance remains separate from CI.
+
+[CLI topic guide](Docs/CLI/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md) · [Cache source](../../SpectreConsole/Markdown.Cache/README.md).
+
+## Historical build fix (2026-11-03)
+
+The first CLI commit referenced `TextFilePreviewReader` as though it were exported by FileBrowser. It was actually located in Showcase. A temporary linked source file corrected the initial build; the subsequent extraction into [Blackboard.TextFiles](../../TextFiles/README.md) fully replaced this bridge. This section records the historical issue, not a current dependency.
+
+## Windows test verification (2026-11-03)
+
+The user-provided `dotnet test Toolbox.sln` log after the shared reader fix shows `mdview.dll` successfully built and `MdView.Tests` **10/10 passed**; all twelve solution test assemblies passed **6,438/6,438** on Windows (net10.0 target, .NET 11 preview SDK). Manual CLI usage and Linux CI are still pending; the pending cross-project linked-source reader extraction remains an architecture task.
+
+## Independent local reader (2026-11-03)
+
+The temporary Showcase `Compile Include` bridge is now removed. The local file decoder lives in [Blackboard.TextFiles](../../TextFiles/README.md), with a dedicated `ProjectReference`. The CLI has no dependency on the Showcase executable. Rerun the full solution tests to verify this refactoring; the previously reported green Windows run predates it.
+
+## Spectre interactive source selection (2026-11-03)
+
+The no-argument entry now uses `MdViewInteractiveSourcePicker` with an injected `IAnsiConsole` and the existing local `SpectreFileBrowser`. Local filename filtering starts with `*.md;*.markdown` and is verified again after selection; URL and GitHub options use Spectre text prompts. Escape inside FileBrowser returns to the menu; Escape from the menu exits. Explicit command-line modes are unchanged. The picker clears the screen on each return to the menu and rejects non-interactive stdin.
+
+Eleven new TestConsole-driven scenarios cover the menu, cancellation, real file selection, GitHub/HTTPS prompts and invalid input without network calls. **New code/tests are not yet run**; the last user-confirmed 6,443-green baseline predates this update. [Details](Docs/Interactive-Source-Picker/en.md).
+
+## Color syntax highlighting for installed grammar languages (2026-11-04)
+
+The CLI now enables our optional [TextMate grammar adapter](../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md) when rendering local, HTTPS and GitHub Markdown. Its previous default Markdown theme omitted the syntax provider. More than 50 languages supported by the installed `TextMateSharp.Grammars` bundle can be selected directly or by file extension, with common README aliases including `js`, `ts`, `py`, `cs`, `sh`, `json`, `yml`, `sql`, `html`, `css`, `rust` and `go`. Code never executes; unknown languages, native backend failures and long lines safely render as plain text. TextMate's native dependency is optional to base Markdown/ExchangeHouse, but included in this CLI. New highlighter and integration regression tests have been committed; no new test run has yet been verified.
+
+## Browse public GitHub repositories by owner (2026-11-04)
+
+You no longer need to remember an exact repository name. The following commands list an owner's public repositories and open a Spectre selection interface:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- afrowaveltd
+dotnet run --project Blackboard/Tools/MdView -- git afrowaveltd
+dotnet run --project Blackboard/Tools/MdView -- github:afrowaveltd
+```
+
+The existing `git OWNER REPOSITORY` and `github:OWNER/REPOSITORY` forms still open a README immediately. The no-argument GitHub source prompt accepts just the owner too. Small catalogs show an owner/repository tree; all catalogs offer a paged selection prompt with a name/description filter and Escape to cancel without downloading a README. The catalog uses public GitHub REST endpoints, a 30-minute independently verified local cache with explicit stale/offline fallback and a bounded first-1,000-repositories limit. Owner-only browsing requires an interactive terminal; scripts should give a full owner/repository pair.
+
+[Detailed owner discovery guide](Docs/GitHub-Owner-Discovery/en.md) · [GitHub catalog source](../../SpectreConsole/Markdown.Cache/Docs/GitHub-Repository-Catalog/en.md). New catalog and UI tests are committed but not yet executed here.
+
+## Disk-backed source paging — optional raw mode (2026-11-04)
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- source README.md
+```
+
+The new `source PATH` command opens a small-RAM, **strict UTF-8 source pager** on an indexed local file. It displays complete physical source lines, not rendered Markdown, and supports **Next page**, **Previous page**, **Go to line** and **Exit** through Spectre.Console. Index offsets reside in a temporary disk file; the source reader validates the entire document before showing the first page. The default index budget is 256 MiB, with per-page/per-line limits and explicit failures instead of silent truncation. UTF-16/32 and styled Markdown remain available through the existing complete-file `local` mode, not this raw source pager.
+
+A formatted, visual-line-aware Markdown pager that preserves lists, code-fence state, links, themes, wrapping and disk-backed backward navigation still needs a separate incremental block parser. The existing local/URL/GitHub commands are unchanged. [Raw pager guide](Docs/Raw-Source-Pager/en.md) · [Disk index guide](../../TextFiles/Docs/Disk-Line-Index/en.md). New source-pager tests are authored; compilation/CI execution not yet confirmed.
+
+## After a document: Enter to main menu, Escape to exit (2026-11-04)
+
+After displaying a fully rendered Markdown document on an interactive console, `mdview` now shows `Enter: main menu | Esc: exit` and **waits for a key**. Enter reopens the existing FileBrowser/URL/GitHub source menu without restarting the application; Escape exits successfully. All other keys, including `F`, PageUp/PageDown and arrows, are deliberately ignored until search and in-document navigation are implemented. This also works after a direct `mdview local PATH`, `mdview url URL` or `mdview git OWNER REPOSITORY` command.
+
+Help, failed or cancelled reads and the separately interactive raw `source PATH` pager do not receive this extra completion prompt. When input or output is redirected, the CLI renders once and exits automatically so scripts cannot hang. [Full interaction contract](Docs/Document-End-Navigation/en.md). The new prompt and session-loop tests are committed but a new test run is still pending.
+
+## Planned indexed document search (design only, 2026-11-04)
+
+A future `F` search interface should offer common English README topics (Installation, Build, Compilation, Configuration, Usage, Examples and others) plus detected heading titles and user-entered phrases. `N`/`P` would move between next/previous occurrences. Instead of indexing every word on every start, index a small configurable seed set and scan/add new phrases only on first use; store compact source offsets tied to a verified document version so stale positions cannot survive README updates.
+
+**Search is not yet implemented; F/N/P still have no action.** The groundwork is an isolated forward-only [incremental line scanner](../../../ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md) committed alongside this design; it is not wired into mdview's existing fully rendered output. [Full future-search plan](Docs/Indexed-Search/en.md).
+
+## Experimental formatted source-page preview (2026-11-08)
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- preview README.md
+```
+
+The new **opt-in** `preview PATH` command creates a validated temporary
+UTF-8 snapshot, reads a bounded source page (24 physical lines by default),
+and passes only that fragment to the existing Markdown/Spectre renderer.
+Spectre navigation provides Next, Previous, Go to source line and Exit.
+The normal `local`, `git`, `url` and raw `source` paths are unchanged.
+
+**Known limitation:** source pages are parsed independently. A fenced code
+block, list or quote spanning pages can lose syntax/context at the boundary.
+The number of rendered terminal rows is not currently constrained, and this
+is not yet the planned stateful, index-aware visual pager. It is a
+separately named proof of concept for snapshot-backed bounded rendering.
+The source Markdown is unchanged; the temporary snapshot is disposed when
+navigation exits. CLI requires an interactive terminal.
+
+[Detailed design and limitations](Docs/Experimental-Formatted-Preview/en.md).
+New tests and compilation await a fresh Windows/Linux run.
+
+
+## Incremental fenced-code context across preview pages (2026-11-08)
+
+The opt-in `preview PATH` mode now uses `MdViewContainerPageCursor`,
+a bounded cursor over `MarkdownIncrementalContainerScanner` fed by
+`Utf8ValidatedSnapshot.OpenReader()`. Forward navigation continues from
+the scanner's last physical line without rescanning earlier pages.
+Backward navigation and source-line jumps replay scanner state from the
+start of the snapshot (correct but potentially slow for very large files).
+
+Confirmed `FenceOpen`, `CodeLine` and `FenceClose` events are emitted
+as **literal, safe Spectre text** instead of being reparsed as Markdown
+headings, list markers or Spectre markup. Consecutive non-code source
+lines still use the existing colored Markdown renderer in bounded chunks.
+This preserves basic code-fence classification across page boundaries,
+but code syntax coloring, precise quote/list formatting, complete visual
+row pagination and cached reverse checkpoints are not yet implemented.
+
+The existing `local`, `source`, `git` and `url` modes remain
+unchanged. New compilation and test results must be verified on Windows
+and Debian before claiming a green build.
+
+
+## Disk-backed container journal for reverse navigation (2026-11-08)
+
+The experimental `preview PATH` mode now retains classified
+`MarkdownContainerLine` events in a **bounded disk journal** rather than
+discarding them after each page. The cursor writes serialized line events
+and a separate 64-bit per-line offset table. Previously visited pages,
+including their fence/list/quote metadata, are reloaded directly from
+the journal: navigating backward no longer forces a replay from the
+beginning of the document. Forward scans continue from the previous
+scanner position.
+
+`MdViewContainerPageCursor` defaults to a **512 MiB journal byte
+budget** plus a **256 MiB offset-table budget**, both configurable in
+its constructor. Exceeding either cap fails explicitly, without silently
+dropping lines. Temporary files are opened with delete-on-close, and
+normal disposal releases the parser, reader and both files. Event text
+is stored on disk, not retained in a growing RAM collection.
+
+This is **not** a serializable snapshot of the scanner's private iterator
+state. Jumping **forward beyond the scanned high-water mark** still
+requires processing intermediate source lines, so it is not yet
+constant-time random Markdown navigation. Disk budgets also mean
+extremely large files may require explicit configuration or another
+metadata representation. Original mdview modes are unchanged.
+Focused tests are committed but require a fresh Windows/Debian run.
+
+### Page-request cancellation isolation
+
+`MdViewContainerPageCursor` no longer captures the first `ReadAsync`
+call's cancellation token in its persistent scanner enumerator.
+Per-request cancellation is checked at scan and journal boundaries;
+a cancelled **previously completed** request cannot poison later
+navigation. An in-progress local stream read is not interruptible by
+the request token, and cancellation after scanner advancement still
+fails closed to protect journal consistency.
+
+### Opt-in snapshot checkpoint page reader
+
+`MdViewCheckpointPageReader` resumes classified physical Markdown pages
+from opaque, snapshot-bound `MdViewCheckpointPosition` values. It maps the
+UTF-16 checkpoint to a validated byte-aligned line start, reopens a strict
+UTF-8 reader on the private copy and restores explicit quote/list/fence
+state without replaying earlier source lines. Maximum request: 128 lines.
+
+It is intentionally separate from the existing journal pager. It can only
+seek to positions whose checkpoints have already been obtained; generating
+trusted future checkpoints remains a separate step. Embedded raw
+`MarkdownStreamLine.Kind` is locally classified, while the enclosing
+`MarkdownContainerLine.Kind` preserves restored container state. See the
+[formatted preview guide](Docs/Experimental-Formatted-Preview/en.md).
+
+### Sparse on-disk scanner checkpoints
+
+An opt-in `MdViewDiskCheckpointIndex` supports bounded random physical-line
+classification after a **one-time full source indexing pass**. By default it
+stores a versioned scanner context every 1,024 lines, with a combined
+256 MiB disk limit for checkpoint records and their offsets. Random reads
+restore the nearest preceding checkpoint and classify fewer than 1,024
+intermediate lines, rather than replaying all preceding lines.
+
+Use `CreateAsync(snapshot, utf16Positions)` then `ReadAsync(line, 40)`.
+The index owns temporary files only; callers own and dispose the validated
+snapshot and UTF-16 position index. This is opt-in infrastructure, not
+yet a new end-user `mdview` navigation mode. Building the index still
+opens bounded snapshot readers repeatedly; HDD throughput remains
+unbenchmarked. See
+[experimental preview and checkpoint guide](Docs/Experimental-Formatted-Preview/en.md).
+
+### Relative Markdown link navigation roadmap (2026-11-09)
+
+Interactive link following is **not yet implemented**. The planned
+[link navigator](Docs/Link-Navigation/en.md) will resolve Markdown links
+against a typed document origin: the current local file directory, an
+HTTPS source URI, or a GitHub repository/ref/path. It will add safe link
+selection, heading anchors, and bounded Back/Forward history. No
+automatic opening or execution of links is planned; source-specific
+validation and offline cache behavior must remain intact.
+
+### Typed relative-link resolver (first code slice)
+
+The **noninteractive** `MdViewLinkResolver` now resolves relative
+Markdown paths and same-document fragments against explicit local,
+HTTPS or GitHub document origins. It returns a canonical target but
+never opens it. Dangerous schemes, cross-origin transitions, encoded
+paths, parent-directory escapes and unsupported query links are
+rejected. Local path containment is lexical only; a future opener
+must separately check symlinks/reparse points. **Clickable navigation,
+anchor selection and Back/Forward history are still planned**, not
+implemented. Full contract:
+[Link Navigation](Docs/Link-Navigation/en.md).
+
+### Local linked Markdown loading (2026-11-09)
+
+`MdViewLocalLinkLoader.OpenAsync(source, href)` now resolves a relative
+link from a typed local origin and opens the destination as a caller-owned,
+**fully validated UTF-8 snapshot**. It accepts only `.md` and
+`.markdown` targets, with the same bounded disk budget as the underlying
+snapshot. It rejects lexical paths outside the specified navigation root,
+and checks root/intermediate/leaf paths for symlink or reparse-point
+attributes before opening.
+
+This is an **opt-in backend API**, not an interactive clickable link UI.
+The checks do not provide race-free filesystem confinement: an attacker
+could replace a directory between checking and opening. Additional
+OS-level file handle constraints would be required to guarantee isolation
+from hostile same-user filesystem mutations. HTTPS/GitHub loaders,
+heading anchors and history remain future steps.
+
+### History and local navigation controller
+
+Opt-in `MdViewNavigationHistory` keeps a bounded source/fragment
+Back/Forward history, including branch truncation and oldest-entry
+eviction. `MdViewLocalNavigationSession` combines it with fully
+validated local linked snapshots. It opens each destination before
+changing navigation state and retains only **one open snapshot** at
+a time. Broken links leave the previous document available.
+
+This is backend infrastructure; the existing interactive `mdview`
+terminal controls are unchanged. Explicit link selection, anchor
+scrolling, and HTTPS/GitHub history will follow separately.
+[Detailed contract](Docs/Link-Navigation/en.md).
+
+### Opt-in link discovery and terminal picker
+
+`MdViewDocumentLinkExtractor` enumerates supported relative links using
+existing `ExchangeHouse.Markdown` parser tokens, preserving original source
+offsets and excluding fenced code, inline code, images and forbidden links.
+The 1 Mi UTF-16 character and 4,096-link caps prevent unlimited
+in-memory extraction. `MdViewDocumentLinkPicker` provides an explicit
+Spectre.Console list with Escape cancellation; it does not open content.
+Both components are **not yet integrated into mdview's default display
+loop**. Large-document streaming link indexing remains future work.
+See [Link Navigation](Docs/Link-Navigation/en.md).
+
+### Interactive local Markdown links — opt-in command
+
+Use `mdview browse README.md` (or
+`dotnet run --project Blackboard/Tools/MdView -- browse README.md`)
+to open an explicitly **interactive** reader with selectable relative
+Markdown links, Back/Forward and Escape to exit. It uses one validated
+local snapshot at a time and reopens each target on navigation; invalid
+targets preserve the current document. It limits individual sources
+to 1 MiB of UTF-8 data and confines link paths lexically to the
+starting document directory; symlink checks are best effort rather
+than a race-free OS security boundary.
+
+In-document anchors are recorded but not yet scrolled into view.
+Nonlocal HTTPS/GitHub links remain unsupported here. The existing
+normal renderer, indexed raw pager and experimental formatted preview
+are unchanged. [Detailed guide](Docs/Link-Navigation/en.md).
+
+### Local heading anchor navigation
+
+The opt-in `mdview browse PATH` now resolves fragment links such as
+`#installation` and `Docs/Setup/en.md#install` against a bounded
+`MdViewHeadingIndex`. A matching heading is rendered at the beginning
+of the displayed Markdown suffix. Repeated heading slugs receive
+`-1`, `-2` suffixes; fenced-code lines are excluded. Back/Forward
+preserves the fragment. Unknown fragments show feedback.
+
+This is not yet exact terminal row scrolling or full GitHub heading
+slug compatibility. See [Link Navigation](Docs/Link-Navigation/en.md).
+
+### Relative HTTPS Markdown navigation (2026-11-09)
+
+Use `mdview browse-url https://docs.example.org/README.md` to
+interactively follow **same-origin** relative HTTPS Markdown links.
+The optional browser reuses `HttpMarkdownDocumentSource`,
+`VerifiedDocumentCache`, parser-backed link selection and the
+source/fragment Back/Forward history. Every different URL is fully
+validated before navigation commits. Previous verified content can
+serve as an **explicitly labeled Stale/offline fallback**; failed links
+without a valid cached copy leave the original page available.
+
+The HTTPS browser limits each document to 1 MiB, does not allow
+automatic redirects, and follows no non-HTTPS or cross-origin links.
+Same-document anchor jumps do not refetch the source. This is opt-in:
+normal `url`, `git`, `local`, `source`, `preview` and
+`browse` commands retain their previous behavior.
+GitHub repository file navigation is a future separate adapter.
+[Design and acceptance details](Docs/Link-Navigation/en.md).
+
+### GitHub repository Markdown browsing (2026-11-09)
+
+The opt-in command `mdview browse-git OWNER REPOSITORY` (also
+`browse-git OWNER/REPOSITORY`) resolves the real default branch
+and README path from GitHub's official metadata, then allows explicit
+navigation of relative `.md` and `.markdown` links **inside the same
+repository and ref**. The terminal shows the owner/repository/ref/path,
+content cache freshness and metadata freshness, including an explicit
+Stale/offline indicator when applicable. It offers Follow a link,
+Back/Forward, anchored heading display and Escape/Exit. Missing or
+invalid targets leave the previous verified page open.
+
+The same 1 MiB byte limit and small-document parser bounds apply.
+This does not yet follow absolute GitHub blob-page links, move between
+repositories/branches, open external URLs or handle private GitHub
+repositories. Existing `git OWNER REPOSITORY` continues to display
+the original one-shot preferred README.
+[Link Navigation](Docs/Link-Navigation/en.md).
+
+### GitHub README link visibility (2026-11-09)
+
+`browse-git` now prints **Navigable Markdown links: N** before
+rendering each document and explains that links are selected using
+**Follow a link** in the keyboard menu **below** the rendered Markdown.
+The rendered Markdown text itself is not an interactive click target;
+the browser deliberately offers a separate terminal selection prompt.
+Unsupported external links are not counted.
+
+The Toolbox root README contains many repository-relative documentation
+links, including links inside the project overview table. Regression
+coverage checks that those links are recognized while an external
+GitHub website URL is excluded. If the displayed count is zero on
+that README, investigate the extractor/parser or actual source
+identity rather than assuming the README contains no links.
+
+### Repository catalog unavailable or rate-limited (2026-11-09)
+
+When the GitHub owner-only repository catalog reports an error
+(including HTTP 403 from an exhausted API rate limit), the interactive
+repository picker no longer terminates the application. It displays
+the returned warning, offers a **manual repository-name prompt** and
+allows an empty entry to return to the source menu. Manual names are
+validated before requesting a README; the catalog is not silently
+represented as an empty or complete list.
+
+This fallback does **not** bypass GitHub's API limits: a subsequent
+README or metadata request can still be rejected until the limit
+resets. Previously verified cached content may remain available
+under the existing documented stale/offline policy.
+
+
+### Main menu GitHub links are now navigable (2026-11-11)
+
+Selecting GitHub from the no-argument menu previously opened a
+**one-shot README** rather than the link-navigation session. The menu
+now starts the same `GitHubLinkBrowser` as `browse-git OWNER REPO`.
+When only an owner is entered, the repository selector returns a
+browser command after catalog selection or manual-name fallback.
+The browser shows the **number of navigable links and the first three
+link labels** above a long README. Choose **Follow a link** in the
+terminal menu below the rendered Markdown to browse all supported
+repository-relative Markdown links. Text-rendered Markdown links are
+not directly mouse-clickable in the terminal.
+
+`git OWNER REPO` remains the unchanged one-shot CLI mode. GitHub
+metadata, repository and file cache validation remain the same.
+
+### First bounded Markdown page navigation for GitHub (2026-11-11)
+
+Long Markdown files opened by the interactive GitHub menu or by
+`mdview browse-git OWNER REPOSITORY` now show **one page at a time**
+instead of dumping the entire document. Each page contains at most
+**24 physical Markdown source lines** and **16,384 UTF-16 display
+characters**. The menu supports **Next page**, **Previous page**,
+**Go to heading** (up to the first 512 recognized headings) and
+**Go to source line**, alongside the existing **Follow a link**,
+document-level Back/Forward and Exit.
+
+Short files of at most 24 lines continue using the previous complete
+renderer and menu order. A long document is parsed and indexed once
+per verified file/content SHA-256; switching pages does not generate
+network requests or reread the entire document. Fenced code stays
+literal even at a page boundary. A very long individual line may be
+shortened on screen with a warning; it is **not** truncated in the
+cached source. Complex quote/list boundaries and full cross-page
+TextMate coloring remain experimental.
+
+The GitHub browser still has its original **1 MiB source limit**.
+This first source-page UI is not a streaming reader for gigabyte
+files or a wrapped visual-terminal-row paginator. The separate
+local disk-backed source pager and incremental scanner/checkpoint
+infrastructure remain the route for truly large files.
+
+[Read the page-navigation guide](Docs/Paged-GitHub-Browsing/en.md).
+
+### Disk-backed Markdown headings and link locations for large local files
+
+The experimental local formatted preview (`mdview preview PATH`)
+now supports **Find heading (disk index)** and **Find link location
+(disk index)**. These optional actions build a disk-backed
+`MdViewDiskNavigationIndex` **lazily** on first use and then show
+headings/links in batches of 12. Selecting an item jumps to its
+physical source line, without loading the full Markdown document
+or every result into RAM.
+
+The index makes a sequential pass through the previously validated
+source snapshot, records recognized ATX headings and inline link
+positions outside fenced code, and stores variable-length entries
+plus 64-bit per-kind offsets in temporary files. The default combined
+index disk budget is 128 MiB. A budget failure leaves normal paging
+available; successful indexes are disposed with the preview.
+
+**This is source-position navigation, not cross-document link
+following.** The existing small-document `browse` / `browse-git`
+modes still own their separate link-following safety contracts.
+Reference links, multiline constructs, full CommonMark parsing,
+rich cross-page code highlight and constant-time first distant
+jumps are not yet implemented.
+
+[Disk Navigation Index](Docs/Disk-Navigation-Index/en.md).
+
+### Adaptive local formatted preview (2026-11-11)
+
+`mdview preview PATH` now detects terminal width and height before
+every redraw. The reader reserves space for the menu and grey
+informational header, shows one blank row between the header and
+Markdown, and displays a grey **Page X of Y | Source lines A–B of C**
+footer. Page counts are backed by a temporary disk index of visual
+source positions for the current terminal dimensions; a changed
+window width or height triggers a new index on the **next** draw.
+
+Prose wraps at a preferred sentence boundary, comma/clause or whole
+word; long unbreakable words are split only when necessary. The
+layout counts approximate terminal display-cell widths for Unicode,
+emoji and CJK, and can resume in the middle of a long physical
+source line. **Fenced code is not word-wrapped**: long code lines
+show a trailing `→` when more source extends off-screen, preserving
+indentation and source contents.
+
+The screen-height layout reserves 16 rows for header/footer/menu;
+the **default uses available terminal height automatically** (up to
+128 content rows). Callers can still request a smaller explicit cap.
+Indexed heading/link jumps and source-line jumps remain available.
+A jump to an exact physical line that is not a canonical page start
+is clearly marked `(jump view)` next to the page number.
+
+Page-count consistency is exact for this deterministic wrapping
+model, not necessarily for every terminal font, styled Markdown
+list/quote or unusually complex inline markup. Full CommonMark
+visual-row parity, horizontal scrolling of code and compact layout
+for very small terminals remain future work. All temporary page
+indexes are disk-backed and deleted when the preview ends.
+
+[Responsive preview guide](Docs/Responsive-Preview/en.md).
+
+### Narrow terminal note for clipped code (2026-11-12)
+
+The code-overflow status line now adapts its length to the available
+content columns, avoiding an additional terminal-row wrap below
+the page footer. A narrow viewport displays
+`→ Code clipped (no wrap).` or a shorter equivalent; wider
+viewports retain the full explanatory message. The underlying
+code line remains a single clipped display row with its trailing
+`→` marker; the verified source is unchanged.
+
+The Markdown renderer displays formatted headings without the
+literal `#` marker, including after a clipped code fence.
+
+### Shared visual layout for list, quote and inline-link wrapping (2026-11-13)
+
+Local experimental `mdview preview PATH` now uses one
+`MdViewTerminalLineLayout` representation for both disk-indexed
+visual page counts and the actual terminal renderer. It consumes
+already classified source lines and creates literal, styled rows:
+bullets and ordered list numbers occur only on the first row,
+wrapped list continuations retain hanging indentation, quotes keep
+a visible `│` gutter, and wrapped Markdown link labels keep their
+link appearance without counting hidden destinations as columns.
+
+Strong/emphasis and inline-code styles survive wrapping. Fenced
+and conservatively indented code stay unwrapped and show `→`
+when clipped. The renderer no longer reparses each wrapped row
+as a fresh Markdown document, eliminating repeated markers and
+a common source of page-count/layout disagreement.
+
+This is a bounded per-line implementation, not a full
+CommonMark/table layout engine. It shares the existing validated
+snapshot, disk-backed page index, source-position resume model
+and the 1 MiB GitHub browser cap (unchanged).
+
+[Technical guide and limitations](Docs/Styled-Visual-Layout/en.md).
+
+### Compact pipe-table preview for narrow terminals (2026-11-13)
+
+The experimental local `mdview preview PATH` now shows
+**conservatively framed pipe-table rows** as compact, numbered
+vertical cells. A source row like `| Name | Description |` becomes
+`1 │ Name` and `2 │ Description` on separate visual rows,
+with safe word wrapping inside each cell. This remains readable on
+small terminals without keeping the entire table in RAM.
+
+An explicitly framed alignment/separator row becomes a compact
+divider. Escaped pipes and pipes inside inline backtick code
+are not treated as cell separators. The feature is disabled
+inside code fences, quotes, list containers and ambiguous
+delimiter-free text. A maximum of 32 columns prevents
+unbounded per-source-row catalog growth.
+
+Page counts and rendering both use the shared
+`MdViewTerminalLineLayout`, so compact cells are counted as
+the same visual rows they display. The original Markdown
+file and disk-backed source indexes remain unchanged.
+
+This first version does **not** claim full GFM table
+column alignment or cross-row header inference.
+[Compact pipe table guide](Docs/Compact-Pipe-Tables/en.md).
+
+### Native Spectre.Console tables — rounded grid inspector (2026-11-13)
+
+The local experimental `mdview preview PATH` now detects tables
+with a real header and matching delimiter row on the current source
+page. The menu then offers **View table (Spectre)**. This opens a
+real `Spectre.Console.Table` with a rounded grey border and
+alignment inferred from GFM delimiter cells (`---`, `:---`,
+`---:`, `:---:`). Wide terminals show a conventional grid;
+narrow terminals use a rounded **Column / Value** table.
+
+The native inspector reads **bounded source chunks** from the
+existing validated disk-backed container cursor (at most six data
+rows or eight transposed fields per display). Long cell contents
+are visibly shortened, never changed in the source. Press Next
+table chunk to proceed or Back/Escape to return to the original
+Markdown source page. The option is offered only when the
+terminal is at least 28 columns wide.
+
+The existing compact cell layout stays the default in-page format
+**for now**. Embedding native framed tables in the main visual
+page would first require accurate Spectre-rendered row/height
+measurement in the disk visual page index. The optional modal
+viewer prevents decorative borders from silently breaking
+`Page X of Y` or physical source jumps.
+
+[Native Spectre table guide](Docs/Native-Spectre-Tables/en.md).
+
+### Native table rows measured before display (2026-11-14)
+
+The optional **View table (Spectre)** modal now measures actual
+Spectre-rendered height (rounded borders, header and wrapping) using
+the widget's output segments. It adds only source rows/fields that
+fit within a height budget for the current terminal. This prevents
+long cells from pushing the navigation menu off-screen and avoids
+guessing that every table row occupies a fixed number of lines.
+
+The previous six-source-row and eight-field upper bounds remain,
+and measurement never loads the whole Markdown table or source
+file. Narrow modal headers/statuses use single visual rows; small
+windows omit optional notes. If one native row cannot fit, the
+safe compact source preview remains available.
+
+Main document `Page X of Y` continues to use the compact source
+layout until precise native block pagination is implemented.
+[Native table measurement contract](Docs/Native-Spectre-Tables/en.md).
+
+The native inspector also enforces a **12-row minimum terminal
+height** in addition to the existing 28-column requirement.
+An oversized native header is measured before drawing even
+when the table contains no data rows. The compact Markdown
+view remains the fallback if the native layout cannot fit.
+
+### Source-aware native table block reader (2026-11-14)
+
+Native Spectre table discovery now shares a dedicated
+`MdViewSpectreTableBlockReader` with a source-bound header and a
+bounded six-data-row continuation API. It recognizes genuine
+header/delimiter pairs even when the delimiter lies on the next
+visual source page, and returns the exact first unconsumed line
+without treating non-table text as part of the grid. Escaped pipes,
+inline-code pipes, quote/fence exclusion and cancellation remain
+covered. The optional **View table (Spectre)** modal uses the new
+recognition and per-row predicate; its controls are unchanged.
+
+**The normal in-page layout remains compact.** Native Spectre
+embedding still requires a shared table-block visual index and
+renderer with measured height and resumable table positions.
+Six new source-bound regression tests have been committed; a
+fresh post-change .NET run is still needed.
+[Table block contract and next steps](Docs/Native-Table-Blocks/en.md).
+
+### Tiny terminal native header clarification (2026-11-14)
+
+Native table height is measured **after** bounded header clipping.
+A long unbroken heading may still fit and open the inspector (Escape
+returns safely); a word-wrappable heading that requires more actual
+display rows falls back to compact Markdown. Regression tests now
+exercise both outcomes. The maintainer's 220-case run had one test
+that incorrectly assumed all long headings must fail; the revised
+tests need a fresh run before the checkpoint is green.
+
+### Source-bound native table page planner (2026-11-14)
+
+`MdViewNativeTablePagePlanner` can now prepare bounded native Spectre
+table fragments for a future in-page renderer. It uses the same rounded
+table factory as the existing native inspector, measures actual rendered
+border/header/wrapped-cell height with the live Spectre console profile,
+and returns the exact next physical source line. A fragment reads at
+most six data rows plus one continuation probe. A grid that cannot fit
+returns a reasoned **zero-consumption compact fallback**.
+
+This is an **infrastructure-only milestone**: the main `Page X of Y`
+still uses the original disk-backed compact layout. Native block
+pagination will require a shared on-disk event index before switching
+the UI. Six targeted regression cases were committed; a new .NET
+focused/full test run is pending.
+[Measured native table page planning](Docs/Native-Table-Page-Planner/en.md).
+
+### Disk-backed native table fragment index (2026-11-15)
+
+A new **table-only** `MdViewNativeTableFragmentIndex` persists the
+measured page fragments of one confirmed Markdown table as 28-byte
+temporary disk records. Each contains the physical data-line interval,
+the actual Spectre-rendered visual height and a continuation flag.
+`GetFragmentAsync` reads one record; `FindFragmentAsync` locates
+a source row with disk-backed binary search, including mapping the
+original header/delimiter to the first fragment.
+
+`MdViewNativeTableFragmentRenderer` regenerates only the requested
+bounded fragment. Before printing, it checks the same validated source
+cursor/header, viewport geometry and exact planner height/source
+continuation. Resizes require a rebuilt index. An unsupported width
+or over-height row discards the **entire** partial native index and
+requests compact fallback; original source is never altered.
+
+**The normal in-page `Page X of Y` remains unchanged.** This
+index covers one table; mixing ordinary paragraphs and native grids
+into a common page-height budget is the next separate milestone.
+Twelve new regression tests have been committed, pending a fresh
+.NET run. [Detailed contract](Docs/Native-Table-Fragment-Index/en.md).
+
+### Mixed Markdown/native Spectre page planning (2026-11-15)
+
+An experimental `MdViewMixedVisualPagePlanner` now builds a **single,
+source-aware visual page** from ordinary Markdown rows and complete
+small native Spectre grids under one row budget. Its matching
+`MdViewMixedVisualPageRenderer` renders the same blocks and checks
+viewport and measured native-widget heights **before any output**.
+The planner reuses the original styled Markdown layout, so ordinary
+headings, quotes, lists, links and clipped code keep their current
+visual row counts.
+
+Native in-page grids are deliberately limited to **complete tables
+with at most six source data rows**, and only when the entire grid
+fits the full content-page budget. When a native grid would not fit
+after preceding text, the current page ends *before its header*.
+Long tables and narrow/over-height grids stay compact for their
+**entire block**, including across page boundaries. The resume state
+retains within-line wrap offsets and compact table header/width.
+
+This is a separate planner/renderer pair, **not yet wired into**
+`mdview preview PATH` or its existing `Page X of Y` disk index.
+Twelve targeted new tests are committed, pending a fresh .NET run.
+[Mixed visual page contract](Docs/Mixed-Visual-Page-Planning/en.md).
+
+### Disk-backed mixed Markdown page index (2026-11-15)
+
+The experimental mixed-page planner now has a **document-wide disk
+index**: `MdViewMixedVisualPageIndex` stores 56-byte source-bound
+records for every planned page, including original physical line,
+within-line wrap row, active compact-table state, actual mixed
+visual height and end-of-document information. Its disk-backed
+binary search supports canonical page lookup by physical source
+line or within-line visual row, without loading all page starts
+into RAM.
+
+`MdViewMixedVisualIndexedRenderer` reconstructs only the chosen
+canonical page and checks source cursor identity, terminal size
+and Unicode capabilities, exact `Start`/`Next` positions,
+rendered content height and the end/clipped flags before output.
+An empty file has one empty page; an exactly filled last page does
+not create an extra page. The default index disk budget is 64 MiB.
+
+This is an **experimental standalone** index and renderer.
+The existing `mdview preview PATH` command and its compact
+`Page X of Y` remain unchanged pending explicit opt-in UI work.
+Eleven new disk-index regression tests await fresh maintainer
+.NET verification.
+[Mixed page index technical guide](Docs/Mixed-Visual-Page-Index/en.md).
+
+### Opt-in mixed native Markdown preview (2026-11-15)
+
+Run `mdview preview-native README.md` (or `dotnet run --project
+Blackboard/Tools/MdView -- preview-native README.md`) to use the
+new **interactive disk-indexed mixed Markdown pager**. The previous
+`mdview preview PATH` command remains the default compact
+implementation and is not switched or replaced.
+
+The new mode displays complete small native Spectre tables between
+ordinary styled Markdown blocks. Its canonical `Page X of Y`
+navigation supports Next/Previous, one-based source-line jumps,
+and lazy disk-indexed heading/link location search. Source-line
+jumps into a table open the **containing canonical page**, not an
+unsafe custom mid-table view. A resize rebuilds visual indexes
+from the original validated source-line anchor.
+
+Long tables (more than six data rows), over-height native widgets
+and narrow terminal grids remain compact for their entire table.
+Terminal width/height are checked each draw; minimum mixed UI
+size is **28 columns × 18 rows**, and sixteen rows remain reserved
+for controls even with a large explicit content-row request.
+
+The xUnit2020 warning in the existing mixed-page test was corrected
+using `Assert.Fail` (commit
+`7f1bc4bf1388026588d728c25877f4ce34eed94c`).
+A new case-insensitive CLI test and thirteen interactive mixed-pager
+tests have been committed; **their fresh .NET result is pending**.
+The maintainer's preceding baseline was **263 passed / 0 failed /
+0 skipped**. [Usage and safeguards](Docs/Mixed-Native-Preview/en.md).
+
+### Optional mixed-preview content width (2026-11-15)
+
+For a very wide terminal, the opt-in native mixed Markdown preview
+now supports a **maximum document-content width** without changing the
+physical Spectre console profile:
+
+```bash
+mdview preview-native README.md --max-width 100
+```
+
+`--max-width N` accepts **40–4096** visible content columns, follows
+the local source path and is case-insensitive. Without the flag, the
+existing full-terminal-width behavior is unchanged. The original
+`mdview preview PATH` command also remains unchanged.
+
+The same cap is used by styled Markdown line wrapping, compact
+pipe-cell layout, bounded native table geometry, the 56-byte
+document-wide disk page index and indexed reconstruction. A narrower
+cap can deliberately cause a wide Spectre grid to use compact
+fallback. `Page X of Y` and disk-indexed source-line jumps
+remain derived from the identical source-aware page planner.
+
+The physical terminal profile is never modified; actual terminal
+resizing still invalidates and rebuilds the index. The document body stays left-aligned within its reading area.
+Without `--center`, headers, status and navigation remain at the
+physical terminal's left edge; with `--center`, the **whole viewer**
+shares the reading-column gutter. XML-commented shared helper:
+`MdViewMixedContentWidth`. A new parameterized regression suite
+covers widths, page boundaries, native grids, source jumps,
+CLI input validation and cap-aware rendering.
+**Fresh .NET verification pending for this increment.**
+[Full English guide](Docs/Mixed-Content-Width/en.md).
+
+### Optional centered mixed-preview reading column (2026-11-15)
+
+For comfortable long-form reading on very wide terminals, use
+`mdview preview-native README.md --max-width 100 --center`.
+This **centers the whole 100-column reading area**, including
+existing styled Markdown rows and inline native Spectre tables.
+Every content row shares the same left margin; individual
+paragraph lines, lists and table cells remain left-aligned
+*within* the reading column. The flags work in either order.
+
+Centering is optional and defaults to off. The full-width
+`preview-native` and established compact `preview` commands
+remain unchanged. Centering without a maximum-width cap
+adds no effective padding if the content already occupies
+the terminal's full width.
+
+A shared `MdViewMixedContentAlignment` helper computes the
+left gutter without modifying the terminal profile.
+Native Spectre tables use a zero-vertical-padding `Padder`.
+The renderer measures each padded widget **before output**
+and rejects any vertical-height mismatch; canonical page
+boundaries and 56-byte disk records remain unchanged.
+
+A dedicated xUnit suite tests text/table gutter parity,
+zero added native rows, source/index continuity, literal
+markup, CLI validity and opt-in status. **The changes await
+fresh .NET tests** after the previously maintainer-confirmed
+green width-cap checkpoint.
+[Centered reading column](Docs/Mixed-Content-Alignment/en.md).
+
+### Full-screen centered mixed preview (2026-11-15)
+
+A real Konsole screenshot exposed the original alignment mismatch:
+only the Markdown body was centered, while the file header,
+`Page X of Y`, status and keyboard navigation stayed at column zero.
+The `--center` flag now applies the **same horizontal reading-column
+gutter to the whole mixed viewer**, not just document rows.
+
+The first forwarding `MdViewIndentedPromptConsole` adapter did not
+shift Spectre's **live** selection menu and was removed. The replacement
+`MdViewCenteredPromptRenderHook` is attached in a short-lived
+`RenderHookScope` before the prompt starts: it pads the actual
+live widget's title, arrow and choices with **zero vertical rows**,
+while preserving native Spectre keyboard/cursor behavior.
+The main menu and disk-indexed heading/link pickers use this hook. Free-text line input instead
+indents its prompt title **once** on the original console, without
+adding spaces to each typed character. File information, status,
+feedback, clip warnings, the empty-page label and menus share the
+document's left edge and configured content-column limit.
+
+The 56-byte disk index and source-bound page geometry are unchanged.
+No extra document rows or duplicate source buffering are introduced.
+Without `--center`, the existing left-aligned mixed UI and compact
+default remain unchanged.
+
+Nine new `MdViewMixedScreenAlignmentTests` cover synchronized
+chrome/body/menu left edges, keyboard navigation, line entry,
+heading/link pickers, empty search results and default alignment.
+Fresh maintainer .NET verification is pending.
+[Unified centered preview](Docs/Mixed-Content-Alignment/en.md).
+
+### Corrected native live-prompt alignment (2026-11-15)
+
+The maintainer reported **325 passed, 8 failed, 333 total** after the
+first whole-screen centering attempt. In real Konsole the upper part
+was centered, but the interactive menu still appeared at column zero.
+
+Spectre renders `SelectionPrompt` through a late-added
+`ListPromptRenderHook`. The previous forwarding console padded
+the initial write only, not the resulting live widget. A new
+scoped `MdViewCenteredPromptRenderHook` now pads the actual
+live widget in the render pipeline, preserving cursor control
+sequences, the selection indicator and existing keyboard navigation.
+The effect is a **borderless horizontal layout**, without extra
+source/visual rows or an altered 56-byte disk index. The ineffective
+adapter was deleted.
+
+The focused alignment tests now use ANSI-enabled
+`Spectre.Console.Testing.TestConsole` and strip control sequences
+before comparing visible margins. Additional regressions verify
+hook scope and subsequent unindented output. **Fresh .NET tests and
+Konsole visual confirmation pending.**
+[Live-prompt fix](Docs/Mixed-Content-Alignment/en.md).
+
+### Opt-in repeated-header long native tables (2026-11-15)
+
+The disk-indexed `preview-native` reader now supports
+**`mdview preview-native README.md --long-tables`** to display
+long pipe tables as multiple small native Spectre grids, each
+repeating the **original Markdown table header**. The flag is
+optional, case-insensitive and can be combined with
+`--max-width 100 --center` in any order.
+
+Before rendering even the first long-table fragment,
+`MdViewLongNativeTableEligibility` performs a **bounded
+source-complete streaming preflight**: up to 2,048 measured
+fragments, at most six source rows per fragment. If any
+later row cannot fit the fresh-page budget, or the scan
+limit is exceeded, **the whole table remains compact**.
+No complete source table or native widget collection
+is retained in RAM.
+
+Each continuation page stores the original header line and
+the next unconsumed physical data line in the existing
+**56-byte disk page record**, using a reserved `-1`
+native-continuation marker. The page index and renderer
+share the opt-in mode as instance metadata and verify
+identical source positions and measured row heights.
+Source jumps into later fragments, `Page X of Y`,
+terminal resize, centered layout and compact fallback
+retain their established contracts.
+
+The default `preview-native PATH` (without this flag)
+and the original `preview PATH` are unchanged. Thirteen
+new test methods cover multi-page native fragments,
+repeated headers, exact-once source rows, source jumps,
+width/centering, compact fallback, first-header page
+deferral, bounded preflight and CLI options.
+**Fresh .NET test verification is pending.**
+[Long native tables guide](Docs/Long-Native-Tables/en.md).
+
+### Native table journal request batching (2026-11-15)
+
+The native Spectre table fragment planner now reads one **bounded
+source-journal window** (up to six data rows plus one lookahead)
+per fragment, rather than issuing one journal request per row
+and another request for continuation. This reduces repetitive
+offset-table requests on high-latency storage while preserving
+the exact measured widget geometry, `HasMore`, source-row
+boundaries, compact fallback and 56-byte mixed disk page index.
+
+An internal `MdViewContainerPageCursor.ReadRequestCount`
+diagnostic allows deterministic regression tests without
+exposing new public API. Five
+`MdViewNativeTableBatchReadTests` validate one source
+request per fragment, source row retry on height overflow,
+end-of-table safety, long native preflight request count,
+and zero requests on narrow/pre-cancelled fallback.
+
+This optimization changes neither CLI flags nor output
+and does not load the entire Markdown table into RAM.
+The request-count reduction is **not** a claimed HDD
+elapsed-time benchmark result. Maintainer .NET verification
+of this new increment remains pending.
+[Batching design](Docs/Native-Table-Journal-Batching/en.md).
+
+### Contiguous source journal event reads (2026-11-15)
+
+The source-aware `MdViewContainerPageCursor` now coalesces
+neighboring serialized Markdown line events into **bounded
+contiguous disk reads**, instead of reading each event's
+four-byte length and JSON payload separately.
+
+One cursor request reads its offsets together (plus
+at most one following offset), then validates strictly
+increasing record boundaries. Complete serialized events
+are grouped into windows up to **256 KiB**. An individual
+valid event larger than that threshold uses a single
+bounded read (existing maximum **8 MiB + 4 bytes**).
+Each record's stored length, JSON and physical source
+line number are verified independently.
+
+A new **internal** `EventReadRequestCount` diagnostic
+counts actual event-stream `ReadExactlyAsync` calls,
+rather than higher-level cursor requests. Seven xUnit
+regressions check single-window reads, multi-window
+splitting, oversized records, Unicode/CRLF preservation,
+backward navigation, deliberately corrupted journal
+boundaries and pre-cancellation.
+
+This increment does not change CLI commands, source
+snapshot validation, `Page X of Y`, native Spectre
+geometry or the 56-byte mixed visual index. Lower
+stream call counts are deterministic; real HDD elapsed
+time is **not yet measured**. Fresh .NET verification
+is pending after the previous maintainer-confirmed
+all-green checkpoint.
+[Contiguous journal reads](Docs/Contiguous-Journal-Reads/en.md).
+
+### Isolated 2-GiB HDD benchmark (2026-11-15)
+
+A separate **manual-only** project now lives in
+`Blackboard/Tools/MdView.Benchmarks`. It is deliberately
+outside `Toolbox.sln` and leaves the normal MdView
+viewer, disk-index budget and all CLI defaults unchanged.
+
+The Linux launcher redirects `TMPDIR` to the chosen
+separately mounted test disk **before starting .NET**,
+so the generated Markdown, validated snapshots, event
+journals, offset/page indexes and logs all use the
+same physical volume. The expected test root is
+`/mnt/TEST`, with `tmp`, `data` and `logs`
+subdirectories; other mounts can be passed explicitly.
+
+A streaming generator creates exactly **2048 MiB
+(2,147,483,648 bytes)** of deterministic Markdown
+with headings, long wrapped prose, links, 24-data-row
+pipe tables, code fences and Unicode. Run an 8-MiB
+smoke test first; the 2-GiB experiment is intentionally
+manual, not an xUnit timing assertion or background task.
+
+```bash
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 8 --seeks 10
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 2048 --seeks 250
+```
+
+Logs are preserved under `/mnt/TEST/logs` as
+JSON Lines, human-readable text and system/disk
+metadata. They record stopwatch measurements, GC/RSS,
+per-process Linux I/O deltas and original/contiguous
+journal request counters. The optional `index`
+command measures the complete mixed visual page index,
+but is deliberately separate from `all`.
+Cold OS cache is **never claimed or cleared** by
+the launcher.
+
+**Status:** committed and ready for maintainer
+compilation/testing on the real HGST; no performance
+results exist yet. [Benchmark README](../MdView.Benchmarks/README.md)
+and [English experiment protocol](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md).
+
+## Optional journal-construction stage profiling (2026-11-22)
+
+Large-file benchmarks now offer **internal, opt-in per-stage** timing
+of the scanner, JSON serializer, event length/payload writes,
+offset writes, offset-table reads, contiguous event reads and
+JSON event deserialization. By default `MdViewContainerPageCursor.ScanTimings`
+is null, so normal MdView does **not** time each line. The
+on-disk journal format and public cursor API are unchanged.
+This follows a verified 2-GiB HDD run (200/200 source-line seeks
+correct; peak working set under 69 MiB) with intermittent
+multi-second cursor stalls.
+
+Enable the separate benchmark with `-TraceJournalIo` on Windows
+or `--trace-journal-io` on Linux. Profiling adds per-operation
+timestamps, so it is deliberately not a strict unprofiled
+throughput comparison. See
+[journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md)
+and [the measured HDD history](../MdView.Benchmarks/Docs/Results-2026-11-22/en.md).
+
+### Twelve-stage stream-position trace (2026-11-22)
+
+The successful eight-stage 1-GiB HDD profile
+(`mdview-hdd-20261122T145716681Z-543ebae1`)
+isolated a **23.035-s** 67–68% progress-window
+stall, while all eight previously instrumented
+stages totaled only **75.655 ms** in that window.
+To avoid misattributing this to write/reader awaits,
+the opt-in observer now separately times four
+synchronous `FileStream.Position` assignments:
+`EventWritePosition`, `OffsetWritePosition`,
+`OffsetReadPosition` and `EventReadPosition`.
+These are additions to the existing eight stages,
+and they remain off by default. Test with the
+same prepared 1-GiB source to identify the
+exact boundary that blocks. See
+[journal diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+### Avoid redundant journal append seeks (2026-11-22)
+
+The third 1-GiB HDD trace localized the multi-second stalls to
+**synchronous `FileStream.Position` setters**. On this run,
+`EventWritePosition` and `OffsetWritePosition` totaled
+**11,659.125 ms + 25,440.455 ms**, respectively, of a
+**46,506.152-ms** journal phase. A single offset-position setter
+blocked for **13,489.504 ms** near 70% source progress.
+The new cursor change **checks the current stream position** before
+setting an append position. During ordinary forward scanning the
+stream already is at the journal end, so repeated setters are skipped;
+after a cached backward read a single setter restores the append end.
+
+The persisted event/offset format and limits are untouched. The
+internal cumulative counters `EventWritePositionSetterCount` and
+`OffsetWritePositionSetterCount` let regression tests verify that a
+page of 128 sequential records does not cause 128 redundant seeks.
+Manual benchmark `journal_progress` records expose cumulative
+`event_write_position_setter_calls` and
+`offset_write_position_setter_calls`. The original 12 optional
+stage timers remain available for comparing the next physical-HDD
+measurement. A speedup is **not** claimed without that new run.
+See [diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+### 1-GiB follow-up: no redundant seeks, but slower HDD journal (2026-11-22)
+
+The next physical H: run
+`mdview-hdd-20261122T154929922Z-93528de2` confirmed
+**zero** append position assignments in the corrected sequential
+journal path. All 200 sampled source-line checks remained correct,
+with peak working set **69.31 MiB**.
+However, its journal phase took **125,347.666 ms**, versus
+**46,506.152 ms** in the previous, otherwise matching twelve-stage
+run. The phase slowed by a factor **2.70** (not a win).
+In the new trace, `EventPayloadWrite` accounted for
+**115,955.056 ms (92.5%)**, while the two append-position
+stages combined took just **47.697 ms**.
+This is a major I/O timing shift, not proof of a defective HDD.
+A single sequential experiment with uncontrolled disk-cache/thermal
+state is insufficient to assign all of the regression to the code.
+
+We therefore added a **benchmark-controlled internal A/B flag**:
+`ForceJournalAppendPositionSetters`, off by default, which
+restores the original unconditional per-record Position assignments.
+It has no public production API, and the normal viewer still
+uses conditional setters. A separate regression asserts
+the forced path's exact setter counts and backward replay
+correctness; both variants are run in Windows/Linux CI.
+
+Next perform an **alternating B/A/B manual comparison** on
+the same physical H: drive using the commands in
+[the HDD benchmark guide](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md).
+Do not infer an optimization speedup from one run.

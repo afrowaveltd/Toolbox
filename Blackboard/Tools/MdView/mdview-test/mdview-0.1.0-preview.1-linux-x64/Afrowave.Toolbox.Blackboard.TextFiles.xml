@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Afrowave.Toolbox.Blackboard.TextFiles</name>
+    </assembly>
+    <members>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewKind">
+            <summary>How a selected local file can be represented safely in a terminal.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewKind.Text">
+            <summary>A valid supported text encoding with printable content.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewKind.Empty">
+            <summary>An empty file or file containing only a byte-order mark.</summary>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewKind.BinaryOrUnsupportedEncoding">
+            <summary>Binary, unsafe control codes or an unsupported legacy encoding.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult">
+            <summary>Bounded read-only text preview, never the entire arbitrary file.</summary>
+            <param name="Kind">Detected presentation category.</param>
+            <param name="Content">Preview text, empty unless Kind is Text.</param>
+            <param name="EncodingName">Detected encoding, or null when unsupported.</param>
+            <param name="Truncated">True when more bytes exist beyond the bounded read.</param>
+            <param name="TotalBytes">Original file size at the time of the read.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.#ctor(Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewKind,System.String,System.String,System.Boolean,System.Int64)">
+            <summary>Bounded read-only text preview, never the entire arbitrary file.</summary>
+            <param name="Kind">Detected presentation category.</param>
+            <param name="Content">Preview text, empty unless Kind is Text.</param>
+            <param name="EncodingName">Detected encoding, or null when unsupported.</param>
+            <param name="Truncated">True when more bytes exist beyond the bounded read.</param>
+            <param name="TotalBytes">Original file size at the time of the read.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.Kind">
+            <summary>Detected presentation category.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.Content">
+            <summary>Preview text, empty unless Kind is Text.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.EncodingName">
+            <summary>Detected encoding, or null when unsupported.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.Truncated">
+            <summary>True when more bytes exist beyond the bounded read.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.TextPreviewResult.TotalBytes">
+            <summary>Original file size at the time of the read.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.TextFilePreviewReader">
+            <summary>
+            Reusable strict local text reader supporting bounded previews and complete documents.
+            </summary>
+            <remarks>
+            The classifier is intentionally conservative: unsupported code pages and binary
+            data are not decoded with replacement characters and never written to the terminal.
+            This is a demonstration, not a general-purpose file format/charset detector.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.TextFilePreviewReader.DefaultMaxPreviewBytes">
+            <summary>Default maximum bytes printed from one selected file (16 KiB).</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.TextFilePreviewReader.ReadAsync(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads no more than the requested number of bytes from an existing local file.
+            Supports strict UTF-8, UTF-8 BOM, UTF-16 BOM, and UTF-32 BOM.
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">The preview limit is out of bounds.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.TextFilePreviewReader.ReadCompleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reads and validates an entire selected text file, without an arbitrary byte cap.
+            Uses a small reusable decoding buffer; the returned document is materialized
+            as one string for whole-document Markdown parsing and rendering.
+            </summary>
+            <remarks>
+            Intended for user-initiated full documents, not the bounded generic file
+            preview. Large documents consume memory proportional to decoded text and
+            their Markdown syntax tree. Invalid encoding or terminal controls anywhere
+            in the file reject the entire result.
+            </remarks>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage">
+            <summary>
+            One bounded page of physical UTF-8 lines. Line numbers are zero-based; this
+            is a source index, not a visual Markdown layout or a CommonMark parser.
+            </summary>
+            <param name="FirstLine">Requested first physical line (zero-based).</param>
+            <param name="NextLine">Position to request for the next page.</param>
+            <param name="TotalLines">Total physical lines in the indexed file.</param>
+            <param name="Lines">Complete decoded lines, excluding line terminators.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.#ctor(System.Int64,System.Int64,System.Int64,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            One bounded page of physical UTF-8 lines. Line numbers are zero-based; this
+            is a source index, not a visual Markdown layout or a CommonMark parser.
+            </summary>
+            <param name="FirstLine">Requested first physical line (zero-based).</param>
+            <param name="NextLine">Position to request for the next page.</param>
+            <param name="TotalLines">Total physical lines in the indexed file.</param>
+            <param name="Lines">Complete decoded lines, excluding line terminators.</param>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.FirstLine">
+            <summary>Requested first physical line (zero-based).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.NextLine">
+            <summary>Position to request for the next page.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.TotalLines">
+            <summary>Total physical lines in the indexed file.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.Lines">
+            <summary>Complete decoded lines, excluding line terminators.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8LinePage.HasMore">
+            <summary>Whether there are more lines after this page.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex">
+            <summary>
+            Strict UTF-8 physical-line index backed by an on-disk temporary offset table.
+            The entire file is validated in a sequential pass before any page is exposed.
+            Only a fixed-size read buffer and one bounded page are kept in memory.
+            </summary>
+            <remarks>
+            Supports optional UTF-8 BOM and LF, CRLF or CR terminators. UTF-16/32 files
+            should use the existing TextFilePreviewReader until a dedicated encoding-aware
+            index is added. Does not parse Markdown, wrap terminal columns or highlight code.
+            A fresh temporary index is created for this reader and deleted on disposal.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.DefaultMaximumIndexBytes">
+            <summary>Default maximum temporary offset index (256 MiB).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.ByteLength">
+            <summary>Source file size when indexing completed.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.LineCount">
+            <summary>Number of physical lines; no phantom line after a final newline.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.IndexBytes">
+            <summary>Number of bytes in the disk-backed offset table.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.OpenAsync(System.String,System.Int32,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Validates a complete UTF-8 file and creates a disk-backed offset table.
+            The file is opened read-only and is never modified. A malformed UTF-8
+            sequence or terminal control anywhere in the file rejects indexing.
+            </summary>
+            <param name="path">Local UTF-8 text file, with or without UTF-8 BOM.</param>
+            <param name="maximumLineBytes">Per-line read limit (4 KiB to 4 MiB).</param>
+            <param name="maximumIndexBytes">Maximum temporary index size; default 256 MiB.</param>
+            <param name="cancellationToken">Cancels indexing and deletes the temporary table.</param>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.ReadPageAsync(System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Reads up to 128 complete source lines with at most 4 MiB of source bytes
+            in one page. The page may contain fewer lines than requested if the byte
+            budget is reached; NextLine makes continuation lossless.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.GetByteOffsetAsync(System.Int64,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Maps a zero-based UTF-16 column within a physical source line to its
+            absolute UTF-8 byte offset. A column must not split a surrogate pair.
+            The line terminator is excluded; the column at the end of its content
+            maps to the first byte of the terminator (or end of file).
+            </summary>
+            <param name="lineNumber">Zero-based physical line number.</param>
+            <param name="utf16Column">Zero-based UTF-16 column excluding BOM and terminator.</param>
+            <param name="cancellationToken">Cancels reading the bounded line and index entry.</param>
+            <returns>Absolute byte offset in the validated source file.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Line or column is out of range.</exception>
+            <exception cref="T:System.ArgumentException">Column splits a UTF-16 surrogate pair.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.DisposeAsync">
+            <summary>Deletes the temporary index and closes the read-only source.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex">
+            <summary>
+            Disk-backed mapping of document-wide decoded UTF-16 offsets into UTF-8
+            byte offsets. The initial UTF-8 BOM is excluded from UTF-16 coordinates.
+            </summary>
+            <remarks>
+            Builds an independent, temporary 16-byte-per-line index from a validated
+            <see cref="T:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex"/>. Its caller retains ownership of that source.
+            Construction is bounded-memory and batches physical-line and byte-offset
+            reads, without repeated per-line position decoding. This is not an immutable
+            snapshot of a concurrently modified file.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.DefaultMaximumIndexBytes">
+            <summary>Default limit for the temporary UTF-16 line table (256 MiB).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.Utf16Length">
+            <summary>Total number of decoded UTF-16 units, including line terminators but excluding BOM.</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.IndexBytes">
+            <summary>Temporary index storage size in bytes.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.CreateAsync(Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Builds a bounded disk-backed lookup table using the validated physical
+            line reader. Existing UTF-8 source data is never written to.
+            </summary>
+            <param name="source">Previously validated physical-line index, owned by caller.</param>
+            <param name="maximumIndexBytes">Temporary index byte budget.</param>
+            <param name="cancellationToken">Cancels index construction.</param>
+            <returns>Independent UTF-16 position index; dispose after use.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.GetByteOffsetAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Maps an absolute decoded UTF-16 offset (including newline units) to a source byte position.</summary>
+            <param name="utf16Offset">Document-wide zero-based UTF-16 offset, or EOF.</param>
+            <param name="cancellationToken">Cancels index access.</param>
+            <returns>Absolute position in the original UTF-8 source bytes.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DocumentOffsetIndex.DisposeAsync">
+            <summary>Disposes the temporary UTF-16 index, not its source line index.</summary>
+        </member>
+        <member name="T:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot">
+            <summary>
+            Owns a private, fully validated temporary UTF-8 copy of a source file.
+            Later reads use the copy rather than the possibly changing original path.
+            </summary>
+            <remarks>
+            Only content successfully copied and then validated by
+            <see cref="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8DiskLineIndex.OpenAsync(System.String,System.Int32,System.Int64,System.Threading.CancellationToken)"/> is exposed. Temporary files are
+            removed on disposal. The private path is not intended as a protection from
+            malicious processes with the same OS identity or elevated privileges.
+            </remarks>
+        </member>
+        <member name="F:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.DefaultMaximumSnapshotBytes">
+            <summary>Default maximum bytes copied to a temporary snapshot (16 GiB).</summary>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.Lines">
+            <summary>
+            Validated read-only line index over the temporary copy.
+            The snapshot owns and disposes it; callers must not dispose it separately.
+            </summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.OpenReader">
+            <summary>
+            Opens a forward-only, strict UTF-8 reader for the already validated
+            private copy. The caller owns and disposes the returned reader.
+            </summary>
+            <returns>A new independent reader positioned at the beginning of the snapshot.</returns>
+            <exception cref="T:System.ObjectDisposedException">The snapshot has been disposed.</exception>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.OpenReaderAtByteOffset(System.Int64)">
+            <summary>
+            Opens an independent strict UTF-8 reader at an absolute byte position.
+            The caller must supply a validated UTF-8 character boundary, normally
+            obtained from the snapshot's physical-line or document offset index.
+            The returned reader is owned by the caller.
+            </summary>
+            <param name="byteOffset">Absolute source byte offset, including any BOM.</param>
+            <returns>Reader starting at the supplied UTF-8 character boundary.</returns>
+        </member>
+        <member name="P:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.ByteLength">
+            <summary>Byte length of the validated copy, including any UTF-8 BOM.</summary>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.CreateAsync(System.String,System.Int64,System.Int32,System.Int64,System.Threading.CancellationToken,System.String)">
+            <summary>
+            Copies a source into private temporary storage with a byte budget and
+            validates the finished copy before exposing any read access.
+            </summary>
+            <param name="path">Original local file; never written by this method.</param>
+            <param name="maximumSnapshotBytes">Maximum bytes permitted in the temporary copy.</param>
+            <param name="maximumLineBytes">Per-line read limit passed to the UTF-8 index.</param>
+            <param name="maximumIndexBytes">Disk budget for the physical-line index.</param>
+            <param name="cancellationToken">Cancels copy and validation and cleans up.</param>
+            <param name="temporaryRoot">Existing directory for temporary snapshot storage,
+            or null to use the OS temporary directory. The directory itself is never removed.</param>
+            <returns>Validated private copy and its owned physical-line index.</returns>
+        </member>
+        <member name="M:Afrowave.Toolbox.Blackboard.TextFiles.Utf8ValidatedSnapshot.DisposeAsync">
+            <summary>
+            Closes the indexed copy and deletes the private temporary directory.
+            </summary>
+        </member>
+    </members>
+</doc>
