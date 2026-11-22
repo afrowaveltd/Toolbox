@@ -1,13 +1,15 @@
 # mdview CLI: early preview interface
 
 **Current status (2026-11-22):** in-repository .NET 10 executable,
-version 0.1.0-preview.1, with complete rendering, interactive source
-selection, public repository/HTTPS navigation and opt-in disk-backed
-local paging. The [Windows x64 / Linux x64 portable prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
-is published on GitHub, after passing packaged executable and
-post-extraction smoke tests on both platforms.
-**No system-wide installer is provided.**
-See [first preview distribution](../First-Preview-Release/en.md).
+version 0.1.0-preview.2, with complete rendering, interactive
+source selection, public repository/HTTPS navigation and
+opt-in disk-backed local paging. The latest
+[Windows x64 / Linux x64 portable prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2)
+includes the original desktop icon, Windows EXE ICO,
+and an optional Linux Freedesktop `Terminal=true`
+user launcher. All package and icon smoke tests
+passed on both systems. **No system-wide installer is
+provided.** See [preview.2 distribution](../Second-Preview-Release/en.md).
 
 ## Source selection
 

@@ -1217,3 +1217,52 @@ Existing tracked user files are not deleted.
 Await **actual** GitHub Actions results
 before declaring the new release ready;
 `0.1.0-preview.1` remains unchanged.
+
+## 2026-11-22 — MdView icon prerelease.2 successfully published
+
+The official icon is sourced only from
+`Blackboard/Tools/MdView/Assets/icon.png`.
+The Windows-hosted SDK build auto-generates a
+7-size ICO under `obj/` and includes it through
+the standard `ApplicationIcon` property.
+The Linux portable archive carries
+`icon.png` and optional
+`install-desktop.sh`, which registers a
+user-local Freedesktop menu launcher with
+`Terminal=true`. The application remains
+a terminal Markdown reader (no in-terminal
+image display and no system-wide install).
+
+**Published immutable prerelease**
+`mdview-v0.1.0-preview.2` from
+`b9c28a5a22b97cf20d7304817ac6e5a4a875a238`
+on 2026-11-22 at **20:04:46 UTC**:
+https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2
+Four assets: Windows ZIP, Linux TAR.GZ,
+and a separate SHA-256 file for each.
+
+CI evidence:
+https://github.com/afrowaveltd/Toolbox/actions/runs/45063933056
+(**5/5** core .NET jobs green);
+https://github.com/afrowaveltd/Toolbox/actions/runs/45063933029
+(both portable distribution jobs green);
+https://github.com/afrowaveltd/Toolbox/actions/runs/45064168702
+(**3/3** release jobs green).
+Windows release CI confirms a generated
+7-size ICO and extractable EXE-associated icon;
+Linux CI confirms genuine PNG in the
+published output, a valid root-free
+desktop entry created in a temporary
+XDG profile, correct EXE path/icon fields,
+and correct packaging/extraction.
+The focused MdView xUnit suite had
+367/367 PASS on each target OS.
+
+The original `preview.1` tag/release was
+not overwritten. No source-code changes
+to journal, parser, memory limits, or
+interactive Markdown behavior.
+Remaining acceptance: check actual Explorer
+icon and KDE/GNOME desktop menu appearance
+on a user's machine, since CI uses
+noninteractive hosted runners.

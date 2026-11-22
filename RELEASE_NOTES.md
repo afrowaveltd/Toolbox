@@ -47,3 +47,30 @@ page previews and native table modes are available,
 but advanced paging is explicitly opt-in and still experimental.
 
 [Usage and known limitations](Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md).
+
+## MdView 0.1.0-preview.2 — official desktop icon (2026-11-22)
+
+[Published GitHub prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2), **not NuGet**,
+from source commit
+`b9c28a5a22b97cf20d7304817ac6e5a4a875a238`.
+This preserves the Markdown CLI/TUI functionality from
+preview.1 and integrates the original
+`Blackboard/Tools/MdView/Assets/icon.png`.
+
+- Windows x64 ZIP: standard Windows executable icon generated
+  at build time as seven-size ICO (16–256 px), connected via
+  MSBuild `ApplicationIcon` and checked in the published EXE.
+- Linux x64 TAR.GZ: packaged original `icon.png` and optional
+  root-free `install-desktop.sh`, which adds a personal
+  Freedesktop `Terminal=true` menu launcher pointing at
+  the unpacked binary/icon. No global installation occurs.
+- Both archives contain SHA-256 checksums and license.
+  **All 3 release jobs passed**, including 367/367 focused
+  MdView xUnit tests per OS, publish/extracted-archive smoke
+  tests, icon validation, and Linux launcher registration:
+  https://github.com/afrowaveltd/Toolbox/actions/runs/45064168702
+
+Old `preview.1` artifacts remain unchanged. Terminal-only
+behavior and the production journal algorithm are unchanged.
+No MSI or DEB installer is implied by this release.
+[Preview.2 usage](Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md).

@@ -1,4 +1,4 @@
-# mdview — terminal Markdown reader (0.1.0-preview.2 candidate)
+# mdview — terminal Markdown reader (0.1.0-preview.2 prerelease)
 
 > **Current journal I/O behavior (2026-11-22):** Production MdView
 > uses the **original unconditional append-position setters** (mode A),
@@ -17,13 +17,17 @@ repository navigation. **The default full-document renderer still
 loads the entire document into RAM.** The paged reader is not yet the
 default or a finished general-purpose TUI.
 
-The portable **Windows x64 / Linux x64** CLI prerelease is now
-[published on GitHub](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1). Both archives passed
-build, full focused xUnit tests, executable help/version/render
-smoke tests and post-extraction smoke tests on their target
-platforms. See [first-preview release scope and installation
-instructions](Docs/First-Preview-Release/en.md).
-This is not a NuGet package, system installer or stable TUI.
+The latest portable **Windows x64 / Linux x64**
+[0.1.0-preview.2 release](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2)
+includes the official app icon, checked Windows EXE icon,
+and optional Linux application-menu integration.
+Both archives passed focused xUnit, binary smoke,
+icon/desktop-registration, archive-extraction and
+SHA-256 checks. See
+[second preview release notes](Docs/Second-Preview-Release/en.md).
+The earlier [preview.1](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
+remains available and unchanged. MdView remains a
+portable CLI/TUI, not a system installer or NuGet package.
 
 
 ## Desktop icon integration (preview.2 candidate)
@@ -47,11 +51,10 @@ The menu launcher refers to the unpacked location;
 re-run the script if you move the folder.
 The terminal viewer itself is unchanged.
 
-The public `0.1.0-preview.1` artifacts are
-**immutable and do not contain this integration**;
-the icon-enabled build is prepared as a
-new `0.1.0-preview.2` prerelease once Windows
-and Linux CI are green.
+The public `0.1.0-preview.1` artifacts remain
+immutable and lack this integration. The
+[icon-enabled `0.1.0-preview.2` is published](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2),
+with green Windows and Linux release CI.
 
 ## Start from the Toolbox root
 

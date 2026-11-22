@@ -18,7 +18,7 @@
 | [Blackboard Markdown](Blackboard/SpectreConsole/Markdown/README.md) | Spectre.Console Markdown display, safe images, quotes, code blocks and optional syntax colors | Implemented preview project, **not yet published** |
 | [Markdown.TextMate](Blackboard/SpectreConsole/Markdown.TextMate/README.md) | Optional real code syntax coloring for Markdown with TextMateSharp grammars | Implemented source adapter; **not yet published** |
 | [Blackboard.TextFiles](Blackboard/TextFiles/README.md) | Strict local Unicode reader and disk-backed UTF-8 physical-line index for bounded-memory paging | Source implementation, **not yet published** |
-| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader with opt-in disk-backed paging, public GitHub/HTTPS browsing and indexed navigation | **Published GitHub prerelease**, [0.1.0-preview.1](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1); portable Windows/Linux executables, **not NuGet** |
+| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader with opt-in disk-backed paging, public GitHub/HTTPS browsing and indexed navigation | **Published GitHub prerelease**, [0.1.0-preview.2](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2); Windows EXE icon + optional Linux desktop launcher; portable archives, **not NuGet** |
 | [SeeMe](SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
 | [Toolroom](Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
@@ -415,7 +415,8 @@ a new benchmark run. The 2026-11-22 physical HDD measurements are
 recorded in the [journal results](Blackboard/Tools/MdView.Benchmarks/Docs/Results-2026-11-22/en.md):
 the original 1-GiB append behavior was restored after
 a controlled B–A–B comparison. The first portable
-MdView CLI [preview release](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
-is now published; it is distinct from the benchmark utility.
+MdView CLI [preview release](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2) is now published with
+the official executable and desktop icon; it remains distinct
+from the benchmark utility.
 
 [Manual HDD benchmark instructions](Blackboard/Tools/MdView.Benchmarks/README.md).

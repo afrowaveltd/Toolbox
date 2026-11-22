@@ -74,3 +74,24 @@ a stable fully paged default CLI. The full-document
 mode still allocates the document in RAM; opt-in local
 paged modes use disk-backed indexes. This is why the
 release is explicitly labeled prerelease.
+
+## MdView 0.1.0-preview.2 — official app icon prerelease
+
+Published **2026-11-22** as a
+[GitHub prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2) from commit
+`b9c28a5a22b97cf20d7304817ac6e5a4a875a238`
+(tag `mdview-v0.1.0-preview.2`).
+This is a **portable executable release**, not a NuGet package.
+The Windows x64 ZIP includes an EXE with Windows ICO resource
+derived from the canonical project `Assets/icon.png`.
+The Linux x64 TAR.GZ includes the original PNG and
+an optional user-only `install-desktop.sh` registering a
+Freedesktop application launcher (`Terminal=true`).
+
+The release has two self-contained archives and matching SHA-256
+files. Verified Windows and Linux build/test/packaging
+jobs and successful publication:
+https://github.com/afrowaveltd/Toolbox/actions/runs/45064168702.
+Automated checks do not replace manual KDE/GNOME/Windows Explorer
+visual acceptance. No system-level installers were added.
+The earlier `0.1.0-preview.1` release remains immutable.

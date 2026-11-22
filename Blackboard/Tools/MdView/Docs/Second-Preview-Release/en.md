@@ -91,3 +91,15 @@ For the complete project scope, see
 https://github.com/afrowaveltd/Toolbox/tree/master/Blackboard/Tools/MdView
 
 This is still an explicitly labeled preview release.
+
+## Published version and verified source
+
+The [public release](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.2) was published on
+**2026-11-22** from commit
+`b9c28a5a22b97cf20d7304817ac6e5a4a875a238`.
+GitHub Actions
+[run 45064168702](https://github.com/afrowaveltd/Toolbox/actions/runs/45064168702)
+passed all **three** jobs (Windows and Linux
+portable builds and final prerelease publication).
+The release has matching Windows/Linux checksum files.
+The original `0.1.0-preview.1` is unaffected.
