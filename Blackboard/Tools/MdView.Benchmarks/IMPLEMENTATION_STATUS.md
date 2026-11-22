@@ -117,3 +117,41 @@ benchmark compilation result are claimed yet.
 - The initial 8-MiB smoke test on a separately
   mounted disk is still required before the full
   2-GiB HDD experiment.
+
+## 2026-11-22 — Windows H: and cross-platform fixture preparation
+
+**Code committed, real-disk validation pending.** The initial
+benchmark only supported the `run.sh` Linux launcher. This update:
+
+- Adds a PowerShell 5.1+ `run.ps1` and Command Prompt `run.cmd`
+  launcher for Windows, defaulting to `H:\MDViewTest`. Optional
+  `-Root`/`MDVIEW_BENCH_ROOT` allows another explicitly designated
+  test filesystem. Physical-disk checks use Get-Partition to ensure
+  the target drive is not a partition on the Windows system disk.
+  Offline/readonly disks, nonlocal volumes, volume roots, symlink/
+  junction directories and insufficient free space are refused.
+- Redirects `TEMP`, `TMP`, `TMPDIR` and the volume free-space
+  measurement before launching .NET, and creates a system report
+  under `logs`. The fixture dataset and temporary snapshot,
+  journal and index files remain confined to the test disk.
+- Adds manual `prepare` mode to the existing .NET harness:
+  streaming generation and safe reuse of exact-size marker-verified
+  `8/128/1024/2048` MiB Markdown fixtures (3208 MiB in total).
+  The existing `all/generate/measure/index` flows remain intact.
+- Updates .NET temporary-directory comparison for Windows
+  case-insensitivity, preserving case-sensitive Linux comparison.
+- Changes the Linux launcher to require a supplied directory
+  or `MDVIEW_BENCH_ROOT`, rather than assuming `/mnt/TEST`.
+  `prepare` uses a 2-GiB minimum reserve in the Linux preflight.
+- Updated README and English HDD methodology documentation.
+
+**Verification:** GitHub changes and content presence checked;
+no .NET SDK, Windows PowerShell runtime or actual 80-GB test disk
+is available within the assistant's execution environment.
+No successful build/test or measured throughput is claimed.
+Next: on the real Windows H: volume, run
+`run.cmd all -SizeMiB 8 -Seeks 10`, inspect
+`H:\MDViewTest\logs`, then `run.cmd prepare` and
+`run.cmd measure -SizeMiB 2048 -Seeks 250 -Passes 2`.
+After the Linux mount point is provided, repeat the 8-MiB
+smoke test through `run.sh` and compare results.

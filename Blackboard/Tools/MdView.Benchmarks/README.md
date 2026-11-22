@@ -4,21 +4,78 @@
 not part of `Toolbox.sln` or the normal xUnit test suite. It measures
 validated Markdown snapshot creation, disk-backed container journals,
 random source-line seeks and, optionally, the complete mixed visual
-page index. The current goal is to compare the same run on the
-HGST 80 GB / 5400 RPM HDD and faster storage.
+page index. The current goal is to compare the same run on a slow 80-GB HDD
+(25–45 MB/s sequential throughput, approximately 20 ms average seek)
+and faster storage, first on Windows H: and later on Linux.
 
 This tool does not alter the default MdView CLI. It does not clear
 Linux caches, format disks, delete datasets or request root privileges.
-All files are confined to a **separately mounted test filesystem**.
+All files are confined to a **separate test volume**, verified
+by the platform-specific launcher. The normal solution tests never
+invoke this utility or generate large files.
+
+## Windows — H:\MDViewTest
+
+Use Windows PowerShell 5.1+ with .NET 10 SDK. The launcher defaults
+to `H:\MDViewTest`, or accepts `-Root` /
+`MDVIEW_BENCH_ROOT` to select another dedicated test volume.
+It identifies the physical disk behind the drive letter and
+**refuses the Windows system disk** (including a different partition
+on that same disk). It also rejects junctions/symlinks in the
+benchmark directory, checks free space and redirects .NET TEMP/TMP
+to the same volume.
+
+From the Toolbox repository root, run this **small test first**:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Blackboard\Tools\MdView.Benchmarks\run.ps1 -Mode all -SizeMiB 8 -Seeks 10
+```
+
+Prepare the complete reusable test set, explicitly and without
+running the expensive benchmarks:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Blackboard\Tools\MdView.Benchmarks\run.ps1 -Mode prepare
+```
+
+This produces 8-, 128-, 1024- and 2048-MiB Markdown files in
+`H:\MDViewTest\data` (3208 MiB total), reusing compatible
+existing fixtures without overwriting them.
+
+After inspecting smoke-test logs, run the main HDD scenario:
+
+```powershell
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd all
+```
+
+This defaults to a **2-GiB** generation/reuse plus journal and seek
+measurement. Or separate generation from measurement:
+
+```powershell
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd generate -SizeMiB 2048
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 2048 -Passes 2
+```
+
+For the optional full visual index use
+`run.cmd index -SizeMiB 2048 -LongTables` only after the
+smoke and journal tests have been validated.
+
+Windows output is kept under `H:\MDViewTest\data`,
+`H:\MDViewTest\tmp` and `H:\MDViewTest\logs`.
+System reports describe the physical disk and filesystem;
+Linux-only `/proc/self/io` counters are not available on Windows.
+The launcher does not guarantee an OS-cold filesystem cache.
 
 ## On Debian 13
 
-Mount the test HDD first (assumed mount path `/mnt/TEST`). Verify:
+Mount the HDD first. **The Linux mount point is not assumed**:
+replace `/your/mounted/disk` below with the actual mount
+point, or set `MDVIEW_BENCH_ROOT`. Verify:
 
 ```bash
-findmnt -T /mnt/TEST
+findmnt -T /your/mounted/disk
 lsblk -o NAME,SIZE,ROTA,TYPE,FSTYPE,MOUNTPOINTS
-df -hT /mnt/TEST
+df -hT /your/mounted/disk
 ```
 
 Run all commands from the Toolbox repo root, as the ordinary user.
@@ -29,7 +86,7 @@ promise the executable bit for new scripts.
 
 ```bash
 git pull
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 8 --seeks 10
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk all --size-mib 8 --seeks 10
 ```
 
 This generates an 8-MiB fixture, validates the temporary path, scans
@@ -39,21 +96,22 @@ the resulting JSONL/TXT logs before starting a 2-GiB run.
 ### Real 2-GiB HDD test
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 2048 --seeks 250
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk all --size-mib 2048 --seeks 250
 ```
 
 The streaming generator creates
-`/mnt/TEST/data/mdview-synthetic-2048MiB.md` with an **exact
+`/your/mounted/disk/data/mdview-synthetic-2048MiB.md` with an **exact
 2,147,483,648-byte size (2 GiB)**. This is roughly 2.15 GB in
 decimal disk units. The fixture repeats Markdown headings, prose
 with long wrapping lines, inline links, 24-row pipe tables,
 fenced C# code and Unicode data. It never constructs 2 GiB in RAM.
 The generated dataset is retained for later before/after comparisons.
 
-The launcher creates three directories under the mounted drive:
+The launcher creates three directories under the selected drive
+(Windows uses the same `data/tmp/logs` names):
 
 ```text
-/mnt/TEST/
+/your/mounted/disk/
   data/    mdview-synthetic-2048MiB.md
   tmp/     private validated snapshots, line indexes and
            classified journals (normally delete-on-dispose)
@@ -66,7 +124,7 @@ The launcher creates three directories under the mounted drive:
 `TEMP` before .NET starts.** Both `Path.GetTempPath()` and the
 validated snapshot's own temporary directory use the benchmark
 drive. The program refuses to run if the resolved .NET TEMP path
-does not match `/mnt/TEST/tmp`. The launcher also refuses the
+does not match `/your/mounted/disk/tmp`. The launcher also refuses the
 system root filesystem, unexpected nested mounts/symlinks and
 runs without a conservative disk free-space reserve.
 It never formats or mounts any device itself.
@@ -80,7 +138,7 @@ of durations (minimum/median/p95/p99/maximum).
 ### Repeated comparison runs
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST measure --size-mib 2048 --passes 2 --seeks 250
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk measure --size-mib 2048 --passes 2 --seeks 250
 ```
 
 The source file is **reused**, not overwritten. Each pass builds
@@ -91,7 +149,7 @@ use identical line numbers in identical order.
 ### Optional complete visual page-index test
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST index --size-mib 2048 --width 120 --rows 48 --max-width 100 --long-tables
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk index --size-mib 2048 --width 120 --rows 48 --max-width 100 --long-tables
 ```
 
 This can be substantially slower on a 5400 RPM HDD because it
@@ -104,7 +162,7 @@ also samples exact canonical source-line → page lookups.
 ## Logs to share
 
 Please send the three text-based files from the relevant run in
-`/mnt/TEST/logs/`:
+`/your/mounted/disk/logs/`:
 
 - `mdview-hdd-*.jsonl` — machine-readable events with UTC
   timestamps, elapsed phase times, logical MiB/s, GC-allocated
@@ -127,7 +185,10 @@ flushes caches or invokes privileged commands.
 
 ## Safety, bounds and known limitations
 
-- Default fixture is **2 GiB**; `--size-mib` accepts 8–8192.
+- The explicit `prepare` mode generates 8/128/1024/2048 MiB fixtures;
+  `--size-mib` controls individual `all/generate/measure/index`
+  operations and does not change the fixed prepare set.
+- Default individual fixture is **2 GiB**; `--size-mib` accepts 8–8192.
   This is a real streaming file, not a sparse allocation.
 - The launcher checks at least `6 × dataset size + 1 GiB`
   of free capacity at start. The 80-GB drive should therefore
@@ -150,11 +211,13 @@ flushes caches or invokes privileged commands.
   benchmark file** manually before retrying generation.
 - Journal, snapshot and index temporaries are normally
   deleted when disposed. A force-killed process may
-  leave temporary artifacts; inspect `/mnt/TEST/tmp`
+  leave temporary artifacts; inspect `/your/mounted/disk/tmp`
   before removing **only files created by this test**.
-- The harness is supported on Debian/Linux, not a general
-  user-facing benchmark feature, and creates no NuGet
-  release. It has no automatic long-running schedule.
+- The harness has Windows and Linux launchers, but remains a manual,
+  non-release benchmark utility and creates no NuGet release.
+- Windows and Debian executions are **not yet verified on the real HDD**;
+  a successful build and 8-MiB smoke test on each platform are required
+  before citing benchmark measurements. It has no automatic long-running schedule.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).

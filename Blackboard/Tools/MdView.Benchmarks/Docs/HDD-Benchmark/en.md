@@ -5,7 +5,8 @@
 Measure how the actual Afrowave MdView streaming / disk-index
 pipeline behaves on a deliberately slow, separately mounted
 rotational drive such as an **HGST 80 GB, 5400 RPM** device.
-The maintainer will execute this benchmark locally on Debian 13.
+The maintainer will first execute it on Windows using the separate
+H: test disk, then on Debian 13 once its exact mount point is supplied.
 This document records the current design so that future changes
 can be compared against the **same dataset and parameters**.
 
@@ -26,21 +27,33 @@ a 2-GiB source.
 
 ## Exact filesystem layout
 
-For the proposed mountpoint:
+Linux (replace the placeholder with the **verified mount point**,
+not a presumed default):
 
-- Root: `/mnt/TEST`
-- Source: `/mnt/TEST/data/mdview-synthetic-2048MiB.md`
-- TEMP / snapshots / indexes / journals: `/mnt/TEST/tmp`
-- Machine-readable and text logs: `/mnt/TEST/logs`
+- Root: `/your/mounted/disk`
+- Source: `/your/mounted/disk/data/mdview-synthetic-2048MiB.md`
+- TEMP / snapshots / indexes / journals: `/your/mounted/disk/tmp`
+- Machine-readable and text logs: `/your/mounted/disk/logs`
 
-The launcher invokes `findmnt` to refuse the OS root volume,
+The Linux launcher invokes `findmnt` to refuse the OS root volume,
 ensures all three directories resolve within the selected mount,
 checks a disk-space reserve, and exports
-`TMPDIR=/mnt/TEST/tmp` *before starting .NET*. The C# runner
+`TMPDIR=/your/mounted/disk/tmp` *before starting .NET*. The C# runner
 also checks that `Path.GetTempPath()` equals the selected
 temporary directory. This protects against the common
 measurement error of reading Markdown from the HDD but
 silently writing snapshots and journals to an SSD.
+
+Windows uses `run.ps1` (or the `run.cmd` wrapper) instead:
+the default root is `H:\MDViewTest`. Before creating any files,
+PowerShell verifies that H: is a local volume on a **different
+physical disk** from the Windows system volume. Reparse-point
+directories, insufficient space, disk roots, readonly/offline
+volumes and absent/unrecognized disks are refused. The script sets
+`TEMP`, `TMP`, `TMPDIR` and the free-space variable for the
+child .NET process. It writes `H:\MDViewTest\logs\system-*.txt`
+with filesystem/disk details. Neither platform launcher formats
+disks or clears operating-system caches.
 
 Do not run this test by copying just the compiled DLL or by
 manually setting TEMP **after** the process starts.
@@ -60,6 +73,13 @@ The generator is deterministic and bounded. Its repeated
 
 It writes **2048 MiB = 2,147,483,648 bytes** exactly, using
 repeated UTF-8 byte blocks and an ASCII-only final tail.
+The explicit `prepare` mode builds four independently reusable
+files: 8 MiB (smoke), 128 MiB (medium), 1024 MiB (large) and
+2048 MiB (stress), totalling **3208 MiB**. A single size remains
+selectable with `generate --size-mib N` on Linux or
+`-Mode generate -SizeMiB N` on Windows. Preparing fixtures does
+not run expensive index or seek measurements.
+
 The generator never holds more than one short repeated block
 in memory; it uses `FileMode.CreateNew` to prevent accidental
 truncation. After creation the source remains on the HDD
@@ -93,8 +113,9 @@ overwritten:
    `/proc/self/io` deltas.
 2. `mdview-hdd-*.txt` with human-readable equivalent
    events and explicit error information if a stage fails.
-3. `system-*.txt` with `findmnt`, `lsblk` rotational
-   indicator, `df`, free memory, kernel/OS and .NET version.
+3. `system-*.txt`: on Linux `findmnt`, `lsblk`
+   rotational indicator, `df`, free memory, kernel/OS and .NET;
+   on Windows Get-Partition/Get-Disk/Get-Volume details and .NET.
 
 The seek log preserves each requested physical source line
 and measured duration. Aggregate latency includes minimum,
@@ -104,29 +125,43 @@ Repeat benchmarks with the same source size and seed.
 
 ## Procedure
 
-Start small and confirm storage routing:
+On **Windows** (PowerShell, from repository root), first confirm
+H: is the intended empty/non-system test disk, then run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Blackboard\Tools\MdView.Benchmarks\run.ps1 -Mode all -SizeMiB 8 -Seeks 10
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Blackboard\Tools\MdView.Benchmarks\run.ps1 -Mode prepare
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Blackboard\Tools\MdView.Benchmarks\run.ps1 -Mode measure -SizeMiB 2048 -Seeks 250 -Passes 2
+```
+
+The prepare command is a separate explicit request that writes
+approximately 3.13 GiB of persistent fixture data; do not
+automate or put it in standard test suites.
+
+On **Linux**, substitute the actual mounted filesystem for
+`/your/mounted/disk`. Start small and confirm routing:
 
 ```bash
 git pull
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 8 --seeks 10
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk all --size-mib 8 --seeks 10
 ```
 
 Then run the full source/journal experiment:
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 2048 --seeks 250
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk all --size-mib 2048 --seeks 250
 ```
 
 Later, the exact same source is reused automatically:
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST measure --size-mib 2048 --seeks 250 --passes 2
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk measure --size-mib 2048 --seeks 250 --passes 2
 ```
 
 Optional comprehensive native-table geometry experiment:
 
 ```bash
-bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST index --size-mib 2048 --rows 48 --width 120 --max-width 100 --long-tables
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /your/mounted/disk index --size-mib 2048 --rows 48 --width 120 --max-width 100 --long-tables
 ```
 
 Do not run the full index as part of the first smoke check.
@@ -159,8 +194,10 @@ Also distinguish:
   event-journal windows;
 - **`syscr`/`syscw`:** Linux process read/write syscalls;
 - **`read_bytes`/`write_bytes`:** storage-accounted process
-  I/O (cache-dependent and not necessarily exclusively this
-  HDD's platter operations);
+  I/O on Linux (cache-dependent and not necessarily exclusively
+  this HDD's platter operations); these `/proc/self/io` values
+  are unavailable on Windows, where the harness reports zero
+  placeholders instead of fabricating device I/O statistics;
 - **Elapsed time / p95 latency:** directly measured duration;
 - **CPU time / GC allocated / working set:** compute and
   memory characteristics.
@@ -176,15 +213,16 @@ in end-to-end throughput.
 The benchmark is a **separate non-packable tool**, not a
 release feature and not part of `Toolbox.sln` by design.
 It uses the existing production MdView classes but writes
-only inside the selected isolated test volume. It never
+test datasets, temporary snapshots/indexes and diagnostics only
+inside the selected isolated test volume. It never
 formats drives or deletes user data, and it does not
 replace the 56-byte visual-page index format.
 
-In this chat session the implementation and documentation
-were committed to GitHub, but **the assistant has no .NET SDK
-or access to the HGST drive**. The maintainer must validate
-the initial 8-MiB smoke test before trusting the 2-GiB
-benchmark. Any compilation or runtime log will be used
+The Windows launcher and complete fixture set were added on
+2026-11-22. **Neither real-HDD execution nor .NET compilation
+has been verified in the assistant's environment.** The
+maintainer must validate the initial 8-MiB smoke test on each
+operating system before trusting the 2-GiB benchmark. Any compilation or runtime log will be used
 to correct the harness and commit changes before interpreting
 performance measurements.
 
