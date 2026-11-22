@@ -283,3 +283,14 @@
 - Added `MarkdownContainerStateMachineTests` with five mixed-container golden sources restoring before every physical line, an active quoted fenced-block resume, out-of-order offset rejection and invalid fence-owner restoration (`5ad6259202aa739f8e409309eb963233f60999f4`).
 - **Boundary:** `StateMachine` can resume after being fed already-decoded, correctly numbered lines, but no source digest/identity binding or arbitrary-position physical line reader exists yet. It is unsafe to trust external checkpoint data as a proof of file contents. The separate mdview event journal remains unchanged.
 - **Fresh tests pending**: user-confirmed green Windows suite predates this refactor. Run `dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj` and `dotnet test Toolbox.sln` on Windows. Ensure existing parser golden tests still pass before any mdview integration.
+
+## 2026-11-22 — documentation link CI repair
+
+- Corrected the relative path from
+  `Docs/Scanner-Checkpoints/en.md` to MdView's existing
+  `Docs/Experimental-Formatted-Preview/en.md`.
+- GitHub Actions documentation-link job identified the stale
+  three-level path; the target is four parent directories above
+  `Scanner-Checkpoints`.
+- No production parser, public API or tests were changed.
+  Rerun the Markdown local links CI job to confirm the fix.
