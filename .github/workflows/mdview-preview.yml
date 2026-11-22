@@ -1,0 +1,124 @@
+# Binary archives are smoke-tested on both operating systems before upload.
+# Release creation is restricted to the explicitly named release branch.
+name: MdView preview distribution
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'Blackboard/Tools/MdView/**'
+      - 'Blackboard/Tools/MdView.Tests/**'
+      - 'Blackboard/TextFiles/**'
+      - 'Blackboard/SpectreConsole/**'
+      - 'ExchangeHouse/Markdown/**'
+      - 'Directory.Build.props'
+      - 'LICENSE.txt'
+      - '.github/workflows/mdview-preview.yml'
+  workflow_dispatch:
+  create:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Publish and smoke test MdView (${{ matrix.rid }})
+    if: github.event_name != 'create' || (github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.1')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Run focused MdView regressions
+        run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --nologo
+      - name: Publish self-contained, untrimmed, single-file executable
+        shell: pwsh
+        run: |
+          dotnet publish Blackboard/Tools/MdView/MdView.csproj -c Release -r "${{ matrix.rid }}" --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o dist/stage --nologo
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke test published executable (version, help, local rendering)
+        shell: pwsh
+        run: |
+          $exe = if ($IsWindows) { 'mdview.exe' } else { 'mdview' }
+          $bin = Join-Path (Resolve-Path dist/stage) $exe
+          if (-not $IsWindows) { chmod +x $bin }
+          $versionOutput = (& $bin --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne 'mdview 0.1.0-preview.1') {
+            throw "Incorrect published executable version: $versionOutput"
+          }
+          $helpOutput = (& $bin --help | Out-String)
+          if ($LASTEXITCODE -ne 0 -or $helpOutput -notmatch 'preview-native PATH') {
+            throw 'Published --help smoke test failed.'
+          }
+          $sample = Join-Path (Resolve-Path dist/stage) 'smoke.md'
+          [System.IO.File]::WriteAllText($sample, '# Preview smoke' + [Environment]::NewLine + 'Safe **Markdown**.')
+          $content = (& $bin local $sample | Out-String)
+          if ($LASTEXITCODE -ne 0 -or $content -notmatch 'Preview smoke') {
+            throw 'Published local Markdown rendering failed.'
+          }
+          Remove-Item -LiteralPath $sample
+      - name: Build archive with documentation, license and SHA-256
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE.txt dist/stage/LICENSE.txt
+          Copy-Item Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md dist/stage/README.md
+          Copy-Item Blackboard/Tools/MdView/README.md dist/stage/PROJECT_README.md
+          New-Item -ItemType Directory -Force -Path dist/packages | Out-Null
+          $name = 'mdview-0.1.0-preview.1-${{ matrix.rid }}'
+          if ($IsWindows) {
+            $archive = "dist/packages/$name.zip"
+            Compress-Archive -Path 'dist/stage/*' -DestinationPath $archive -CompressionLevel Optimal
+          }
+          else {
+            $archive = "dist/packages/$name.tar.gz"
+            tar -czf $archive -C dist/stage .
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $basename = [System.IO.Path]::GetFileName($archive)
+          [System.IO.File]::WriteAllText("$archive.sha256", "$hash  $basename" + [Environment]::NewLine)
+          Write-Host "$basename : $hash"
+      - name: Upload smoke-tested preview archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdview-0.1.0-preview.1-${{ matrix.rid }}
+          path: dist/packages/*
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub prerelease from explicitly created release branch
+    needs: [package]
+    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.1'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mdview-0.1.0-preview.1-*
+          path: dist/packages
+          merge-multiple: true
+      - name: Publish prerelease after both smoke-tested archives exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f dist/packages/mdview-0.1.0-preview.1-win-x64.zip
+          test -f dist/packages/mdview-0.1.0-preview.1-linux-x64.tar.gz
+          gh release create mdview-v0.1.0-preview.1 dist/packages/* \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "MdView 0.1.0-preview.1" \
+            --notes-file Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md \
+            --prerelease
