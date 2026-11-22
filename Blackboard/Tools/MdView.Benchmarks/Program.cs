@@ -34,6 +34,12 @@ internal static class MdViewDiskBenchmark
     /// <summary>Executes a requested benchmark phase and writes diagnostics.</summary>
     internal static async Task<int> RunAsync(string[] args)
     {
+        // Safe, isolated logger-only regression: no HDD, parser, snapshot
+        // or physical-disk preflight. Used by the two-platform CI matrix.
+        if (args.Length == 1 &&
+            args[0].Equals("--self-test-log-buffer", StringComparison.Ordinal))
+            return await VerifyRamBufferedLogAsync();
+
         BenchLog? log = null;
         try
         {
@@ -147,6 +153,73 @@ internal static class MdViewDiskBenchmark
                 }
             }
             return 1;
+        }
+    }
+
+    /// <summary>
+    /// Validates delayed writes and both output encodings using a unique
+    /// temporary directory on the CI runner, never on a test HDD.
+    /// This is NOT a performance benchmark.
+    /// </summary>
+    private static async Task<int> VerifyRamBufferedLogAsync()
+    {
+        var directory = Path.Combine(Path.GetTempPath(),
+            "afrowave-mdview-log-selftest-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var log = new BenchLog(directory);
+            log.Write("self_test_progress", new { percent = 50 });
+            log.Write("self_test_completed", new { ok = true });
+            if (Directory.Exists(directory) ||
+                File.Exists(log.JsonPath) || File.Exists(log.TextPath))
+                throw new InvalidOperationException(
+                    "Buffered logger touched disk before PersistAsync.");
+
+            await log.PersistAsync();
+            var jsonLines = await File.ReadAllLinesAsync(log.JsonPath);
+            var textLines = await File.ReadAllLinesAsync(log.TextPath);
+            if (jsonLines.Length != 2 || textLines.Length != 2 ||
+                !jsonLines[0].Contains("self_test_progress", StringComparison.Ordinal) ||
+                !textLines[1].Contains("self_test_completed", StringComparison.Ordinal))
+                throw new InvalidDataException(
+                    "Persisted diagnostic records are missing or malformed.");
+
+            using var first = JsonDocument.Parse(jsonLines[0]);
+            using var second = JsonDocument.Parse(jsonLines[1]);
+            if (first.RootElement.GetProperty("event").GetString()
+                    != "self_test_progress" ||
+                second.RootElement.GetProperty("event").GetString()
+                    != "self_test_completed")
+                throw new InvalidDataException(
+                    "Buffered diagnostic JSON event names did not survive export.");
+
+            try
+            {
+                log.Write("too_late", new { error = true });
+                throw new InvalidOperationException(
+                    "Logger allowed another event after export.");
+            }
+            catch (InvalidOperationException e) when (
+                e.Message == "Diagnostic log has already been saved.")
+            {
+                // Expected safety guard.
+            }
+
+            Console.WriteLine(
+                "PASS: diagnostics stayed in RAM until explicit export; " +
+                "JSONL and TXT files preserved events on disk afterward.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("RAM logger self-test FAILED: " + ex);
+            return 1;
+        }
+        finally
+        {
+            // Only the unique directory created by this self-test.
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
         }
     }
 

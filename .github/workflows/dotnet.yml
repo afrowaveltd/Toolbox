@@ -86,6 +86,8 @@ jobs:
         }
     - name: Compile isolated benchmark utility (no HDD workload)
       run: dotnet build Blackboard/Tools/MdView.Benchmarks/MdView.Benchmarks.csproj -c Release --nologo
+    - name: Verify RAM-only log buffering and delayed export (no HDD workload)
+      run: dotnet Blackboard/Tools/MdView.Benchmarks/bin/Release/net10.0/MdView.Benchmarks.dll --self-test-log-buffer
 
   documentation-links:
     name: Markdown local documentation links
