@@ -497,3 +497,90 @@ git pull
 A new result is needed to establish whether the
 changed logging affects the stalls. The physical
 2-GiB measurement remains pending.
+
+## RAM-buffered-log confirmation — 2026-11-22 14:30 UTC
+
+The maintainer supplied
+`mdview-hdd-20261122T143043809Z-ec6979b9`
+(TXT and JSONL) from the **first physical Windows H:
+1-GiB run using the updated memory-buffered logger**.
+The `session_start` record confirms
+`diagnostic_output = memory_buffered_then_persisted_after_test`
+and a combined diagnostic RAM quota of **33,554,432 B**
+(32 MiB). The benchmark was run with a
+**1% progress interval, one pass, 100 deterministic
+seek positions repeated twice**, on runtime .NET 10.0.15.
+
+| Measurement | RAM-buffered run | Previous 13:02 run (disk logs) |
+| --- | ---: | ---: |
+| Validated snapshot | **25,591.460 ms** | 26,377.710 ms |
+| Journal scan | **48,484.762 ms** | 50,242.984 ms |
+| Journal size | **2,510,275,305 B** | 2,510,275,305 B |
+| Journal managed allocations | **13,111,881,424 B** | 13,112,108,976 B |
+| Journal GC pause time | **702.752 ms** | 1,022.423 ms |
+| Journal GC Gen0 / Gen1 / Gen2 | 743/742/742 | 743/742/742 |
+| Peak working set | **71,987,200 B** (68.65 MiB) | 72,560,640 B |
+| Random seek correctness | **200/200** | 200/200 |
+| First/repeat seek median | **0.0598/0.0579 ms** | 0.0863/0.0888 ms |
+
+**Performance interpretation:** the scan took **3.50%
+less wall time**, but the difference cannot be
+attributed entirely to the changed logging: the
+stalls are irregular, page caching is uncontrolled,
+and this is not a controlled repeated A/B experiment.
+The median one-percent interval on the RAM-buffered
+run was **216.869 ms**. No claim is made about
+uncached mechanical seeking.
+
+The principal new stall occurred over consecutive
+one-percent intervals:
+
+| Progress | Interval wall | Cumulative cursor time | Longest individual cursor call | GC pause | Previous progress log write |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| **66–67%** | **15,272.928 ms** | 15,272.904 ms | **13,194.393 ms** | 8.384 ms | 0.0155 ms |
+| **67–68%** | **9,708.212 ms** | 9,708.180 ms | **3,782.650 ms** | 7.513 ms | 0.0206 ms |
+
+Together these two intervals account for **24.981 s
+of the 48.485-s journal scan**. The slowest cursor
+call started at physical source line **539,904**,
+with journal offset **1,678,489,154 B** before that
+request and **1,678,829,282 B** after it. The next
+interval's longest cursor request began at line
+**543,616** and journal offset **1,689,968,968 B**.
+The journal's physical file I/O, Windows filesystem
+cache, external scheduling and other blocking
+operations are not individually timed by the
+instrumentation.
+
+**What is established:** the RAM-buffered benchmark
+exported 109 successful events including
+`session_completed` and all seek summaries. The
+progress logger performs no disk writes during the
+test; its recorded CPU/serialization time for previous
+events was only hundredths of a millisecond after
+startup. Stalls remained fully inside
+`MdViewContainerPageCursor.ReadAsync` call
+durations, while GC pause durations remained tiny
+within those windows.
+
+**What is not established:** the latency cannot yet
+be assigned specifically to NTFS, the mechanical
+head, OS write-back throttling, antivirus or the
+Markdown serializer. Windows
+`proc_io_delta` remains unsupported and
+zero-filled, not evidence of zero disk I/O.
+
+**Next experiment:** progress to the already generated
+2,048-MiB fixture with memory-buffered diagnostics:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 2048 -Seeks 100 -Passes 1 -ProgressStep 1
+```
+
+Expect approximately **4.676 GiB** of journal based on
+the measured 1-GiB synthetic workload ratio. This is an
+**estimate**, below the benchmark-only 8-GiB journal
+budget, not a proven guarantee. Inspect the actual
+free-space preflight and resulting journal before
+any more aggressive or visual-index experiments.

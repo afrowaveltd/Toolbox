@@ -477,3 +477,59 @@ RAM logging and its delayed export on CI runners,
 but **not physical-HDD behavior after the change**.
 Windows/Linux launchers were syntax-checked only on CI;
 real-disk safety guards are exercised by the maintainer.
+
+## 2026-11-22 — 1-GiB HDD benchmark verified with RAM-only diagnostics
+
+**Maintainer's new paired logs:** 
+`mdview-hdd-20261122T143043809Z-ec6979b9.{jsonl,txt}`.
+The session explicitly reports
+`diagnostic_output: memory_buffered_then_persisted_after_test`
+and completed successfully, proving one real Windows H:
+run through the new logger path (RAM buffering and
+post-test export). 1-GiB source, 807,433 source lines,
+1% progress, one journal pass, 200/200 correct
+deterministic seek checks.
+
+- Snapshot **25,591.460 ms**; journal **48,484.762 ms**,
+  journal size **2,510,275,305 bytes**; managed
+  journal allocations **13,111,881,424 bytes**.
+- Peak process working set **71,987,200 bytes**
+  (68.65 MiB); **743/742/742** journal-phase GC
+  collections and **702.752 ms** total GC pause.
+- The largest stalled windows shifted again:
+  **66–67%: 15,272.928 ms**, and
+  **67–68%: 9,708.212 ms**. The cursor requests
+  account for virtually all of those durations;
+  the longest single `ReadAsync` was
+  **13,194.393 ms** starting at source line
+  **539,904** and journal offset
+  **1,678,489,154 bytes**. Window GC pauses were
+  only **8.384/7.513 ms**, and preceding progress
+  log serialization times **0.0155/0.0206 ms**.
+- Relative to 13:02 disk-logged run, journal wall
+  time decreased **3.50%**; this is not an isolated
+  causal estimate due to uncontrolled caches and
+  highly variable stalls. Random indexed seek
+  timings are warm-cache results, not physical
+  disk-head seeks.
+
+**Current assessment:** RAM-only diagnostics
+successfully removes synchronous diagnostic file
+writes from measured phases, but long cursor stalls
+persist. Cause remains unproven; no evidence supports
+claiming the HDD is failing or that GC caused the
+25-second gap. Correctness, journal size and
+managed peak memory are stable across runs.
+
+**CI:** previously confirmed
+[45026296390](https://github.com/afrowaveltd/Toolbox/actions/runs/45026296390)
+completed **SUCCESS** on Windows/Linux benchmark compile,
+RAM logger self-tests, normal Toolbox build and tests,
+Windows UI regressions, and Markdown docs links.
+
+**Next action:** run the prepared 2-GiB
+`run.cmd measure -SizeMiB 2048 -Seeks 100 -Passes 1
+-ProgressStep 1` after `git pull`. Expected journal
+is ~4.68 GiB based on synthetic ratio, below the
+8-GiB test-only maximum; free disk preflight applies.
+This is **not yet a measured 2-GiB result**.

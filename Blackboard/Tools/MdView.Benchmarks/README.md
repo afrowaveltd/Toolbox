@@ -293,13 +293,29 @@ contents after explicit persistence. It is a synthetic
 logger unit smoke test on the CI runner's temporary
 directory, **not a real-HDD throughput test**.
 
-After pulling `master`, re-run the already prepared
-1-GiB source without changing the fixture:
+The first 1-GiB run using RAM-only diagnostics
+(`mdview-hdd-20261122T143043809Z-ec6979b9`) also
+**passed all 200 deterministic seek checks**, with a
+48.485-second journal scan, 68.65-MiB peak working set,
+and two cursor stalls of 15.273 and 9.708 seconds at
+66–68%. There were no progress-log disk writes while
+measured work was running; this isolates logging but
+does not remove stalls within cursor requests.
+See [measured results](Docs/Results-2026-11-22/en.md).
+
+**Next manual stress stage:** the existing 2-GiB fixture
+is ready; do not regenerate it. After `git pull`:
 
 ```powershell
-.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 2048 -Seeks 100 -Passes 1 -ProgressStep 1
 ```
 
-Logs are saved at the end under `H:\MDViewTest\logs`.
-Linux uses its explicitly supplied test mount path and
-the existing `run.sh` launcher.
+The 1-GiB journal/source ratio predicts roughly
+**4.68 GiB of event journal** for the 2-GiB synthetic
+source, but this is only an extrapolation. The
+benchmark-only cap is 8 GiB and the launcher checks
+conservative free space before starting. Logs are
+saved **after** the measured work under
+`H:\MDViewTest\logs`. Linux uses an explicitly supplied
+test mount path with `run.sh`.
+
