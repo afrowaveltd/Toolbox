@@ -50,7 +50,9 @@ internal static class MdViewDiskBenchmark
                     $"Process temporary directory does not match the test disk. Actual: {tmp}; expected: {desiredTmp}. " +
                     "Use run.ps1 on Windows or run.sh on Linux; do not start the benchmark DLL directly.");
 
-            Directory.CreateDirectory(Path.Combine(options.Root, "logs"));
+            // Only the Markdown source/snapshot/journals/indexes touch
+            // the test disk during benchmark phases. Diagnostic records
+            // remain in managed RAM until completion or failure.
             Directory.CreateDirectory(Path.Combine(options.Root, "data"));
             log = new BenchLog(Path.Combine(options.Root, "logs"));
             log.Write("session_start", new
@@ -67,7 +69,9 @@ internal static class MdViewDiskBenchmark
                 cpu_count = Environment.ProcessorCount,
                 total_gc_available_bytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
                 process_id = Environment.ProcessId,
-                first_pass_is_not_proven_cold_cache = true
+                first_pass_is_not_proven_cold_cache = true,
+                diagnostic_output = "memory_buffered_then_persisted_after_test",
+                diagnostic_buffer_limit_bytes = BenchLog.MaximumBufferedUtf8Bytes
             });
 
             if (options.Mode == "prepare")
@@ -102,7 +106,10 @@ internal static class MdViewDiskBenchmark
                 log_jsonl = log.JsonPath,
                 log_text = log.TextPath
             });
+            // The benchmark interval ends before any diagnostic disk I/O.
+            await log.PersistAsync();
             Console.WriteLine();
+            Console.WriteLine("Diagnostic logs buffered in RAM during the run.");
             Console.WriteLine("Please send both log files:");
             Console.WriteLine(log.JsonPath);
             Console.WriteLine(log.TextPath);
@@ -110,16 +117,36 @@ internal static class MdViewDiskBenchmark
         }
         catch (Exception ex)
         {
-            log?.Write("session_failed", new { error = ex.ToString() });
             Console.Error.WriteLine("Benchmark failed: " + ex);
             if (log is not null)
-                Console.Error.WriteLine("Partial diagnostic log: " + log.JsonPath);
+            {
+                // Normal failures still receive a complete RAM-buffered
+                // diagnostic export. An abrupt process termination cannot
+                // be recovered by this opt-in benchmark.
+                try
+                {
+                    log.Write("session_failed", new { error = ex.ToString() });
+                }
+                catch (Exception appendError)
+                {
+                    Console.Error.WriteLine(
+                        "Could not append failure to RAM log: " + appendError);
+                }
+
+                try
+                {
+                    await log.PersistAsync();
+                    Console.Error.WriteLine(
+                        "Saved diagnostic log after failure: " + log.JsonPath);
+                    Console.Error.WriteLine("Text log: " + log.TextPath);
+                }
+                catch (Exception persistError)
+                {
+                    Console.Error.WriteLine(
+                        "Could not persist RAM-buffered diagnostics: " + persistError);
+                }
+            }
             return 1;
-        }
-        finally
-        {
-            if (log is not null)
-                await log.DisposeAsync();
         }
     }
 
@@ -717,25 +744,32 @@ internal static class MdViewDiskBenchmark
         return Math.Min(initialFree, currentFree);
     }
 
-    private sealed class BenchLog : IAsyncDisposable
+    /// <summary>
+    /// Collects diagnostics entirely in managed RAM during measured work.
+    /// The only file writes occur explicitly after the benchmark finishes,
+    /// including after a handled failure. No progress writes go to the
+    /// console, JSONL or TXT while disk I/O is being timed.
+    /// </summary>
+    private sealed class BenchLog
     {
-        private readonly StreamWriter _json;
-        private readonly StreamWriter _text;
+        // Small enough for low-RAM benchmark hosts; even the maximum
+        // 2,000-seek / four-pass workload normally remains far below this.
+        // Counts both UTF-8 outputs, not the source or MD journals.
+        public const long MaximumBufferedUtf8Bytes = 32L * 1024 * 1024;
+
+        private readonly string _directory;
+        private readonly List<string> _jsonLines = [];
+        private readonly List<string> _textLines = [];
+        private long _bufferedUtf8Bytes;
+        private bool _persisted;
 
         public BenchLog(string directory)
         {
+            _directory = directory;
             var suffix = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffZ") +
                 "-" + Guid.NewGuid().ToString("N")[..8];
-            JsonPath = Path.Combine(directory,
-                $"mdview-hdd-{suffix}.jsonl");
-            TextPath = Path.Combine(directory,
-                $"mdview-hdd-{suffix}.txt");
-            _json = new StreamWriter(new FileStream(
-                JsonPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            { AutoFlush = true };
-            _text = new StreamWriter(new FileStream(
-                TextPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            { AutoFlush = true };
+            JsonPath = Path.Combine(directory, $"mdview-hdd-{suffix}.jsonl");
+            TextPath = Path.Combine(directory, $"mdview-hdd-{suffix}.txt");
         }
 
         public string JsonPath { get; }
@@ -743,22 +777,57 @@ internal static class MdViewDiskBenchmark
 
         public void Write(string eventName, object values)
         {
+            if (_persisted)
+                throw new InvalidOperationException("Diagnostic log has already been saved.");
+
             var timestamp = DateTimeOffset.UtcNow;
             var payload = JsonSerializer.Serialize(values);
-            _json.WriteLine(JsonSerializer.Serialize(new
+            var jsonLine = JsonSerializer.Serialize(new
             {
                 timestamp_utc = timestamp,
                 @event = eventName,
                 values
-            }));
-            _text.WriteLine($"{timestamp:O} [{eventName}] {payload}");
-            Console.WriteLine($"[{eventName}] {payload}");
+            });
+            var textLine = $"{timestamp:O} [{eventName}] {payload}";
+            var size = (long)Encoding.UTF8.GetByteCount(jsonLine) +
+                Encoding.UTF8.GetByteCount(textLine) + 2;
+            if (size > MaximumBufferedUtf8Bytes - _bufferedUtf8Bytes)
+                throw new InvalidOperationException(
+                    "Diagnostic RAM buffer limit reached; stopping instead of " +
+                    "writing benchmark logs to the measured disk.");
+
+            _bufferedUtf8Bytes += size;
+            _jsonLines.Add(jsonLine);
+            _textLines.Add(textLine);
         }
 
-        public async ValueTask DisposeAsync()
+        /// <summary>
+        /// Persists collected records only after measured workload ends.
+        /// Uses new unique filenames and never overwrites prior results.
+        /// </summary>
+        public async Task PersistAsync()
         {
-            await _json.DisposeAsync();
-            await _text.DisposeAsync();
+            if (_persisted)
+                return;
+            Directory.CreateDirectory(_directory);
+            await SaveLinesAsync(JsonPath, _jsonLines);
+            await SaveLinesAsync(TextPath, _textLines);
+            _persisted = true;
+            Console.WriteLine(
+                $"Saved {_jsonLines.Count} buffered diagnostic events " +
+                $"({_bufferedUtf8Bytes} UTF-8 bytes across both formats).");
+        }
+
+        private static async Task SaveLinesAsync(
+            string path, IReadOnlyList<string> lines)
+        {
+            await using var file = new FileStream(
+                path, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                65536, FileOptions.Asynchronous);
+            await using var writer = new StreamWriter(
+                file, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            foreach (var line in lines)
+                await writer.WriteLineAsync(line);
         }
     }
 

@@ -39,11 +39,13 @@ fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT="$SCRIPT_DIR/MdView.Benchmarks.csproj"
-mkdir -p -- "$ROOT/tmp" "$ROOT/data" "$ROOT/logs"
+mkdir -p -- "$ROOT/tmp" "$ROOT/data"
+# Validate an existing log directory, but do not create one
+# or write diagnostics on the HDD before benchmark completion.
 # Fail closed if an existing directory is a symlink, or hides a
 # nested mount on another volume. All data, logs and temporary
 # indexes must remain on the designated rotational disk.
-for FOLDER in "$ROOT/tmp" "$ROOT/data" "$ROOT/logs"; do
+for FOLDER in "$ROOT/tmp" "$ROOT/data"; do
     ACTUAL="$(realpath -e -- "$FOLDER")"
     [[ "$ACTUAL" == "$ROOT/"* ]] || {
         echo "Refusing directory outside test disk: $FOLDER -> $ACTUAL" >&2
@@ -55,6 +57,18 @@ for FOLDER in "$ROOT/tmp" "$ROOT/data" "$ROOT/logs"; do
         exit 2
     }
 done
+if [[ -e "$ROOT/logs" || -L "$ROOT/logs" ]]; then
+    [[ -d "$ROOT/logs" && ! -L "$ROOT/logs" ]] || {
+        echo "Refusing symlink or non-directory logs path" >&2; exit 2;
+    }
+    LOG_REAL="$(realpath -e -- "$ROOT/logs")"
+    [[ "$LOG_REAL" == "$ROOT/"* ]] || {
+        echo "Refusing logs path outside the test root" >&2; exit 2;
+    }
+    [[ "$(findmnt -n -T "$LOG_REAL" -o TARGET)" == "$MOUNT_TARGET" ]] || {
+        echo "Refusing logs directory on a different filesystem" >&2; exit 2;
+    }
+fi
 
 SIZE_MIB=2048
 ARGUMENTS=( "$@" )
@@ -96,7 +110,7 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SYSTEM_LOG="$ROOT/logs/system-$STAMP-$$.txt"
-{
+SYSTEM_INFO="$({
     printf 'Timestamp (UTC): %s\n' "$(date -u --iso-8601=seconds)"
     printf 'Benchmark root: %s\n' "$ROOT"
     printf 'Temporary file root: %s\n' "$TMPDIR"
@@ -113,10 +127,22 @@ SYSTEM_LOG="$ROOT/logs/system-$STAMP-$$.txt"
     free -h
     printf '\n-- dotnet --\n'
     dotnet --version
-} > "$SYSTEM_LOG" 2>&1
-printf 'System information: %s\n' "$SYSTEM_LOG"
+} 2>&1)"
+# The report stays as a Bash string in RAM until after dotnet exits.
 printf 'Building separate benchmark utility (not the Toolbox test suite)...\n'
 dotnet build "$PROJECT" -c Release --nologo
 printf 'Benchmarking on mounted filesystem %s\n' "$MOUNT_TARGET"
 printf 'All temporary files redirected to: %s\n' "$TMPDIR"
-exec dotnet "$SCRIPT_DIR/bin/Release/net10.0/MdView.Benchmarks.dll" "$MODE" "$ROOT" "$@"
+BENCH_STATUS=0
+dotnet "$SCRIPT_DIR/bin/Release/net10.0/MdView.Benchmarks.dll" "$MODE" "$ROOT" "$@" || BENCH_STATUS=$?
+# Only after the timed work: export the pre-collected platform report.
+mkdir -p -- "$ROOT/logs"
+[[ -L "$ROOT/logs" ]] && {
+    echo "Refusing logs symlink after benchmark completion" >&2; exit 2;
+}
+[[ "$(findmnt -n -T "$ROOT/logs" -o TARGET)" == "$MOUNT_TARGET" ]] || {
+    echo "Refusing logs directory on another filesystem" >&2; exit 2;
+}
+( set -C; printf '%s\n' "$SYSTEM_INFO" > "$SYSTEM_LOG" )
+printf 'System information: %s\n' "$SYSTEM_LOG"
+exit "$BENCH_STATUS"

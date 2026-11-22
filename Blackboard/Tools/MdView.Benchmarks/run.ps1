@@ -131,7 +131,8 @@ $folders = @(
 )
 foreach ($folder in $folders) {
     Assert-OrdinaryDirectoryPath $folder
-    if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
+    if ($folder -ne (Join-Path $rootPath 'logs') -and
+        -not (Test-Path -LiteralPath $folder -PathType Container)) {
         [void](New-Item -ItemType Directory -Path $folder -Force)
     }
     Assert-OrdinaryDirectoryPath $folder
@@ -162,8 +163,9 @@ $systemInfo = @(
     '--- dotnet ---',
     (& dotnet --version | Out-String)
 )
-$systemInfo | Out-File -LiteralPath $systemLog -Encoding UTF8
-Write-Host "System information: $systemLog"
+# Keep all system-report text in RAM until the benchmark has finished.
+# Writing a report on H: during journal/snapshot measurement can
+# perturb slow HDD scheduling and cache behavior.
 Write-Host ("Verified separate test disk: " + $testLetter + ": (disk " + $testPartition.DiskNumber + ")")
 Write-Host "Benchmark files and .NET temporary data: $rootPath"
 
@@ -185,5 +187,20 @@ $benchmarkArguments = @(
     '--progress-step', [string]$ProgressStep
 )
 if ($LongTables) { $benchmarkArguments += '--long-tables' }
-& dotnet $binary @benchmarkArguments
-exit $LASTEXITCODE
+$benchmarkExitCode = 1
+try {
+    & dotnet $binary @benchmarkArguments
+    $benchmarkExitCode = $LASTEXITCODE
+} finally {
+    # Export platform diagnostics only AFTER the measured process ends,
+    # even if that process failed. Never overwrite an older system report.
+    $logsFolder = Join-Path $rootPath 'logs'
+    Assert-OrdinaryDirectoryPath $logsFolder
+    if (-not (Test-Path -LiteralPath $logsFolder -PathType Container)) {
+        [void](New-Item -ItemType Directory -Path $logsFolder)
+    }
+    Assert-OrdinaryDirectoryPath $logsFolder
+    $systemInfo | Out-File -LiteralPath $systemLog -Encoding UTF8 -NoClobber
+    Write-Host "System information: $systemLog"
+}
+exit $benchmarkExitCode
