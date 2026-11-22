@@ -596,3 +596,40 @@ included. A Linux physical-HDD comparison
 and visual-page-index benchmark remain
 pending. See the [2-GiB measured-results
 section](Docs/Results-2026-11-22/en.md).
+
+## 2026-11-22 — optional journal operation timings available
+
+Following the completed 2-GiB HDD baseline (all
+**200/200** sampled seeks correct), an internal
+fixed-size `MdViewJournalScanTimings` accumulator
+now times scanner advancement, JSON serialization,
+event length write, event payload write and offset
+write **only** when explicitly attached to a
+`MdViewContainerPageCursor`. No public interface,
+persistent journal format or production write
+behavior changes. Cumulative time, worst call,
+calls >=100 ms, worst source line and journal offset
+are captured. `TakeWindowAndReset()` supports
+bounded per-percentage telemetry.
+
+The harness accepts `--trace-journal-io` (Windows
+`-TraceJournalIo`) and emits
+`journal_scan_stages` inside RAM-buffered
+`journal_progress` entries. It defaults to off.
+The GitHub Actions benchmark matrix additionally
+runs the focused regression test on Linux/Windows
+(no large file generation). Until CI is green,
+compile/correctness is **pending verification**.
+No physical HDD trace has yet been collected with
+this option and performance improvements are **not
+claimed**.
+
+**NEXT:** verify CI and run
+`run.cmd measure -SizeMiB 128 -Seeks 100 -Passes 1
+-ProgressStep 1 -TraceJournalIo`. If correct,
+repeat with 1 GiB on the prepared fixture;
+inspect per-stage slowest operation and aggregate
+time before deciding whether write batching is
+worth implementing. The independent full visual-page
+`index` performance baseline and Linux physical
+HDD comparison remain pending.

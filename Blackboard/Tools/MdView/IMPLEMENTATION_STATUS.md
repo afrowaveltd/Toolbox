@@ -2100,3 +2100,46 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - Program source checked for balanced lexical
   braces/parentheses; **no local .NET SDK exists**,
   therefore compile and disk smoke-run pending.
+
+## 2026-11-22 — optional per-stage journal profile
+
+After the completed 2-GiB Windows H: journal run
+(1,614,865 lines, **5,022,177,346 bytes** journal,
+**123,166.942 ms** journal scan, all **200/200** sampled
+source-line seek checks correct, peak **72,130,560
+bytes** process working set), we implemented an
+**internal, opt-in diagnostic counter** for
+`MdViewContainerPageCursor.ScanUntilAsync`.
+
+New `MdViewJournalScanTimings.cs` uses a fixed-size
+five-stage array and records per-stage aggregate
+`Stopwatch` ticks, call counts, longest call,
+>100ms counts and corresponding source line /
+journal offset; no I/O or per-event allocated
+diagnostic objects. Stage names: scanner advancement,
+JSON serialization, event prefix write, event
+payload write and offset table write. The observer
+is null by default and introduces no changes to
+the serialized journal format, budget limits,
+public APIs or production write behavior.
+Time values represent logical operation boundaries,
+not proven physical disk I/O.
+
+`MdViewContainerPageCursorTests` gained
+`OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal`,
+covering two source lines, cached backward reuse,
+one further forward line, correct data, expected
+write counts and resetting per-window snapshots.
+Existing cancellation, offset/journal budget and
+page tests remain intact. Dedicated
+[English documentation](Docs/Journal-Io-Diagnostics/en.md)
+describes interpretation and test commands.
+
+**Next:** verify Linux/Windows CI builds and
+the focused new regression; have the maintainer
+first run 128-MiB with `-TraceJournalIo` and
+then the prepared 1-GiB fixture, without
+changing source files. Attribute stalls to
+individual logical phases before considering
+optional write coalescing. Performance improvements
+are not yet claimed.

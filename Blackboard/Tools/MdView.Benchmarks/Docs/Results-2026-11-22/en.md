@@ -714,3 +714,49 @@ line numbering; existing tests should be
 extended before production changes. This is a
 plan only; no production cursor or journal
 format has been altered by this log review.
+
+## 2026-11-22 — opt-in journal stage breakdown implemented
+
+Following the successful **2,048-MiB Windows H:**
+baseline and the source inspection described above,
+two implementation commits introduced optional,
+in-memory, per-stage journal diagnostics:
+`41d9e6eae53a4d6ac8133e81a33d274137e47692`
+(the fixed-size internal observer and xUnit regression)
+and `da72fe6c88e164155b4a64c212838ddd1adecdab`
+(benchmark option, RAM-buffered JSONL progress field,
+Windows launcher switch and Windows/Linux CI matrix
+regression invocation).
+
+This is an **instrumentation-only** change:
+- `MdViewJournalScanTimings` uses
+  `Stopwatch.GetTimestamp()` and an array of five
+  counters to measure logical scanner advancement,
+  JSON event serialization, the event length write,
+  the event payload write and the offset write.
+- `TakeWindowAndReset()` creates an immutable
+  `MdViewJournalTimingWindow`. Every stage includes
+  `Calls`, `TotalMs`, `MaxMs`,
+  `CallsAtLeast100Ms`, `MaxSourceLine`,
+  `MaxJournalOffset`; `AccountedMs` sums
+  the five time totals.
+- By default the cursor's internal observer is null.
+  Opt in using `--trace-journal-io` on Linux
+  or `-TraceJournalIo` on Windows.
+- `journal_scan_stages` is serialized in
+  `journal_progress` at each configured progress
+  interval; no per-line JSONL records or progress
+  disk writes occur during measurement.
+- Because timed async methods include scheduling
+  and runtime effects, operation times alone cannot
+  prove which OS/device layer delayed a write.
+  The trace itself changes benchmark overhead.
+- Cursor journal record bytes, offsets, size limits,
+  cancellation and failure semantics are unmodified.
+
+**Awaiting external physical-HDD evidence** after
+CI verification: start with 128 MiB and then 1 GiB
+on the already prepared dataset with
+`-ProgressStep 1 -TraceJournalIo`. No speedup
+is claimed until comparing results and, if needed,
+making a separate write-batching change.

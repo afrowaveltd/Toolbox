@@ -257,3 +257,40 @@ Windows and Linux after compilation. It checks that
 report files do not appear before export, then validates
 both file formats after export. It does not execute any
 benchmark or physical disk guards in hosted CI.
+
+## Per-stage journal I/O profiling (opt-in)
+
+The harness accepts `--trace-journal-io` (Linux) or
+`-TraceJournalIo` (Windows launcher). By default
+the diagnostic observer is null and the existing
+sequential benchmark is unchanged. When enabled,
+each `journal_progress` event includes the
+nested `journal_scan_stages` result with totals
+and maxima for scanner advancement, UTF-8 JSON
+serialization, four-byte event-length write,
+event-data write and eight-byte offset write.
+
+This records **logical asynchronous operation
+timings**, not physical disk accesses. It inserts
+several high-resolution timestamp reads per
+physical source line, and therefore has measurement
+overhead; do not compare directly against an
+untraced run as a speed optimization. The fixed-size
+counters live in RAM, are reset after each progress
+window, and add no I/O. Existing JSONL/TXT
+diagnostics continue to be written only after
+all measured work ends.
+
+Suggested progression, using prepared sources:
+1. 128 MiB, one pass, 100 seeks, progress step 1,
+   with `-TraceJournalIo` (functional smoke run).
+2. 1 GiB with the same options; inspect long-wait
+   stage and whether the sum of stage times
+   approaches the total cursor read elapsed time.
+3. Only then consider 2 GiB with profiling if
+   the 1-GiB result does not localize the stall.
+
+The Linux/Windows CI matrix builds the benchmark and
+runs `OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal`
+in the MdView test project. This does **not**
+replace real HDD measurements.

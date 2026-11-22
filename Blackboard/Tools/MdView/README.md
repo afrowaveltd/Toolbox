@@ -987,3 +987,21 @@ the launcher.
 compilation/testing on the real HGST; no performance
 results exist yet. [Benchmark README](../MdView.Benchmarks/README.md)
 and [English experiment protocol](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md).
+
+## Optional journal-construction stage profiling (2026-11-22)
+
+Large-file benchmarks now offer **internal, opt-in per-stage** timing
+of the scanner, JSON serializer, event length/payload writes and
+offset writes. By default `MdViewContainerPageCursor.ScanTimings`
+is null, so normal MdView does **not** time each line. The
+on-disk journal format and public cursor API are unchanged.
+This follows a verified 2-GiB HDD run (200/200 source-line seeks
+correct; peak working set under 69 MiB) with intermittent
+multi-second cursor stalls.
+
+Enable the separate benchmark with `-TraceJournalIo` on Windows
+or `--trace-journal-io` on Linux. Profiling adds per-operation
+timestamps, so it is deliberately not a strict unprofiled
+throughput comparison. See
+[journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md)
+and [the measured HDD history](../MdView.Benchmarks/Docs/Results-2026-11-22/en.md).

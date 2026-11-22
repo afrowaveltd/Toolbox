@@ -332,3 +332,39 @@ correctness/cancellation/error-recovery tests and
 before/after benchmarks.
 
 
+
+## Opt-in journal stage tracing (2026-11-22)
+
+After successfully processing 2 GiB on the physical Windows HDD,
+the next experiment is a **five-stage scan profile** of
+`MdViewContainerPageCursor`. This is a diagnostic mode, not
+a new journal format and not an optimization yet.
+
+| Windows launcher | Linux launcher | Default |
+| --- | --- | --- |
+| `-TraceJournalIo` | `--trace-journal-io` | Off |
+
+Example, after `git pull`, on the existing 128-MiB fixture:
+
+```powershell
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 128 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+```
+
+Each `journal_progress` JSONL event includes the optional
+`journal_scan_stages` object. It has per-window summaries for
+`ScannerAdvance`, `SerializeEvent`, `EventLengthWrite`,
+`EventPayloadWrite`, `OffsetWrite` and `AccountedMs`.
+Every stage tracks `Calls`, `TotalMs`, `MaxMs`,
+`CallsAtLeast100Ms` and the source line/journal offset
+of the longest call. Compare these with
+`interval_cursor_read_total_ms`. A large `MaxMs`
+at a file-write stage is evidence of delay **during that
+await**, not proof of mechanical HDD latency.
+
+The trace adds clock reads per scanned source row and can
+perturb throughput, so first use 128 MiB for smoke testing,
+then the unchanged 1-GiB source for diagnosis. The
+JSONL/TXT logger remains buffered in RAM and exports only
+after the benchmark. No new progress writes are generated
+on the slow disk. See the
+[technical design](../MdView/Docs/Journal-Io-Diagnostics/en.md).
