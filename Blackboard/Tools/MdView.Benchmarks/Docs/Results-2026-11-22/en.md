@@ -1291,3 +1291,108 @@ the scan instrumentation; then test and document
 the revert on Windows/Linux. Avoid changing journal
 serialization, memory caps or cancellation semantics
 during this targeted comparison.
+
+## B–A–B completed: confirmed 1-GiB conditional write regression (18:19 UTC)
+
+The final paired Windows physical H: 1-GiB logs are
+`mdview-hdd-20261122T181955063Z-bfed61a5.{jsonl,txt}`.
+The `session_start` record confirms identical
+prepared source path
+`H:\\MDViewTest\\data\\mdview-synthetic-1024MiB.md`,
+`-SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1`,
+the same Windows/.NET 10.0.15 environment,
+`TraceJournalIo=true` and
+`journal_append_mode=conditional_position_setters`.
+The 109 JSONL events include 100 per-percent journal windows,
+two timed phases, two random seek summaries, and
+`session_completed: success`.
+
+| Mode / run | Journal elapsed | Source MiB/s | Actual event/offset write Position assignments |
+| --- | ---: | ---: | ---: |
+| First B, conditional (15:49) | **125,347.666 ms** | 8.169 | 0 / 0 |
+| A, original behavior (18:00) | **47,552.161 ms** | 21.534 | 807,433 / 807,433 |
+| **Repeat B, conditional (18:19)** | **125,310.169 ms** | **8.172** | **0 / 0** |
+| Historical original A (15:04) | 46,506.152 ms | 22.019 | not independently counted |
+
+The two conditional B runs differ by only **37.497 ms
+(0.030%)**, while the intervening forced-original A
+run was approximately **2.635× faster**.
+The original A baseline and forced A differed by
+approximately **2.25%**. This controlled B–A–B
+comparison strongly supports rejecting conditional
+Position assignments for this physical HDD workload;
+the exact Windows `FileStream`/NTFS cache mechanism
+remains an inference, not a measured OS-level fact.
+
+### Final B: full correctness, resource and stage results
+
+| Metric | Final B |
+| --- | ---: |
+| Snapshot | **24,512.968 ms** (41.774 MiB/s) |
+| Journal | **125,310.169 ms** (8.172 MiB/s) |
+| Source physical lines | 807,433 |
+| Source bytes | 1,073,741,824 |
+| Event journal bytes | 2,510,275,305 |
+| Journal managed allocations | **12,831,515,824 bytes** |
+| GC pause during journal | **809.174 ms** |
+| Journal peak working set | **74,280,960 bytes (70.84 MiB)** |
+| Source-line comparisons | **200/200 correct** |
+| First / repeated warm-seek median | **0.0566 / 0.0582 ms** |
+| Final actual event/offset setter calls | **0 / 0** |
+| Event-payload writes (807,433) | **115,916.902 ms** |
+| Event write-position stage (807,433) | **25.860 ms** |
+| Offset write-position stage (807,433) | **22.462 ms** |
+| Longest individual payload await | **221.975 ms** |
+| Payload await calls at least 100 ms | **120** |
+| Per-1% progress window median | **1,126.236 ms** |
+| Largest 1% window | **73% — 3,234.530 ms** |
+
+The payload write stage alone accounts for **92.5%**
+of the final B journal duration; line scanning
+takes **3,645.319 ms** and serialization
+**1,403.378 ms**. The largest progress window is
+73%; several slow windows around 71–74% and
+89% are present, but B's central problem is
+**sustained payload-write waiting throughout the scan**.
+Snapshot phase is stable across variants; correct
+seek behavior and journal size did not regress.
+
+These measurements are process-level stopwatch
+observations; they do not prove defective HDD
+sectors, physical I/O call counts, cache flush
+implementation details, or how a different SSD
+would perform. The 70.84 MiB working set is
+slightly **above** 70 MiB; memory remains bounded
+and far below the 1 GiB target system RAM.
+
+### Production decision and implementation
+
+After completing B–A–B, commit
+`a78133bb19003f31ec3bdf4225fe485529dcf3f8`
+restored **unconditional file-position assignment
+before each event and offset append** as the
+constructor/default behavior for production
+`MdViewContainerPageCursor`.
+The internal positive property
+`UseUnconditionalJournalAppendPositionSetters`
+defaults to `true`. The slower experimental
+conditional mode remains explicitly selectable
+in the benchmark with
+`--conditional-append-position-setters`
+or Windows PowerShell
+`-ConditionalAppendPositionSetters`.
+No change to persistent journal bytes, cache
+limits, file disposal, source correctness,
+cancel-on-error semantics, or public API.
+
+The old explicit `--force-append-position-setters`
+flag still works for A (now the default).
+Combining legacy and conditional flags is
+rejected. Regression tests verify both
+variants on **Windows and Linux CI**, including
+default A behavior, backward navigation,
+correct page replay, and Markdown fences.
+This decision closes the conditional-position
+optimization experiment. Analyze the
+~70–73% intermittent A-mode stall separately
+before considering changes to write batching.

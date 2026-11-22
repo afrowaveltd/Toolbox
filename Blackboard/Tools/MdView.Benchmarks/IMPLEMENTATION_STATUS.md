@@ -977,3 +977,72 @@ green in Windows/Linux Actions
 `-ForceAppendPositionSetters`) to complete
 B–A–B and then decide whether to revert
 the conditional production change.
+
+## 2026-11-22 18:19 UTC — B–A–B closed; production A restored
+
+Uploaded complete paired B logs
+`mdview-hdd-20261122T181955063Z-bfed61a5`
+confirm the conditional B experiment
+a second time on the prepared 1-GiB
+physical Windows H: HDD.
+Snapshot **24,512.968 ms**;
+journal **125,310.169 ms**;
+807,433 source lines;
+2,510,275,305 journal bytes;
+200/200 indexed seek checks correct.
+GC pause **809.174 ms**,
+managed allocation **12,831,515,824 B**,
+peak process working set
+**74,280,960 B (70.84 MiB)**.
+Both actual append-position setter
+counters remained **zero**.
+`EventPayloadWrite` alone
+consumed **115,916.902 ms**,
+92.5% of journal wall time.
+
+The measured B–A–B journal times
+were **125,347.666 / 47,552.161 /
+125,310.169 ms** respectively.
+B runs differed by **37.497 ms
+(0.030%)**; fast A was 2.635×
+faster than repeated B.
+The earlier original-code A
+baseline was 46,506.152 ms,
+further supporting this choice.
+Exact OS/NTFS FileStream buffering
+cause remains unverified and no
+HDD media fault is concluded.
+
+**Production fix committed** as
+`a78133bb19003f31ec3bdf4225fe485529dcf3f8`:
+`MdViewContainerPageCursor` now
+defaults to **unconditional Position
+setters for event and offset appends**.
+The optional conditional slower B
+remains internal and accessible only
+with explicit benchmark setting
+`--conditional-append-position-setters`
+(or `-ConditionalAppendPositionSetters`
+via Windows launcher). Previous
+`--force-append-position-setters`
+still selects original A; conflict
+with conditional flag is rejected.
+
+Regression A validates the
+**constructor default** and three
+128-row pages with cached backward
+replay and fenced Markdown context;
+regression B checks zero redundant
+setters during streaming and correct
+reposition on backward navigation.
+Both are in Windows/Linux Actions.
+The source, journal format, resource
+limits, cancellation behavior, and
+public API are unchanged.
+
+**Next:** check all CI jobs green
+for fix and docs commits. Keep the
+known-good A default. The separate
+70–73% intermittent stall in A
+can be researched later without
+changing the proven A/B decision.

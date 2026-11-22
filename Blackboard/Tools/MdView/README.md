@@ -1,5 +1,14 @@
 # mdview — early terminal Markdown reader
 
+> **Current journal I/O behavior (2026-11-22):** Production MdView
+> uses the **original unconditional append-position setters** (mode A),
+> restored after the physical HDD B–A–B experiment showed the
+> conditional-setter variant (B) was reproducibly **2.64× slower**.
+> B is available only through an explicit benchmark flag;
+> stored journal format, bounded buffers, and correctness are unchanged.
+> See [journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+
 An independent .NET 10 **source-first CLI prototype** for opening complete Markdown documents with the existing Afrowave parser/renderer. It uses the separate Markdown.Cache library for HTTP(S) documents and public GitHub repository READMEs. This prototype is **not published**, not a native page-based reader and not a finished interactive TUI.
 
 ## Start from the Toolbox root

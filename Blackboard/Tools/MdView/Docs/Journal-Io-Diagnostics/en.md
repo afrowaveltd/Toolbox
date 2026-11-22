@@ -322,3 +322,58 @@ working original behavior, then verify
 on Windows and Linux, and document.
 No production behavior changed on the
 basis of this first A repeat alone.
+
+## Decision after completing the physical B–A–B (18:19 UTC)
+
+The third experiment
+`mdview-hdd-20261122T181955063Z-bfed61a5`
+repeated the conditional B path on the same
+1-GiB Windows H: test. It completed successfully:
+807,433 rows, the unchanged 2,510,275,305-byte
+journal, 200/200 correct line-seek checks,
+and 70.84 MiB peak working set.
+Journal wall time: **125.310 s**;
+`EventPayloadWrite`: **115.917 s**;
+zero actual append-position assignments.
+The final B differs by **0.030%** from the
+first B (**125.348 s**). The intervening
+original A run took **47.552 s**.
+The conditional variant is therefore
+reproducibly **2.635× slower** on the
+measured physical HDD workload.
+
+**Decision implemented** in
+`a78133bb19003f31ec3bdf4225fe485529dcf3f8`:
+production cursor defaults to unconditional
+event and offset `FileStream.Position`
+assignments on every append (A), restoring
+the behavior validated by the earlier and
+forced-original A runs. The optional B
+behavior remains available **only by
+explicit internal benchmark selection**.
+This preserves the exact journal format
+and RAM/disk budgets.
+
+To reproduce after this commit:
+
+```powershell
+# A (current production and benchmark default)
+.\\Blackboard\\Tools\\MdView.Benchmarks\\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+
+# B (experimental, slower on this Windows HDD)
+.\\Blackboard\\Tools\\MdView.Benchmarks\\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo -ConditionalAppendPositionSetters
+```
+
+For Linux direct CLI, the second switch is
+`--conditional-append-position-setters`.
+The historical `-ForceAppendPositionSetters`
+still selects A, now redundant; simultaneous
+A and B switches fail validation.
+
+**Separate open issue:** A still experiences
+occasional multi-second stalls near 70–73%
+of the ~2.51-GB journal. These are distinct
+from B's continuous slow payload writes.
+Do not attribute either to damaged media
+or claim a low-level FileStream flush
+mechanism without additional evidence.

@@ -468,3 +468,48 @@ can still dominate single-run
 differences. The long-term goal
 remains efficient streaming with
 bounded RAM and explicit disk limits.
+
+## Current default after completing B–A–B (2026-11-22)
+
+The identical 1-GiB prepared source on Windows H:
+produced **125.347666 s (B), 47.552161 s (A),
+125.310169 s (B)** for the journal phase,
+with 200/200 correct seeks in each run.
+All progress intervals show **zero**
+actual append position setters in both B
+runs; A recorded **807,433 per stream**.
+B spent **115.917 s** in event payload
+write awaits on the final run, while A
+completed the entire journal in 47.552 s.
+There is no measured advantage to B on
+this HDD.
+
+The original/verified-fast **A is now
+the production and benchmark default**.
+The previously documented command without
+the A switch now runs A, not B. For an
+optional experimental reproduction of B:
+
+```powershell
+git pull
+# A (default, recommended)
+.\\Blackboard\\Tools\\MdView.Benchmarks\\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+
+# B (explicit diagnostic selection only)
+.\\Blackboard\\Tools\\MdView.Benchmarks\\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo -ConditionalAppendPositionSetters
+```
+
+On Linux, pass
+`--conditional-append-position-setters`
+to `run.sh`. The old explicit
+`-ForceAppendPositionSetters` still
+selects A for older scripts, although
+it is no longer needed. Both switches
+together produce a validation error.
+The benchmark retains 12 optional
+timed stages, cumulative actual setter
+counts, RAM-buffered diagnostics, 1%-step
+progress, and strict disk preflight.
+Do not repeat unnecessary 1-GiB wear
+tests; the full comparison is recorded
+in [the results](Results-2026-11-22/en.md).

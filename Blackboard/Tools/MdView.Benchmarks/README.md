@@ -1,5 +1,16 @@
 # MdView HDD benchmark harness
 
+> **Current default (2026-11-22):** Verified-fast legacy A
+> (unconditional append-position assignments) is the default in
+> production MdView **and** this benchmark. Use the explicit
+> `-ConditionalAppendPositionSetters` switch on Windows, or
+> `--conditional-append-position-setters` on Linux, to reproduce
+> slower experimental B. The older
+> `-ForceAppendPositionSetters` switch remains accepted
+> as an explicit alias for the now-default A mode.
+> Do not combine the two switches.
+
+
 **Separate, manual-only .NET 10 benchmark.** This project is deliberately
 not part of `Toolbox.sln` or the normal xUnit test suite. It measures
 validated Markdown snapshot creation, disk-backed container journals,
@@ -519,3 +530,34 @@ payload writes for conditional mode.
 more. The original production conditional change
 has **not been reverted** in this commit.
 See [2026-11-22 detailed results](Docs/Results-2026-11-22/en.md).
+
+### B–A–B complete; fast A restored as default (18:19 UTC)
+
+The third physical HDD trace
+`mdview-hdd-20261122T181955063Z-bfed61a5`
+reconfirmed the slow conditional mode:
+**125.310 seconds**, almost exactly
+the first B at **125.348 seconds**.
+The intervening A run took
+**47.552 seconds**.
+Final B had correct 200/200 source-line
+checks, **70.84 MiB** peak working
+set, zero actual append-position setters,
+and **115.917 seconds** in event-payload
+write await. Consequently the unproductive
+conditional-position optimization was
+reverted in production and benchmark
+defaults by
+`a78133bb19003f31ec3bdf4225fe485529dcf3f8`.
+Use `-ConditionalAppendPositionSetters`
+on Windows for B, or
+`--conditional-append-position-setters`
+on Linux. Old force-A flag remains
+accepted but unnecessary.
+
+This closes the measured B–A–B
+experiment. Further work should target
+the remaining intermittent stalls of
+the otherwise fast A path, **not**
+restoring B as a default. See
+[full measured comparison](Docs/Results-2026-11-22/en.md).
