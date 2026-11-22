@@ -906,3 +906,36 @@ B/A/B manual runs on H: without
 regenerating source. Decide whether
 to revert the conditional approach
 only with repeated controlled evidence.
+
+## 2026-11-22 — post-regression A/B CI verification
+
+Commit `daf5dc2ef2515b0c2a967475cd90bb05f590190e`
+introduced an internal, benchmark-controlled switch to
+compare original unconditional journal append-position
+setters against the current conditional setters.
+
+GitHub Actions workflow run
+`45041293918` **passed all five jobs**:
+- Ubuntu complete solution build and tests: **PASS**;
+- Windows UI regression suite: **PASS**;
+- Ubuntu benchmark compile, in-memory log test,
+  timing regression, conditional-position regression
+  and new forced-legacy-position regression: **PASS**;
+- Windows benchmark compile, PowerShell launcher
+  parse, in-memory log test, timing regression,
+  conditional-position regression and new
+  forced-legacy-position regression: **PASS**;
+- Local Markdown documentation links: **PASS**.
+
+No physical HDD A/B run has been performed since
+the A/B flag was introduced. The last observed
+conditional 1-GiB run was 125.348 seconds,
+significantly slower than the earlier 46.506-second
+unconditional measurement. **Next action:**
+measure the forced legacy variant on the same
+prepared physical H: HDD source and repeat the
+conditional mode for comparison; do not infer
+a causal throughput advantage until repeated
+physical data is available.
+
+CI evidence: https://github.com/afrowaveltd/Toolbox/actions/runs/45041293918
