@@ -26,7 +26,8 @@ internal static class MdViewDiskBenchmark
         int MaxWidth = 100, int Seed = 20261115,
         bool LongTables = false, int ProgressStep = 10,
         bool TraceJournalIo = false,
-        bool ForceJournalAppendPositionSetters = false)
+        bool ForceJournalAppendPositionSetters = false,
+        bool ConditionalJournalAppendPositionSetters = false)
     {
         public long TargetBytes => checked(SizeMiB * MiB);
         public string SourcePath => Path.Combine(
@@ -71,9 +72,10 @@ internal static class MdViewDiskBenchmark
                 options.MaxWidth, options.Seed, options.LongTables,
                 options.ProgressStep, options.TraceJournalIo,
                 options.ForceJournalAppendPositionSetters,
-                journal_append_mode = options.ForceJournalAppendPositionSetters
-                    ? "legacy_unconditional_position_setters"
-                    : "conditional_position_setters",
+                options.ConditionalJournalAppendPositionSetters,
+                journal_append_mode = options.ConditionalJournalAppendPositionSetters
+                    ? "conditional_position_setters"
+                    : "legacy_unconditional_position_setters",
                 temp_path = tmp,
                 os = RuntimeInformation.OSDescription,
                 runtime = RuntimeInformation.FrameworkDescription,
@@ -237,7 +239,8 @@ internal static class MdViewDiskBenchmark
                 "[--size-mib 2048] [--seeks 250] [--passes 1] " +
                 "[--width 120] [--rows 48] [--max-width 100] " +
                 "[--seed N] [--progress-step 1..10] [--trace-journal-io] " +
-                "[--force-append-position-setters] [--long-tables].");
+                "[--force-append-position-setters | --conditional-append-position-setters] " +
+                "[--long-tables].");
 
         var mode = args[0].ToLowerInvariant();
         if (mode is not ("all" or "prepare" or "generate" or "measure" or "index"))
@@ -271,6 +274,12 @@ internal static class MdViewDiskBenchmark
                 opt = opt with { ForceJournalAppendPositionSetters = true };
                 continue;
             }
+            if (flag.Equals("--conditional-append-position-setters",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                opt = opt with { ConditionalJournalAppendPositionSetters = true };
+                continue;
+            }
             if (++i >= args.Length ||
                 !int.TryParse(args[i], out var number))
                 throw new ArgumentException("Expected an integer after " + flag);
@@ -287,6 +296,11 @@ internal static class MdViewDiskBenchmark
                 _ => throw new ArgumentException("Unknown benchmark flag: " + flag)
             };
         }
+
+        if (opt.ForceJournalAppendPositionSetters &&
+            opt.ConditionalJournalAppendPositionSetters)
+            throw new ArgumentException(
+                "Choose only one journal append mode (legacy or conditional).");
 
         if (opt.SizeMiB is < 8 or > 8192 ||
             opt.Seeks is < 1 or > 2000 ||
@@ -472,11 +486,11 @@ internal static class MdViewDiskBenchmark
                 ? new MdViewJournalScanTimings()
                 : null;
             cursor.ScanTimings = journalScanTimings;
-            // Restore the original per-record Position assignment only
-            // for a controlled A/B run. This does not change the normal
-            // MdView behavior or the stored journal format.
-            cursor.ForceJournalAppendPositionSetters =
-                settings.ForceJournalAppendPositionSetters;
+            // Verified original journal behavior is the production and
+            // benchmark default. The 2.64x-slower conditional variant is
+            // available only as an explicit diagnostic experiment.
+            cursor.UseUnconditionalJournalAppendPositionSetters =
+                !settings.ConditionalJournalAppendPositionSetters;
 
             await TimedAsync(log, $"journal_sequential_pass_{pass}",
                 settings.TargetBytes, async () =>

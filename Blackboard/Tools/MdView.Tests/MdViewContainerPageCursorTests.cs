@@ -107,7 +107,7 @@ public sealed class MdViewContainerPageCursorTests
     }
 
     [Fact]
-    public async Task SequentialJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream()
+    public async Task ConditionalJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream()
     {
         using var file = new TestFile();
         var original = Enumerable.Range(0, 384)
@@ -116,11 +116,15 @@ public sealed class MdViewContainerPageCursorTests
             .ToArray();
         var path = await file.WriteAsync(string.Join("\n", original));
         await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
-        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        await using var cursor = new MdViewContainerPageCursor(snapshot)
+        {
+            // This is deliberately the slower, benchmark-only B mode.
+            UseUnconditionalJournalAppendPositionSetters = false
+        };
 
         // Each 128-row read creates the next journal page and immediately
-        // replays it. Both streams finish at their append positions; setting
-        // those same positions again would flush buffered I/O unnecessarily.
+        // replays it. Verify that the experimental conditional mode
+        // truly skips redundant assignments without changing stored data.
         var first = await cursor.ReadAsync(0, 128);
         Assert.Equal(original.Take(128), first.Select(x => x.Source.Text));
         Assert.Equal(0, cursor.EventWritePositionSetterCount);
@@ -154,7 +158,7 @@ public sealed class MdViewContainerPageCursorTests
     }
 
     [Fact]
-    public async Task ForcedJournalAppendSettersReproduceOriginalWritePathAndPreserveReplay()
+    public async Task DefaultJournalAppendSettersPreserveOriginalWritePathAndReplay()
     {
         using var file = new TestFile();
         var original = Enumerable.Range(0, 384)
@@ -163,12 +167,10 @@ public sealed class MdViewContainerPageCursorTests
             .ToArray();
         var path = await file.WriteAsync(string.Join("\n", original));
         await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
-        await using var cursor = new MdViewContainerPageCursor(snapshot)
-        {
-            // An internal benchmark control only; normal viewer keeps the
-            // optimized (no redundant setter) mode.
-            ForceJournalAppendPositionSetters = true
-        };
+        // The verified original behavior must be the *constructor default*,
+        // not just an explicit test-only option.
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        Assert.True(cursor.UseUnconditionalJournalAppendPositionSetters);
 
         Assert.Equal(original.Take(128),
             (await cursor.ReadAsync(0, 128)).Select(x => x.Source.Text));

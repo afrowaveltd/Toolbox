@@ -101,23 +101,24 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     internal long EventReadRequestCount { get; private set; }
 
     /// <summary>
-    /// Count of actual event stream write-position assignments. Sequential
-    /// appends already at the end do not require setting Position again.
+    /// Count of event stream write-position assignments, including
+    /// unconditional assignments to an unchanged offset in the default mode.
     /// </summary>
     internal long EventWritePositionSetterCount { get; private set; }
 
     /// <summary>
-    /// Count of actual offset stream write-position assignments. Sequential
-    /// appends already at the end do not require setting Position again.
+    /// Count of offset stream write-position assignments, including
+    /// unconditional assignments to an unchanged offset in the default mode.
     /// </summary>
     internal long OffsetWritePositionSetterCount { get; private set; }
 
     /// <summary>
-    /// Benchmark-only A/B comparison with the pre-optimization write path.
-    /// When true, restores unconditional Position assignments before every
-    /// journal append. Never enabled by the production viewer.
+    /// Uses the verified fast, original journal append mode by default:
+    /// explicitly restore the append Position before each record. The
+    /// benchmark can opt into the slower experimental conditional mode.
+    /// Do not change this default without a physical-HDD A/B regression.
     /// </summary>
-    internal bool ForceJournalAppendPositionSetters { get; set; }
+    internal bool UseUnconditionalJournalAppendPositionSetters { get; set; } = true;
 
     /// <summary>
     /// Returns at most 128 source-preserving classified physical lines,
@@ -315,12 +316,13 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 var position = _eventBytes;
                 var eventWritePositionStartedAt = timing is null
                     ? 0 : Stopwatch.GetTimestamp();
-                // FileStream.Position may synchronously drain its write
-                // buffer even when asked to seek to the current position.
-                // Avoid re-seeking on every sequential journal record.
-                // Readback may have moved this stream: in that case restore
-                // the append position exactly once before the next write.
-                if (ForceJournalAppendPositionSetters || _events.Position != position)
+                // On the physical HDD, unconditional Position assignment
+                // yielded stable ~47s journal scans, while the attempted
+                // conditional optimization reproducibly took ~125s.
+                // Keep the measured-fast behavior in normal MdView. The
+                // alternative remains opt-in for benchmark diagnostics.
+                if (UseUnconditionalJournalAppendPositionSetters ||
+                    _events.Position != position)
                 {
                     _events.Position = position;
                     EventWritePositionSetterCount++;
@@ -342,7 +344,7 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 var offsetWritePositionStartedAt = timing is null
                     ? 0 : Stopwatch.GetTimestamp();
                 var offsetAppendPosition = checked(_scannedLines * sizeof(long));
-                if (ForceJournalAppendPositionSetters ||
+                if (UseUnconditionalJournalAppendPositionSetters ||
                     _offsets.Position != offsetAppendPosition)
                 {
                     _offsets.Position = offsetAppendPosition;

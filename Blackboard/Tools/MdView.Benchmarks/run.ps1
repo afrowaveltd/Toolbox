@@ -35,6 +35,7 @@ param(
     [int] $ProgressStep = 10,
     [switch] $TraceJournalIo,
     [switch] $ForceAppendPositionSetters,
+    [switch] $ConditionalAppendPositionSetters,
     [switch] $LongTables
 )
 
@@ -190,8 +191,14 @@ $benchmarkArguments = @(
 )
 if ($LongTables) { $benchmarkArguments += '--long-tables' }
 if ($TraceJournalIo) { $benchmarkArguments += '--trace-journal-io' }
+if ($ForceAppendPositionSetters -and $ConditionalAppendPositionSetters) {
+    throw 'Choose either -ForceAppendPositionSetters or -ConditionalAppendPositionSetters.'
+}
 if ($ForceAppendPositionSetters) {
     $benchmarkArguments += '--force-append-position-setters'
+}
+if ($ConditionalAppendPositionSetters) {
+    $benchmarkArguments += '--conditional-append-position-setters'
 }
 $benchmarkExitCode = 1
 try {

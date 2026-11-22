@@ -90,10 +90,10 @@ jobs:
       run: dotnet Blackboard/Tools/MdView.Benchmarks/bin/Release/net10.0/MdView.Benchmarks.dll --self-test-log-buffer
     - name: Verify opt-in journal timings preserve data and counters
       run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal" --nologo
-    - name: Verify sequential journal appends only reposition after backward replay
-      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~SequentialJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream" --nologo
-    - name: Verify legacy forced-position A/B variant preserves replay
-      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~ForcedJournalAppendSettersReproduceOriginalWritePathAndPreserveReplay" --nologo
+    - name: Verify optional conditional journal appends reposition after backward replay
+      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~ConditionalJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream" --nologo
+    - name: Verify production-default unconditional position setters preserve replay
+      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~DefaultJournalAppendSettersPreserveOriginalWritePathAndReplay" --nologo
 
   documentation-links:
     name: Markdown local documentation links
