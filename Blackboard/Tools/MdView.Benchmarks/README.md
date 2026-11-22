@@ -202,8 +202,11 @@ flushes caches or invokes privileged commands.
   default 1-MiB per-line limit.
 - `--seeks` accepts 1–2000, `--passes` 1–4,
   `--progress-step` 1–10 (default 10). Windows uses
-  `-ProgressStep`. A 1% interval produces more HDD log writes,
-  so use it for **diagnostics**, not strict throughput comparisons.
+  `-ProgressStep`. With RAM-buffered logging, a 1%
+  interval records more in-memory diagnostic events
+  without additional progress-log writes on the HDD;
+  serialization still incurs CPU/GC overhead, so use
+  this mode for **diagnostics**, not strict throughput comparisons.
 - A source file already at the selected benchmark path
   is never truncated. The generator reuses it only if its
   exact byte length and synthetic-file marker match.

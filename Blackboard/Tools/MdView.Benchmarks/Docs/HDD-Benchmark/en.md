@@ -51,8 +51,10 @@ physical disk** from the Windows system volume. Reparse-point
 directories, insufficient space, disk roots, readonly/offline
 volumes and absent/unrecognized disks are refused. The script sets
 `TEMP`, `TMP`, `TMPDIR` and the free-space variable for the
-child .NET process. It writes `H:\MDViewTest\logs\system-*.txt`
-with filesystem/disk details. Neither platform launcher formats
+child .NET process. It prepares the system report in RAM
+and writes `H:\MDViewTest\logs\system-*.txt` with
+filesystem/disk details **after** the measured process exits.
+Neither platform launcher formats
 disks or clears operating-system caches.
 
 Do not run this test by copying just the compiled DLL or by

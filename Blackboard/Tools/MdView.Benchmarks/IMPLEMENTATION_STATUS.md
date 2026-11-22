@@ -14,9 +14,13 @@ separate benchmark project.
   `Blackboard/Tools/MdView.Benchmarks/MdView.Benchmarks.csproj`.
   Not registered in `Toolbox.sln` intentionally, so normal
   builds/tests and NuGet releases do not run long I/O benchmarks.
-- `run.sh ROOT all|generate|measure|index [--size-mib N]
-  [--seeks N] [--passes N] [--width N] [--rows N]
-  [--max-width N] [--seed N] [--long-tables]`.
+- `run.sh ROOT all|prepare|generate|measure|index
+  [--size-mib N] [--seeks N] [--passes N]
+  [--width N] [--rows N] [--max-width N]
+  [--seed N] [--progress-step 1..10] [--long-tables]`.
+  Windows supports the same modes via `run.ps1` /
+  `run.cmd`, using `-ProgressStep` for the
+  optional diagnostic interval.
 - Launcher requires a separately mounted non-root filesystem
   (expected `/mnt/TEST`), guards every
   `data/tmp/logs` destination against escape or a different
@@ -458,3 +462,18 @@ compilation, collect one identical 1-GiB
 `-ProgressStep 1` run for a clean comparison.
 The physical 2-GiB test is not yet performed.
 See [Windows HDD evidence](Docs/Results-2026-11-22/en.md).
+
+### Verification — RAM diagnostics
+
+The updated `MdView benchmark compile` GitHub
+Actions workflow
+[run 45026094106](https://github.com/afrowaveltd/Toolbox/actions/runs/45026094106)
+passed **both Windows and Ubuntu builds** and the
+new `--self-test-log-buffer` on each OS. It also
+passed the ordinary Toolbox build/test and documentation
+check; the Windows UI regression job's individual
+test steps passed as well. This verifies isolated
+RAM logging and its delayed export on CI runners,
+but **not physical-HDD behavior after the change**.
+Windows/Linux launchers were syntax-checked only on CI;
+real-disk safety guards are exercised by the maintainer.
