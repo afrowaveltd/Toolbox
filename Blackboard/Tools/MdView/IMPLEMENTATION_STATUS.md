@@ -2545,3 +2545,33 @@ known-good A default. The separate
 70–73% intermittent stall in A
 can be researched later without
 changing the proven A/B decision.
+
+## 2026-11-22 — final B–A–B implementation verified in CI
+
+Production restore commit
+`a78133bb19003f31ec3bdf4225fe485529dcf3f8`
+has **all five jobs green** in
+https://github.com/afrowaveltd/Toolbox/actions/runs/45055236315.
+
+The combined production + documentation and fixed
+cross-topic Markdown link at
+`301439f5ff95de8cac1d5e9d9f3664716e5afaeb`
+has **all five jobs green** in
+https://github.com/afrowaveltd/Toolbox/actions/runs/45055406762:
+complete solution build and tests; Windows UI regression;
+Ubuntu and Windows benchmark compile, RAM-log validation,
+journal I/O diagnostics and both journal-mode regressions;
+local Markdown documentation links.
+
+Current verified default: **unconditional A**
+for production MdView and benchmark;
+explicit `--conditional-append-position-setters`
+only for optional experimental B. The measured
+B–A–B journal times are
+**125,347.666 / 47,552.161 / 125,310.169 ms**,
+with 200/200 correct seeks per run, no format changes
+and bounded process working set. This regression is
+**closed**. The intermittent ~70–73% write stall
+of A is a separate remaining performance research topic;
+no additional physical HDD run or speculative optimization
+is necessary to close B–A–B.
