@@ -512,4 +512,4 @@ counts, RAM-buffered diagnostics, 1%-step
 progress, and strict disk preflight.
 Do not repeat unnecessary 1-GiB wear
 tests; the full comparison is recorded
-in [the results](Results-2026-11-22/en.md).
+in [the results](../Results-2026-11-22/en.md).
