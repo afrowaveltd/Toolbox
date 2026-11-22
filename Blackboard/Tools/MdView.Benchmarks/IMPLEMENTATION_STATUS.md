@@ -533,3 +533,66 @@ Windows UI regressions, and Markdown docs links.
 is ~4.68 GiB based on synthetic ratio, below the
 8-GiB test-only maximum; free disk preflight applies.
 This is **not yet a measured 2-GiB result**.
+
+## 2026-11-22 — 2-GiB HDD benchmark completed successfully
+
+**Maintainer evidence reviewed:**
+`mdview-hdd-20261122T143553385Z-a046cac3`
+(JSONL + TXT). Full successful Windows H: test
+`measure -SizeMiB 2048 -Seeks 100 -Passes 1
+-ProgressStep 1`, .NET 10.0.15 and
+**RAM-buffered diagnostic export**. Source
+**2,147,483,648 bytes / 1,614,865 lines**;
+validated snapshot **50,209.278 ms**; full
+journal **5,022,177,346 bytes (4.677 GiB)**;
+sequential journal scan **123,166.942 ms**
+(16.628 MiB/s). All **200/200 sampled
+source-line seeks correct**.
+
+Peak process working set **72,130,560 bytes
+(68.79 MiB)**, just **143,360 bytes** above the
+1-GiB RAM-logged test. GC allocations during
+journal scan **26,227,462,992 bytes**,
+collections **1485/1484/1484**, aggregate GC
+pause **1,394.987 ms**. Journal, allocations,
+GC counters, and snapshot time approximately
+double; journal wall time is **2.54×** the
+1-GiB baseline due to irregular stalls.
+
+Five progress intervals took **74.429 s /
+60.4% of journal wall time**:
+34–35% **23.847 s** (max `ReadAsync`
+**18.556 s**), 53–54% **16.543 s**,
+73–74% **17.513 s**, 98–99% **2.883 s**,
+99–100% **13.644 s**. Typical sub-1.5-s
+window median **445.375 ms**. GC pause
+in the longest interval was **14.988 ms**,
+so GC suspension does not explain the
+stall. The largest cursor call begins at
+source line **557,056** / journal
+offset **1,731,783,858 bytes**.
+
+Source inspection identifies three
+`FileStream.WriteAsync` calls per physical
+source line (prefix, JSON payload, offset);
+at this fixture size approximately
+**4.84 million logical writes**. This is
+a potential write batching/GC optimization,
+**not** a proven stall root cause.
+No production code was changed in this
+results/documentation step.
+
+**NEXT — controlled journal I/O diagnosis:**
+Instrument sub-operations within
+`MdViewContainerPageCursor.ScanUntilAsync`
+(scanner, JSON serializer, event prefix,
+payload and offset I/O) *optionally*, with
+low overhead and RAM-buffered counters.
+Test and compare before modifying output
+format, write batching or cancellation
+handling. Do not claim a physical HDD fault:
+no actual Windows physical I/O tracing is
+included. A Linux physical-HDD comparison
+and visual-page-index benchmark remain
+pending. See the [2-GiB measured-results
+section](Docs/Results-2026-11-22/en.md).

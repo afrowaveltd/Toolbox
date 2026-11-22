@@ -303,19 +303,32 @@ measured work was running; this isolates logging but
 does not remove stalls within cursor requests.
 See [measured results](Docs/Results-2026-11-22/en.md).
 
-**Next manual stress stage:** the existing 2-GiB fixture
-is ready; do not regenerate it. After `git pull`:
+**2-GiB stress stage passed on Windows H:** the paired
+2026-11-22 logs `mdview-hdd-20261122T143553385Z-a046cac3`
+confirm an unchanged synthetic source and
+**1,614,865 source lines**, a **4.677-GiB event journal**,
+**50.209-s validated snapshot**, and **123.167-s journal scan**.
+All **200 sampled indexed seeks** passed.
+Peak process working set was just **68.79 MiB**.
+The journaling step is slower than linear scaling
+due to multiple large cursor stalls; its raw managed
+allocation volume is about 12.21× the source bytes.
+See [measured results](Docs/Results-2026-11-22/en.md).
 
-```powershell
-.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 2048 -Seeks 100 -Passes 1 -ProgressStep 1
-```
+**Next investigation:** isolate the slow path inside
+`MdViewContainerPageCursor.ScanUntilAsync` using
+optional low-overhead diagnostics: time scanner
+advancement, JSON serialization, event-record writes
+and offset writes separately, without writing reports
+on the measured disk. The implementation currently
+makes three asynchronous `FileStream.WriteAsync`
+calls per scanned source line (record-length prefix,
+record payload, offset entry). The 2-GiB fixture
+therefore represents about **4.84 million logical
+journal write calls**. This is a performance
+optimization candidate, not an established explanation
+of the I/O stalls. Batch writes only after
+correctness/cancellation/error-recovery tests and
+before/after benchmarks.
 
-The 1-GiB journal/source ratio predicts roughly
-**4.68 GiB of event journal** for the 2-GiB synthetic
-source, but this is only an extrapolation. The
-benchmark-only cap is 8 GiB and the launcher checks
-conservative free space before starting. Logs are
-saved **after** the measured work under
-`H:\MDViewTest\logs`. Linux uses an explicitly supplied
-test mount path with `run.sh`.
 

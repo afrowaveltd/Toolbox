@@ -584,3 +584,133 @@ the measured 1-GiB synthetic workload ratio. This is an
 budget, not a proven guarantee. Inspect the actual
 free-space preflight and resulting journal before
 any more aggressive or visual-index experiments.
+
+## 2,048-MiB HDD stress run — 2026-11-22 14:35 UTC
+
+The maintainer supplied
+`mdview-hdd-20261122T143553385Z-a046cac3.{jsonl,txt}`.
+This is the first **full 2-GiB journal and 200-seek
+measurement** on the verified Windows H: USB/NTFS
+mechanical HDD. `Mode=measure`,
+`SizeMiB=2048`, `Seeks=100`, `Passes=1`,
+`ProgressStep=1`; runtime .NET **10.0.15**.
+The session confirms RAM-buffered diagnostics with
+post-measurement export, succeeded without any
+`session_failed` event, and completed **200/200**
+source-line checks.
+
+| Metric | Observed 2 GiB | 1-GiB RAM-logged reference |
+| --- | ---: | ---: |
+| Source bytes | **2,147,483,648** | 1,073,741,824 |
+| Source physical lines | **1,614,865** | 807,433 |
+| Validated snapshot | **50,209.278 ms** | 25,591.460 ms |
+| Snapshot throughput | **40.789 MiB/s** | 40.013 MiB/s |
+| Offset index | **12,918,928 B** | 6,459,472 B |
+| Serialized journal | **5,022,177,346 B (4.677 GiB)** | 2,510,275,305 B |
+| Journal/source size ratio | **2.33863×** | 2.33788× |
+| Journal scan wall time | **123,166.942 ms** | 48,484.762 ms |
+| Journal logical throughput | **16.628 MiB/s** | 21.120 MiB/s |
+| Journal managed allocation volume | **26,227,462,992 B** | 13,111,881,424 B |
+| Journal GC Gen0/Gen1/Gen2 | **1485/1484/1484** | 743/742/742 |
+| Journal GC total pause | **1,394.987 ms** | 702.752 ms |
+| Peak process working set | **72,130,560 B (68.79 MiB)** | 71,987,200 B (68.65 MiB) |
+| First/repeated seek median | **0.0813 / 0.0712 ms** | 0.0598 / 0.0579 ms |
+| Seek correctness | **200/200** | 200/200 |
+
+**Scaling findings:** the snapshot, journal size, managed
+allocation volume, GC counts and GC pause time
+approximately doubled as the source doubled.
+Peak working set increased by only **143,360 bytes**
+for this synthetic input. Thus there is no sign of
+a proportional **working-set** increase in these
+measurements; this does not prove a bound for all
+Markdown or OS configurations. The journal
+wall time grew **2.54×**, not 2×, due largely to
+intermittent cursor stalls.
+
+### Where 2-GiB journal scan was delayed
+
+The 100 one-percent `journal_progress` intervals
+report **five exceptionally slow windows**:
+
+| Progress interval | Wall time | Max individual `cursor.ReadAsync` | Requests >100 ms | GC pause |
+| --- | ---: | ---: | ---: | ---: |
+| **34–35%** | **23,847.164 ms** | **18,556.002 ms** | 6 | 14.988 ms |
+| **53–54%** | **16,543.091 ms** | **2,657.417 ms** | 14 | 15.953 ms |
+| **73–74%** | **17,512.557 ms** | **2,796.190 ms** | 12 | 16.364 ms |
+| **98–99%** | **2,882.565 ms** | **850.242 ms** | 3 | 15.756 ms |
+| **99–100%** | **13,644.015 ms** | **2,275.818 ms** | 13 | 18.087 ms |
+
+These five intervals account for **74.429 s**
+(approximately **60.4%** of the entire 123.167-s
+journal phase). In contrast, among intervals
+below 1.5 s, the median was **445.375 ms**.
+The aggregated individual cursor call times
+almost exactly account for each interval's
+wall time. GC pause time in the worst 34–35%
+interval is **15 ms**, far too short to account
+for its 23.85-s wall duration. Managed allocations
+and collection counts were ordinary for each
+one-percent window.
+
+**Largest single cursor call:** starts at physical
+source line **557,056**, with event-journal offset
+**1,731,783,858 B** before and **1,732,164,328 B**
+after the call. It lasted **18,556.002 ms**.
+
+This event offset is notably close to the
+**1.68–1.71-billion-byte journal region** of
+the prior 1-GiB RAM-logged run's large
+66–68% delays. The problematic **percentages**
+differ because the total inputs are different.
+That is a *correlation*, not proof of an
+absolute journal-size threshold or a particular
+NTFS/device cache mechanism. Other large
+2-GiB delays occurred at much larger journal
+sizes (around 2.67, 3.70 and 4.99 GB), so a
+single fixed threshold would be an inadequate
+explanation.
+
+All of these elapsed times occur while awaiting
+cursor requests. The benchmark does **not**
+separately time individual operations inside
+`ScanUntilAsync`: source scanner advancement,
+serialization, event-size write, event-payload
+write, offset write and possible OS I/O
+stalls remain conflated. Per-process Windows
+`proc_io_delta` values are unsupported and
+zero placeholders, **not** zero measured I/O.
+Random post-journal cursor lookups are **warm
+indexed reads**, not mechanical HDD seek timing.
+
+### Source inspection and next performance experiment
+
+Source inspection of
+`Blackboard/Tools/MdView/MdViewContainerPageCursor.cs`
+shows that each successfully scanned physical
+line is serialized to a UTF-8 JSON payload and
+then written with **three asynchronous
+`FileStream.WriteAsync` calls**: a 4-byte event
+length, the event payload, and an 8-byte offset.
+At 1,614,865 lines this amounts to approximately
+**4,844,595 journal/offset write calls**.
+The 2-GiB session also accumulated
+**26.227 billion bytes of managed allocations**
+(12.213× source), even though live working
+memory stayed under 69 MiB.
+
+**Recommended diagnostic next step:** add opt-in,
+low-overhead operation-level time aggregation to
+the journal path (scanner, serializer, event
+writes, offset writes). Keep output buffered in
+RAM and exclude log export from timed phases.
+Verify a new, small fast fixture on CI and
+the existing 1-GiB/2-GiB HDD baseline before
+trying to optimize journal writes into batches.
+Any batching must preserve exact event offsets,
+size-budget guards, cancellation, failure-closed
+semantics, readable older journals, and accurate
+line numbering; existing tests should be
+extended before production changes. This is a
+plan only; no production cursor or journal
+format has been altered by this log review.
