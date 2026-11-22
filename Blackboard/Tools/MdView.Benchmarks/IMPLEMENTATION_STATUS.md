@@ -210,3 +210,49 @@ for complete evidence, rates, memory and cache caveats.
 Keep the existing `H:\MDViewTest\data` directory intact.
 After 128 MiB, compare the journal:source ratio and managed
 allocations before running 1/2 GiB and the opt-in visual index.
+
+## 2026-11-22 — Windows H: 128-MiB two-pass regression evidence
+
+**Result: PASS for both complete passes, no runtime errors.**
+The maintainer supplied `mdview-hdd-20261122T124024080Z-a39cf10e`
+as both JSONL and text. Same `H:\MDViewTest` physical USB/NTFS HDD,
+runtime .NET 10.0.14, seed 20261115.
+
+- Snapshot: 134,217,728 bytes / 100,930 source lines;
+  offset index: 807,448 bytes. Snapshot wall times
+  **3,314.893 ms** (pass 1) and **3,490.572 ms** (pass 2).
+- Complete journal was identically **313,601,334 bytes**
+  in both passes (**2.3365×** source); successful sequential
+  scans **4,102.406 ms** (31.201 MiB/s) and **2,770.607 ms**
+  (46.199 MiB/s), 32.46% lower elapsed on pass 2.
+- Per-phase managed allocation totals:
+  **1,639,326,568** and **1,638,737,728** bytes
+  (about 12.21× source). Process peak working set:
+  **69,615,616** and **70,672,384** bytes respectively.
+  Original `gc_gen0/gen1/gen2` metrics are process-lifetime
+  cumulative counts, so they must not be mislabeled phase
+  deltas; first pass journal snapshot ended with 93/92/92,
+  second pass ended with 187/185/185.
+- All **400** deterministic sampled requests (100 each
+  in first/repeat series for 2 passes) returned the correct
+  source line. Median request times across the four series:
+  **0.0546 / 0.0597 / 0.0562 / 0.0582 ms**.
+  These reflect warm indexed/journal reads and are not
+  verified physical HDD seeks.
+- Both passes completed with exactly **989** cursor
+  requests and **1,777** event stream reads. Windows
+  `proc_io_delta` is unsupported and zero-filled.
+
+**Follow-up instrumentation change:** `TimedAsync`
+now adds `gc_gen0_delta/gc_gen1_delta/gc_gen2_delta`
+on success and failure while preserving old cumulative
+`gc_gen0/gc_gen1/gc_gen2` fields for compatibility.
+This measures GC collections attributable to each timed
+phase on the next run, not a retrospective alteration of
+the supplied logs. Production MdView code was untouched.
+
+**Next stage:** run the prepared 1-GiB fixture with
+`run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1`
+after pulling current master; inspect ~2.34-GiB expected
+journal and GC activity, then decide whether 2 GiB
+and optional visual index are warranted.

@@ -535,6 +535,11 @@ internal static class MdViewDiskBenchmark
     {
         var before = LinuxIo.Read();
         var allocStart = GC.GetTotalAllocatedBytes(false);
+        // Retain the existing cumulative counters for old log consumers,
+        // but also record per-phase deltas for meaningful GC comparisons.
+        var gc0Start = GC.CollectionCount(0);
+        var gc1Start = GC.CollectionCount(1);
+        var gc2Start = GC.CollectionCount(2);
         var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
         var stopwatch = Stopwatch.StartNew();
         try
@@ -559,6 +564,9 @@ internal static class MdViewDiskBenchmark
                 gc_gen0 = GC.CollectionCount(0),
                 gc_gen1 = GC.CollectionCount(1),
                 gc_gen2 = GC.CollectionCount(2),
+                gc_gen0_delta = GC.CollectionCount(0) - gc0Start,
+                gc_gen1_delta = GC.CollectionCount(1) - gc1Start,
+                gc_gen2_delta = GC.CollectionCount(2) - gc2Start,
                 proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read()),
                 result_type = typeof(T).Name
             });
@@ -572,6 +580,9 @@ internal static class MdViewDiskBenchmark
                 phase, ok = false,
                 elapsed_ms = stopwatch.Elapsed.TotalMilliseconds,
                 error = ex.ToString(),
+                gc_gen0_delta = GC.CollectionCount(0) - gc0Start,
+                gc_gen1_delta = GC.CollectionCount(1) - gc1Start,
+                gc_gen2_delta = GC.CollectionCount(2) - gc2Start,
                 proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read())
             });
             throw;

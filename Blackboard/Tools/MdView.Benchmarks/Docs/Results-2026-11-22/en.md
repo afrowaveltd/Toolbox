@@ -100,3 +100,67 @@ has not been independently verified.
 
 [Main benchmark README](../../README.md) ·
 [Benchmark implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## 128-MiB two-pass journal benchmark — 2026-11-22 12:40 UTC
+
+The maintainer supplied the completed `measure --size-mib 128
+--seeks 100 --passes 2` JSONL and TXT diagnostic logs. They
+contain one successful session and no errors, on the same
+Windows H: HDD as the 8-MiB smoke-test baseline.
+
+| Metric | Pass 1 | Pass 2 |
+| --- | ---: | ---: |
+| Validated snapshot | 3,314.893 ms | 3,490.572 ms |
+| Snapshot throughput | 38.614 MiB/s | 36.670 MiB/s |
+| Full journal scan | 4,102.406 ms | 2,770.607 ms |
+| Journal throughput | 31.201 MiB/s | 46.199 MiB/s |
+| Journal bytes | 313,601,334 | 313,601,334 |
+| Managed allocations in journal phase | 1,639,326,568 B | 1,638,737,728 B |
+| Peak process working set (cumulative) | 69,615,616 B | 70,672,384 B |
+| Cursor requests after all seek series | 989 | 989 |
+| Journal event read requests | 1,777 | 1,777 |
+
+Both passes processed **100,930** physical source lines.
+Their source-line offset index is **807,448** bytes.
+The journal:source length ratio is **2.33651**,
+close to the smoke test's approximately 2.33.
+The sequential scan is **32.46% shorter** in the
+second pass, with the *same* journal size and request counts.
+The first pass may have benefited from OS caches too;
+no cold-cache classification is claimed.
+
+The four sets of **100 deterministic seeks each** all
+returned valid starting source lines. Median request times:
+**0.0546, 0.0597, 0.0562 and 0.0582 milliseconds**;
+their p95 values were **0.0727, 0.1028, 0.0781 and
+0.0788 milliseconds**. In particular, these are measured
+post-journal indexed lookups, **not** physical HDD head
+positioning latencies.
+
+Managed allocations during each journal scan are about
+**12.21×** the 128-MiB source size, despite a peak process
+working set under 68 MiB. The old per-phase log entries
+include **cumulative** `gc_gen*` counts: the journal
+scan ended at 93/92/92 on pass 1, and 187/185/185 on
+pass 2, not two independent phase counts. The harness
+now also reports `gc_gen*_delta` for subsequent runs.
+The journal creates per-line JSON event records and
+several bounded buffers, possible allocation hot spots
+that require profiling rather than speculative optimization.
+Windows `proc_io_delta` fields remain zero placeholders.
+
+The next safe experiment uses the *already generated*
+1,024-MiB source and only one pass:
+
+```powershell
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1
+```
+
+The 128-MiB journal size suggests approximately
+**2.34 GiB of event journal** at 1 GiB of source, if
+the same per-line content mix scales linearly.
+This estimate is not a measured 1-GiB result.
+Monitor free disk space, GC deltas and total runtime
+before increasing to 2 GiB. No automatic schedule is
+configured, and the full visual-page index remains
+separately opt-in.
