@@ -350,6 +350,18 @@ internal static class MdViewDiskBenchmark
                 {
                     long first = 0;
                     var nextProgress = 10L;
+
+                    // Ten-percent windows help distinguish GC-heavy CPU
+                    // intervals from external storage/scheduler stalls.
+                    // No extra reads or writes to the benchmark source.
+                    using var intervalProcess = Process.GetCurrentProcess();
+                    var intervalTimestamp = Stopwatch.GetTimestamp();
+                    var intervalAllocatedBytes = GC.GetTotalAllocatedBytes(false);
+                    var intervalGc0 = GC.CollectionCount(0);
+                    var intervalGc1 = GC.CollectionCount(1);
+                    var intervalGc2 = GC.CollectionCount(2);
+                    var intervalCpu = intervalProcess.TotalProcessorTime;
+                    long intervalJournalBytes = 0;
                     while (first < snapshot.Lines.LineCount)
                     {
                         var lines = await cursor.ReadAsync(first, 128);
@@ -362,11 +374,34 @@ internal static class MdViewDiskBenchmark
                             Math.Max(1L, snapshot.Lines.LineCount);
                         if (percent >= nextProgress)
                         {
+                            var nowTimestamp = Stopwatch.GetTimestamp();
+                            var nowAllocatedBytes = GC.GetTotalAllocatedBytes(false);
+                            var nowGc0 = GC.CollectionCount(0);
+                            var nowGc1 = GC.CollectionCount(1);
+                            var nowGc2 = GC.CollectionCount(2);
+                            var nowCpu = intervalProcess.TotalProcessorTime;
+                            var nowJournalBytes = cursor.JournalBytes;
                             log.Write("journal_progress", new
                             {
                                 pass, percent, source_lines_scanned = first,
-                                journal_bytes = cursor.JournalBytes
+                                journal_bytes = nowJournalBytes,
+                                interval_elapsed_ms = Stopwatch.GetElapsedTime(
+                                    intervalTimestamp, nowTimestamp).TotalMilliseconds,
+                                interval_allocated_bytes = nowAllocatedBytes - intervalAllocatedBytes,
+                                interval_gc_gen0 = nowGc0 - intervalGc0,
+                                interval_gc_gen1 = nowGc1 - intervalGc1,
+                                interval_gc_gen2 = nowGc2 - intervalGc2,
+                                interval_cpu_ms = (nowCpu - intervalCpu).TotalMilliseconds,
+                                interval_journal_bytes = nowJournalBytes - intervalJournalBytes,
+                                working_set_bytes = intervalProcess.WorkingSet64
                             });
+                            intervalTimestamp = nowTimestamp;
+                            intervalAllocatedBytes = nowAllocatedBytes;
+                            intervalGc0 = nowGc0;
+                            intervalGc1 = nowGc1;
+                            intervalGc2 = nowGc2;
+                            intervalCpu = nowCpu;
+                            intervalJournalBytes = nowJournalBytes;
                             nextProgress += 10L;
                         }
                     }

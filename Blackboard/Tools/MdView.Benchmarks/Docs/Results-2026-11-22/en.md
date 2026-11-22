@@ -164,3 +164,90 @@ Monitor free disk space, GC deltas and total runtime
 before increasing to 2 GiB. No automatic schedule is
 configured, and the full visual-page index remains
 separately opt-in.
+
+## 1,024-MiB single-pass measurement — 2026-11-22 12:44 UTC
+
+New complete maintainer-provided logs:
+`mdview-hdd-20261122T124433618Z-31f383d5.jsonl`
+and the same-base-name `.txt`. The benchmark finished
+successfully on Windows H: (same verified HDD and path),
+now using **.NET runtime 10.0.15**. This runtime revision
+differs from the 10.0.14 used in the earlier measurements.
+
+| Metric | Observed |
+| --- | ---: |
+| Source bytes / lines | 1,073,741,824 / 807,433 |
+| Validated snapshot | 24,711.728 ms (41.438 MiB/s) |
+| Snapshot managed allocations | 430,672 B |
+| Snapshot phase Gen0/Gen1/Gen2 deltas | 0 / 0 / 0 |
+| Source-line offset index | 6,459,472 B |
+| Full event journal | 2,510,275,305 B (2.33788 GiB) |
+| Journal phase wall time | 47,203.060 ms (21.694 MiB/s) |
+| Journal phase CPU time | 54,156.250 ms (process CPU, multi-thread) |
+| Journal phase managed allocations | 13,111,191,408 B (12.211 GiB) |
+| Journal phase Gen0/Gen1/Gen2 deltas | 743 / 742 / 742 |
+| Peak process working set | 71,610,368 B (68.29 MiB) |
+| Cursor / event read requests | 6,509 / 12,817 |
+| Random source-line requests | 200/200 valid |
+
+First random sequence of 100 positions: **0.0714 ms median**,
+**0.1009 ms p95**, **0.9285 ms maximum**. Identical
+repeated sequence: **0.0667 ms median**,
+**0.0959 ms p95**, **0.1390 ms maximum**.
+These are warm, post-journal indexed reads, not isolated
+mechanical-drive seeks.
+
+### Disproportionate 60%→70% latency interval
+
+Timestamps of the journal progress events reveal these
+intermediate wall-clock durations:
+
+| Progress window | Elapsed |
+| --- | ---: |
+| 0–10% (starts after snapshot metadata log) | 3.333 s |
+| 10–20% | 2.243 s |
+| 20–30% | 2.488 s |
+| 30–40% | 2.249 s |
+| 40–50% | 2.296 s |
+| 50–60% | 2.278 s |
+| **60–70%** | **23.805 s** |
+| 70–80% | 2.929 s |
+| 80–90% | 2.720 s |
+| 90–100% | 2.863 s |
+
+The ~23.8-second interval is approximately **21 seconds
+slower than typical adjacent windows**. The full journal
+still completed and all requested rows remained correct.
+Root cause is **unknown**. The previous console progress
+events provided only timestamps and journal sizes.
+A subsequent benchmark-only change adds per-window
+elapsed time, managed allocations, Gen0/1/2 collection
+deltas, process CPU time, journal byte increments and
+working set, without modifying production behavior.
+These additional metrics may help distinguish a GC/CPU
+spike from I/O pauses, but cannot prove physical-disk
+read/write timing.
+
+### Capacity and next experiment
+
+The 1-GiB journal/source ratio **2.33788×** is close
+to the 128-MiB baseline ratio **2.33651×**. Extrapolating
+the same synthetic fixture mix suggests a journal near
+**4.676 GiB** for the prepared 2-GiB source. That is
+below the benchmark-only 8-GiB journal ceiling, but not
+a guaranteed upper bound for other documents.
+The offset index size and source line count remain
+linear for this fixture.
+
+**Recommended next test:** pull the updated benchmark
+and repeat the same 1,024-MiB / 100-seek / one-pass test
+to localize the stall using the new progress metrics:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1
+```
+
+Do not regenerate fixture files, clear OS caches or
+infer true cold-cache reads from this test. Following
+stall diagnosis, the 2-GiB test can proceed explicitly.

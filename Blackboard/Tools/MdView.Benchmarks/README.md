@@ -215,15 +215,21 @@ flushes caches or invokes privileged commands.
   before removing **only files created by this test**.
 - The harness has Windows and Linux launchers, but remains a manual,
   non-release benchmark utility and creates no NuGet release.
-- Windows H: **8-MiB smoke, all four fixture preparations, and
-  the two-pass 128-MiB journal/seek benchmark passed** in
-  maintainer logs dated 2026-11-22. One-GiB/two-GiB journal/index
-  measurements and the Linux real-HDD comparison are still pending.
-  This tool has no automatic long-running schedule.
+- Windows H: **8-MiB smoke, all four fixture preparations,
+  two-pass 128-MiB journal/seek and single-pass 1-GiB
+  journal/seek benchmarks passed** in maintainer logs dated
+  2026-11-22. A 23.8-second progress gap at 60–70%
+  of the 1-GiB journal build remains unexplained;
+  the benchmark now logs per-window timing, allocation,
+  GC and CPU measurements for diagnosis. Two-GiB
+  journal/index measurements and the Linux real-HDD
+  comparison are still pending. No automatic schedule.
 - [2026-11-22 Windows H: results](Docs/Results-2026-11-22/en.md)
-  document the observed 8- and 128-MiB results and measurement caveats.
-  New builds also record per-phase `gc_gen*_delta` counts to
-  distinguish collections in one timed phase from cumulative counters.
+  document the observed 8-MiB, 128-MiB and 1-GiB
+  results and their measurement caveats. New builds
+  also record per-phase `gc_gen*_delta` and ten-percent
+  journal-progress interval timing, allocation, GC,
+  CPU and memory counters to investigate stalls.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).
