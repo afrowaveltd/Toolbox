@@ -18,8 +18,8 @@ loads the entire document into RAM.** The paged reader is not yet the
 default or a finished general-purpose TUI.
 
 A portable **Windows x64 / Linux x64** preview distribution is being
-validated in CI; see [first-preview release scope and instructions]
-(Docs/First-Preview-Release/en.md). Do not mistake CI build artifacts
+validated in CI; see [first-preview release scope and instructions](Docs/First-Preview-Release/en.md).
+Do not mistake CI build artifacts
 for an already published GitHub Release.
 
 ## Start from the Toolbox root
