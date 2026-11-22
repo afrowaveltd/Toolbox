@@ -155,3 +155,13 @@ Next: on the real Windows H: volume, run
 `run.cmd measure -SizeMiB 2048 -Seeks 250 -Passes 2`.
 After the Linux mount point is provided, repeat the 8-MiB
 smoke test through `run.sh` and compare results.
+
+### Cross-platform build CI
+
+The main Toolbox solution intentionally excludes the isolated benchmark,
+so the ordinary matrix would not compile it. A separate GitHub Actions
+job now builds `MdView.Benchmarks.csproj` on both Ubuntu and Windows
+using .NET 10, without invoking `run.sh`, `run.ps1`, creating large
+fixtures or requiring a real HDD. Cross-platform build results remain
+pending until that CI run finishes. This is not a substitute for
+real-HDD smoke tests on Windows H: and the future Linux mount.

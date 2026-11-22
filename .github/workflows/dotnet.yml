@@ -52,6 +52,24 @@ jobs:
     - name: Optional Markdown TextMate tests
       run: dotnet test Blackboard/SpectreConsole/Markdown.TextMate.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.Tests.csproj -c Release
 
+
+  mdview-benchmark-build:
+    name: MdView benchmark compile (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v5
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+    - name: Compile isolated benchmark utility (no HDD workload)
+      run: dotnet build Blackboard/Tools/MdView.Benchmarks/MdView.Benchmarks.csproj -c Release --nologo
+
   documentation-links:
     name: Markdown local documentation links
     runs-on: ubuntu-latest
