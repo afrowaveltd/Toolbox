@@ -2435,3 +2435,44 @@ a causal throughput advantage until repeated
 physical data is available.
 
 CI evidence: https://github.com/afrowaveltd/Toolbox/actions/runs/45041293918
+
+## 2026-11-22 18:00 UTC — first physical forced-legacy A result
+
+After CI proved the benchmark-only A/B
+flag correct on Windows and Linux,
+the real Windows H: drive run
+`mdview-hdd-20261122T180043896Z-568a1d79`
+completed successfully in explicitly
+selected `legacy_unconditional_position_setters`
+mode. 807,433 rows; event journal
+2,510,275,305 B; all 200 random
+source-line checks correct.
+Snapshot 24,431.445 ms; journal
+**47,552.161 ms** (21.534 MiB/s).
+Peak working set **71,708,672 B
+(68.39 MiB)**, GC pause 763.672 ms.
+Actual append position setters:
+**807,433 / 807,433** for the
+event and offset streams.
+
+Comparison: earlier original A
+**46,506.152 ms**, current
+conditional B **125,347.666 ms**;
+forced A again **47,552.161 ms**.
+When `FileStream.Position` is
+called on each append, event-payload
+write time falls from 115.955 s
+in B to **0.110 s** in A; the
+event-position setter instead
+accounts for **32.208 s**. This
+supports a buffering/write-back
+explanation but does not itself
+prove the kernel-level cause.
+Separate 70–73% long I/O stalls
+remain observable in both A runs.
+
+**NEXT:** repeat default conditional B
+without the benchmark-only flag
+on the exact same prepared source.
+Do not modify production append
+logic before interpreting that result.

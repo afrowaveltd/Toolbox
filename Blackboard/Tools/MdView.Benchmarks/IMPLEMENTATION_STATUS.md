@@ -939,3 +939,41 @@ a causal throughput advantage until repeated
 physical data is available.
 
 CI evidence: https://github.com/afrowaveltd/Toolbox/actions/runs/45041293918
+
+## 2026-11-22 18:00 UTC — forced legacy HDD A run verified
+
+Physical run `mdview-hdd-20261122T180043896Z-568a1d79`:
+`session_completed=success`, 1,073,741,824-byte
+source, 807,433 lines, 2,510,275,305-byte event journal,
+**200/200** correct source-line seeks. Snapshot
+**24,431.445 ms**, journal **47,552.161 ms**
+(21.534 MiB/s), journal managed allocations
+**13,113,915,552 B**, GC pauses **763.672 ms**,
+peak working set **71,708,672 B (68.39 MiB)**.
+Forced-legacy mode explicitly indicated in
+`session_start` and both cumulative actual
+position setters equal **807,433**.
+
+Reference A before optimization: **46,506.152 ms**.
+Reference B conditional: **125,347.666 ms**.
+Repeated forced A differs from initial A by
+only **2.25%** and is **2.636× faster** than B.
+In A, `EventWritePosition=32,208.397 ms`,
+`OffsetWritePosition=5,867.457 ms`,
+`EventPayloadWrite=110.480 ms` versus
+B `EventPayloadWrite=115,955.056 ms`.
+A ~25 s pause still appears at 72–73%
+journal progress; previous A also showed
+a large pause near 70–71%, which warrants
+separate I/O/OS analysis after choosing
+the correct append strategy.
+
+**Status:** no production change yet.
+A/B instrumentation & regressions were
+green in Windows/Linux Actions
+`45041293918`.
+**NEXT:** measure default B once more
+(same prepared source, same flags, omit
+`-ForceAppendPositionSetters`) to complete
+B–A–B and then decide whether to revert
+the conditional production change.

@@ -272,3 +272,53 @@ before/after pair. Keep the prepared source, machine,
 physical disk, seek count and progress settings fixed.
 Each phase is a separate process and preserves old logs.
 Stop if disk-health monitoring suggests developing failure.
+
+## Forced legacy A/B physical validation — 18:00 UTC
+
+The physical Windows H: 1-GiB benchmark
+`mdview-hdd-20261122T180043896Z-568a1d79`
+selected `legacy_unconditional_position_setters`
+via the benchmark-only internal override.
+In this successful run, `807,433` scanned
+source lines produced exactly `807,433`
+actual assignments to **each** append
+stream's `Position`. All 200 sampled
+source-line seeks passed. Peak working set
+was **68.39 MiB**.
+
+The journal time returned to **47.552 s**,
+near the prior original-code A baseline
+of **46.506 s** and markedly faster
+than the current conditional B time
+of **125.348 s** (2.636× difference).
+The critical cost distribution reversed:
+
+- forced A: `EventWritePosition=32.208 s`,
+  `OffsetWritePosition=5.867 s`,
+  `EventPayloadWrite=0.110 s`;
+- conditional B: `EventWritePosition=0.025 s`,
+  `OffsetWritePosition=0.022 s`,
+  `EventPayloadWrite=115.955 s`.
+
+The current likely cause is changed
+`FileStream` buffering/write-flush
+behavior when unconditional `Position`
+assignments are removed. This is an
+**inference**, not a verified runtime
+implementation detail. Notably A
+still has a ~25 s stall near 72–73%
+as the event journal grows past
+~1.7–1.8 GB; the previous A saw
+a similar-size stall near 70–71%.
+That remains independent of the
+sustained B regression.
+
+**Next:** complete B–A–B by repeating
+the conditional variant, unchanged,
+on the same prepared physical source.
+If reproduced, revert conditional
+append-position assignments to the
+working original behavior, then verify
+on Windows and Linux, and document.
+No production behavior changed on the
+basis of this first A repeat alone.

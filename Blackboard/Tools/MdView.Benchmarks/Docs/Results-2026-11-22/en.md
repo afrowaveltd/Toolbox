@@ -1206,3 +1206,88 @@ and aggregate performance before
 deciding to revert or redesign. A
 single test does not implicate a
 specific HDD surface error.
+
+## 2026-11-22 — first verified A/B-control HDD run (18:00 UTC)
+
+The attached, physical Windows H: 1-GiB run
+`mdview-hdd-20261122T180043896Z-568a1d79.{jsonl,txt}`
+used the same existing synthetic source, one pass, 100 random
+seek samples per stage, `-ProgressStep 1 -TraceJournalIo`,
+and `-ForceAppendPositionSetters`.
+`session_start.journal_append_mode` explicitly records
+`legacy_unconditional_position_setters`.
+The test **completed successfully** with all **200/200**
+source-line checks correct.
+
+| Value | Baseline A (15:04 UTC) | Conditional B (15:49 UTC) | Repeated forced A (18:00 UTC) |
+| --- | ---: | ---: | ---: |
+| Snapshot ms | 24,956.187 | 24,283.946 | **24,431.445** |
+| Journal ms | **46,506.152** | **125,347.666** | **47,552.161** |
+| Journal MiB/s | 22.019 | 8.169 | **21.534** |
+| Journal managed allocated B | 13,113,772,008 | 12,831,621,336 | **13,113,915,552** |
+| Journal GC pause ms | 724.711 | 817.440 | **763.672** |
+| Journal peak working-set B | 71,368,704 | 72,675,328 | **71,708,672** |
+| Journal physical bytes in event stream | 2,510,275,305 | 2,510,275,305 | **2,510,275,305** |
+| Source lines | 807,433 | 807,433 | **807,433** |
+| Source-line seek checks | 200/200 | 200/200 | **200/200** |
+| Actual event/offset append-position setters | not separately counted | 0 / 0 | **807,433 / 807,433** |
+| First/repeat warm seek median ms | 0.0666 / 0.0568 | 0.0588 / 0.0579 | **0.0609 / 0.0570** |
+
+Restoring the unconditional append-position assignments made
+the journal phase **2.636× faster than B**. The repeated A
+time is only **2.25% slower** than the earlier A result.
+This is strong evidence that the conditional-position
+change negatively affects the current `FileStream` / HDD
+write path, though a repeat of B is necessary to complete
+the planned **B–A–B** sequence and account for uncontrolled
+machine and disk effects. No production change was made.
+
+### New forced-A stage breakdown
+
+All 100 progress windows were collected. Total measured
+time in the 12 stages:
+
+| Stage | Forced A ms | Conditional B ms |
+| --- | ---: | ---: |
+| `EventWritePosition` | **32,208.397** | 25.227 |
+| `OffsetWritePosition` | **5,867.457** | 22.470 |
+| `EventPayloadWrite` | **110.480** | **115,955.056** |
+| `ScannerAdvance` | 3,681.917 | 3,700.705 |
+| `SerializeEvent` | 1,836.631 | 1,422.854 |
+| `DeserializeEvent` | 1,996.896 | 1,872.787 |
+| `EventWindowRead` | 562.186 | 656.512 |
+| 12-stage accounted | **46,663.147** | **124,238.405** |
+
+The stage where a process blocks differs substantially:
+in A, `EventWritePosition` (and sometimes
+`OffsetWritePosition`) bears almost all write-back
+latency; in B, the `EventPayloadWrite` await dominates.
+The result is not simply a renamed timer:
+the elapsed journal time is **47.55 s vs 125.35 s**,
+while scanner advances and byte counts are almost equal.
+The A phase used **51,109.375 CPU-ms** and the B phase
+**16,421.875 CPU-ms**, consistent with substantially
+more I/O-related waiting in B; these process-wide CPU
+metrics do not prove a specific OS mechanism.
+
+A residual ~25-second interruption remains in forced A
+at 72–73% (20,900.6 + 4,061.8 ms), while the earlier
+unconditional A saw ~23.4 seconds at 70–71%
+(13,706.4 + 9,657.3 ms).
+These spans overlap approximately **1.73–1.83 GB**
+of event-journal growth. They may relate to file
+growth, NTFS write-back, cache or other OS/disk state,
+not necessarily a defective HDD sector. This physical
+I/O behavior is a separate question from the large
+A-versus-B sustained-throughput regression.
+
+**Next experiment:** run B again on the same unchanged
+1-GiB source, without `-ForceAppendPositionSetters`.
+Keep `-Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo`.
+If B is again dramatically slower while A remains
+~46–48 seconds, recommend reverting conditional
+append-position behavior in production while preserving
+the scan instrumentation; then test and document
+the revert on Windows/Linux. Avoid changing journal
+serialization, memory caps or cancellation semantics
+during this targeted comparison.

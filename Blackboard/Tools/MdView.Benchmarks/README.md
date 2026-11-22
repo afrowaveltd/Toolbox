@@ -495,3 +495,27 @@ both cumulative setter counts. If the
 forced (legacy) mode consistently wins,
 we can revert the ineffective change
 without altering production journal format.
+
+### 18:00 UTC: legacy write behavior reproduced
+
+The physical H: benchmark-only A/B control
+`-ForceAppendPositionSetters` was actually exercised
+on the existing 1-GiB source. Its journal finished in
+**47.552 s**, versus **125.348 s** with conditional
+position assignment and **46.506 s** with the original
+unconditional code (the A runs differ by only **2.25%**).
+The forced variant performed exactly **807,433**
+position assignments on each journal stream,
+preserved **200/200** correct indexed checks,
+and used **68.39 MiB** peak working set.
+The new stage diagnosis shows **32.208 s** in the
+event position setter, **5.867 s** in the offset
+setter and only **0.110 s** in the event payload
+writes, in sharp contrast to **115.955 s** in
+payload writes for conditional mode.
+
+**Next:** finish **B–A–B** by running the default
+(no `-ForceAppendPositionSetters`) command once
+more. The original production conditional change
+has **not been reverted** in this commit.
+See [2026-11-22 detailed results](Docs/Results-2026-11-22/en.md).
