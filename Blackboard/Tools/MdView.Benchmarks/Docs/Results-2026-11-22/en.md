@@ -251,3 +251,75 @@ git pull
 Do not regenerate fixture files, clear OS caches or
 infer true cold-cache reads from this test. Following
 stall diagnosis, the 2-GiB test can proceed explicitly.
+
+## Repeated 1,024-MiB scan — 2026-11-22 12:49 UTC
+
+The maintainer provided a second completed run:
+`mdview-hdd-20261122T124949240Z-f8e63090`
+(JSONL and TXT). It uses the same Windows H: HDD, generated
+Markdown data, one pass, and 100+100 deterministic seek checks;
+the runtime remains .NET 10.0.15. All phases succeeded,
+and all 200 seek checks returned correct starting lines.
+
+| Metric | Previous 1-GiB run | Repeat |
+| --- | ---: | ---: |
+| Validated snapshot | 24,711.728 ms | 24,557.974 ms |
+| Sequential journal scan | 47,203.060 ms | 46,629.183 ms |
+| Event-journal size | 2,510,275,305 B | 2,510,275,305 B |
+| Journal-phase GC allocated bytes | 13,111,191,408 | 13,111,244,096 |
+| Journal Gen0/Gen1/Gen2 deltas | 743/742/742 | 743/742/742 |
+| Peak working set | 71,610,368 B | 72,204,288 B |
+| First/repeat seek median | 0.0714/0.0667 ms | 0.0615/0.0560 ms |
+| **60–70% progress interval** | **23,805 ms** | **24,683 ms** |
+
+**Repeatable anomaly:** the 60%–70% progress interval had
+**24,682.724 ms wall time** on the new run, approximately
+**10.83×** the median **2,279.064 ms** of the remaining
+nine intervals. This was between journal sizes
+**1,506,145,546** and **1,757,269,452 bytes**.
+
+The same interval reported **4,937.500 ms process CPU**,
+**1,311,461,688 managed allocated bytes**, **74/74/74
+Gen0/1/2 collections**, **251,123,906 added journal
+bytes** and **69,091,328 working-set bytes**. Neighboring
+intervals show comparable CPU, allocation, collection
+and journal-growth measurements. CPU time includes
+parallel execution; the difference from elapsed time
+must not be interpreted literally as exact wait time.
+
+The evidence supports a **repeatable wall-time stall**,
+not a proportional increase in parser work, allocations
+or number of GC events. It does **not** identify the
+cause: Windows write-cache throttling, filesystem or
+device I/O, antivirus/scheduling and GC pause time
+remain possibilities. Neither zero-valued
+Windows `proc_io_delta` placeholders nor
+collection counts determine which subsystem stalled.
+
+### Diagnostic follow-up
+
+The benchmark (not production MdView) now accepts
+`--progress-step N` (1–10, default 10; Windows
+`-ProgressStep`). At 1% increments, each logged
+interval reports existing wall/CPU/allocations/GC count
+metrics plus `interval_gc_pause_ms`, derived from
+`GC.GetTotalPauseDuration()` (available on .NET 10).
+The `timed_phase` events also include
+`gc_pause_ms_delta`.
+
+Run after pulling the latest Toolbox commit:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1
+```
+
+This **reuses the exact existing 1-GiB fixture**;
+it never rewrites source data, clears OS caches or
+changes disk formatting. Smaller intervals produce
+more synchronous progress logging on the slow HDD;
+this may perturb absolute timings. Compare the
+**location and profile of stalls** rather than treating
+the new total runtime as a strict apples-to-apples
+performance benchmark. Do not run the 2-GiB benchmark
+by default until the anomalous behavior is better understood.

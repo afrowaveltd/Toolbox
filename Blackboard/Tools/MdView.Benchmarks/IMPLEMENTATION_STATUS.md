@@ -313,3 +313,41 @@ its estimated event journal is ~4.68 GiB based on the 1-GiB
 ratio (below the benchmark-only 8-GiB cap, not an observed
 2-GiB figure). Do not infer constant memory for every
 input from the synthetic dataset alone.
+
+## 2026-11-22 — repeatable 60–70% stall; finer diagnostics
+
+**Windows H: 1-GiB repeat passed.** Maintainer-provided
+`mdview-hdd-20261122T124949240Z-f8e63090.{jsonl,txt}`
+completed with all **200** source-line seek checks correct,
+24,557.974 ms snapshot, 46,629.183 ms journal and
+2,510,275,305 bytes of journal.
+
+A major wall-time outlier reproduced in the same 60–70%
+journal window: **24,682.724 ms** (previous run
+~23,805 ms); typical interval median **2,279.064 ms**.
+Despite the delay, that window's CPU **4,937.5 ms**,
+managed allocations **1,311,461,688 bytes**, GC
+collections **74/74/74**, journal growth **251,123,906
+bytes**, and working set **69,091,328 bytes** were
+comparable to adjacent intervals. **Cause unknown**:
+potential disk I/O or Windows/filesystem/scheduler wait;
+GC collections alone do not measure pause time.
+
+**Code change:** Added benchmark-only configurable
+`--progress-step 1..10` (default 10), forwarded from
+Windows `-ProgressStep` and accepted by Linux launcher
+passthrough. Progress events additionally report
+`interval_gc_pause_ms`; `timed_phase` reports
+`gc_pause_ms_delta`. Both use the .NET 10
+`GC.GetTotalPauseDuration()` API. No production cursor
+or file format was changed. These new metrics are
+unverified on real HDD until the next run, and
+smaller progress steps alter diagnostic I/O overhead.
+
+**Next:** verify GitHub Actions Linux/Windows benchmark
+builds and PowerShell syntax. Then run
+`run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1
+-ProgressStep 1` after `git pull`. Compare GC pause
+time to stall wall time; inspect narrowed journal
+offset range and Windows disk activity if needed.
+2-GiB fixture remains prepared but untested.

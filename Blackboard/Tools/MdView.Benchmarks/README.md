@@ -200,7 +200,10 @@ flushes caches or invokes privileged commands.
   defaults (512/256 MiB) remain unchanged.
 - Test source rows remain under the validated reader's
   default 1-MiB per-line limit.
-- `--seeks` accepts 1–2000, `--passes` 1–4.
+- `--seeks` accepts 1–2000, `--passes` 1–4,
+  `--progress-step` 1–10 (default 10). Windows uses
+  `-ProgressStep`. A 1% interval produces more HDD log writes,
+  so use it for **diagnostics**, not strict throughput comparisons.
 - A source file already at the selected benchmark path
   is never truncated. The generator reuses it only if its
   exact byte length and synthetic-file marker match.
@@ -219,17 +222,20 @@ flushes caches or invokes privileged commands.
   two-pass 128-MiB journal/seek and single-pass 1-GiB
   journal/seek benchmarks passed** in maintainer logs dated
   2026-11-22. A 23.8-second progress gap at 60–70%
-  of the 1-GiB journal build remains unexplained;
-  the benchmark now logs per-window timing, allocation,
-  GC and CPU measurements for diagnosis. Two-GiB
+  of the 1-GiB journal build repeated in a second run.
+  CPU, GC collection counts and allocations stayed similar
+  to normal intervals; the exact cause remains unknown.
+  A diagnostic `-ProgressStep 1` option on Windows
+  (or `--progress-step 1` on Linux) now samples narrower
+  intervals including GC pause time. Two-GiB
   journal/index measurements and the Linux real-HDD
   comparison are still pending. No automatic schedule.
 - [2026-11-22 Windows H: results](Docs/Results-2026-11-22/en.md)
   document the observed 8-MiB, 128-MiB and 1-GiB
   results and their measurement caveats. New builds
-  also record per-phase `gc_gen*_delta` and ten-percent
-  journal-progress interval timing, allocation, GC,
-  CPU and memory counters to investigate stalls.
+  record per-phase `gc_gen*_delta` and `gc_pause_ms_delta`,
+  plus journal-progress interval timing, allocation, GC
+  collection/pause, CPU and memory counters.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).
