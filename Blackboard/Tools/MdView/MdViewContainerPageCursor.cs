@@ -139,8 +139,12 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
         var offsetCount = count +
             (firstLine + count < _scannedLines ? 1 : 0);
         var offsetsBuffer = new byte[checked(offsetCount * sizeof(long))];
-        _offsets.Position = checked(firstLine * sizeof(long));
         var readTimings = ScanTimings;
+        var offsetPositionStartedAt = readTimings is null
+            ? 0 : Stopwatch.GetTimestamp();
+        _offsets.Position = checked(firstLine * sizeof(long));
+        readTimings?.Record(MdViewJournalScanStage.OffsetReadPosition,
+            offsetPositionStartedAt, firstLine, -1L);
         var offsetReadStartedAt = readTimings is null
             ? 0 : Stopwatch.GetTimestamp();
         await _offsets.ReadExactlyAsync(offsetsBuffer, cancellationToken)
@@ -194,7 +198,11 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             var readLength = checked((int)(
                 offsets[lastExclusive] - offsets[first]));
             var serializedWindow = new byte[readLength];
+            var eventReadPositionStartedAt = readTimings is null
+                ? 0 : Stopwatch.GetTimestamp();
             _events.Position = offsets[first];
+            readTimings?.Record(MdViewJournalScanStage.EventReadPosition,
+                eventReadPositionStartedAt, firstLine + first, offsets[first]);
             EventReadRequestCount++;
             var eventReadStartedAt = readTimings is null
                 ? 0 : Stopwatch.GetTimestamp();
@@ -286,7 +294,11 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                     throw new InvalidDataException("Container journal exceeds its disk budget.");
 
                 var position = _eventBytes;
+                var eventWritePositionStartedAt = timing is null
+                    ? 0 : Stopwatch.GetTimestamp();
                 _events.Position = position;
+                timing?.Record(MdViewJournalScanStage.EventWritePosition,
+                    eventWritePositionStartedAt, _scannedLines, position);
                 var size = new byte[sizeof(int)];
                 BinaryPrimitives.WriteInt32LittleEndian(size, record.Length);
                 var lengthWriteStart = timing is null ? 0 : Stopwatch.GetTimestamp();
@@ -299,7 +311,11 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 timing?.Record(MdViewJournalScanStage.EventPayloadWrite,
                     payloadWriteStart, _scannedLines, position);
 
+                var offsetWritePositionStartedAt = timing is null
+                    ? 0 : Stopwatch.GetTimestamp();
                 _offsets.Position = checked(_scannedLines * sizeof(long));
+                timing?.Record(MdViewJournalScanStage.OffsetWritePosition,
+                    offsetWritePositionStartedAt, _scannedLines, position);
                 var positionBytes = new byte[sizeof(long)];
                 BinaryPrimitives.WriteInt64LittleEndian(positionBytes, position);
                 var offsetWriteStart = timing is null ? 0 : Stopwatch.GetTimestamp();

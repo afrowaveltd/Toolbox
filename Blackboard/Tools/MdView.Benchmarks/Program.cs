@@ -551,7 +551,7 @@ internal static class MdViewDiskBenchmark
                                 interval_cursor_max_start_line = intervalCursorMaxLine,
                                 interval_cursor_max_journal_before = intervalCursorMaxJournalBefore,
                                 interval_cursor_max_journal_after = intervalCursorMaxJournalAfter,
-                                // Eight build + readback stages; each has
+                                // Twelve journal/replay and stream-seek stages;
                                 // Calls, TotalMs, MaxMs, >=100ms counts and
                                 // longest stage source line / journal offset.
                                 // Null unless the opt-in trace is enabled.

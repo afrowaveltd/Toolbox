@@ -15,7 +15,11 @@ internal enum MdViewJournalScanStage
     OffsetWrite,
     OffsetTableRead,
     EventWindowRead,
-    DeserializeEvent
+    DeserializeEvent,
+    EventWritePosition,
+    OffsetWritePosition,
+    OffsetReadPosition,
+    EventReadPosition
 }
 
 /// <summary>Immutable statistics for one timed journal operation in a progress window.</summary>
@@ -36,14 +40,20 @@ internal readonly record struct MdViewJournalTimingWindow(
     MdViewJournalStageWindow OffsetWrite,
     MdViewJournalStageWindow OffsetTableRead,
     MdViewJournalStageWindow EventWindowRead,
-    MdViewJournalStageWindow DeserializeEvent)
+    MdViewJournalStageWindow DeserializeEvent,
+    MdViewJournalStageWindow EventWritePosition,
+    MdViewJournalStageWindow OffsetWritePosition,
+    MdViewJournalStageWindow OffsetReadPosition,
+    MdViewJournalStageWindow EventReadPosition)
 {
     /// <summary>Sum of instrumented stages including the journal readback path.</summary>
     public double AccountedMs =>
         ScannerAdvance.TotalMs + SerializeEvent.TotalMs +
         EventLengthWrite.TotalMs + EventPayloadWrite.TotalMs +
         OffsetWrite.TotalMs + OffsetTableRead.TotalMs +
-        EventWindowRead.TotalMs + DeserializeEvent.TotalMs;
+        EventWindowRead.TotalMs + DeserializeEvent.TotalMs +
+        EventWritePosition.TotalMs + OffsetWritePosition.TotalMs +
+        OffsetReadPosition.TotalMs + EventReadPosition.TotalMs;
 }
 
 /// <summary>
@@ -53,7 +63,7 @@ internal readonly record struct MdViewJournalTimingWindow(
 /// </summary>
 internal sealed class MdViewJournalScanTimings
 {
-    private readonly StageCounts[] _counts = new StageCounts[8];
+    private readonly StageCounts[] _counts = new StageCounts[12];
 
     /// <summary>Records one completed logical operation on the scanning caller.</summary>
     internal void Record(
@@ -90,7 +100,11 @@ internal sealed class MdViewJournalScanTimings
             ToWindow(_counts[4]),
             ToWindow(_counts[5]),
             ToWindow(_counts[6]),
-            ToWindow(_counts[7]));
+            ToWindow(_counts[7]),
+            ToWindow(_counts[8]),
+            ToWindow(_counts[9]),
+            ToWindow(_counts[10]),
+            ToWindow(_counts[11]));
         Array.Clear(_counts);
         return result;
     }

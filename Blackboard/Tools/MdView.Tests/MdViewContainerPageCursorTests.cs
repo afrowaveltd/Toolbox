@@ -52,6 +52,10 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(2, window.EventLengthWrite.Calls);
         Assert.Equal(2, window.EventPayloadWrite.Calls);
         Assert.Equal(2, window.OffsetWrite.Calls);
+        Assert.Equal(2, window.EventWritePosition.Calls);
+        Assert.Equal(2, window.OffsetWritePosition.Calls);
+        Assert.Equal(1, window.OffsetReadPosition.Calls);
+        Assert.True(window.EventReadPosition.Calls >= 1);
         Assert.Equal(1, window.OffsetTableRead.Calls);
         Assert.True(window.EventWindowRead.Calls >= 1);
         Assert.Equal(2, window.DeserializeEvent.Calls);
@@ -65,7 +69,11 @@ public sealed class MdViewContainerPageCursorTests
         var cachedWindow = timings.TakeWindowAndReset();
         Assert.Equal(0, cachedWindow.ScannerAdvance.Calls);
         Assert.Equal(0, cachedWindow.OffsetWrite.Calls);
+        Assert.Equal(0, cachedWindow.EventWritePosition.Calls);
+        Assert.Equal(0, cachedWindow.OffsetWritePosition.Calls);
         Assert.Equal(-1, cachedWindow.OffsetWrite.MaxSourceLine);
+        Assert.Equal(1, cachedWindow.OffsetReadPosition.Calls);
+        Assert.True(cachedWindow.EventReadPosition.Calls >= 1);
         Assert.Equal(1, cachedWindow.OffsetTableRead.Calls);
         Assert.True(cachedWindow.EventWindowRead.Calls >= 1);
         Assert.Equal(2, cachedWindow.DeserializeEvent.Calls);
@@ -78,6 +86,10 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(1, nextWindow.EventLengthWrite.Calls);
         Assert.Equal(1, nextWindow.EventPayloadWrite.Calls);
         Assert.Equal(1, nextWindow.OffsetWrite.Calls);
+        Assert.Equal(1, nextWindow.EventWritePosition.Calls);
+        Assert.Equal(1, nextWindow.OffsetWritePosition.Calls);
+        Assert.Equal(1, nextWindow.OffsetReadPosition.Calls);
+        Assert.True(nextWindow.EventReadPosition.Calls >= 1);
         Assert.Equal(2, nextWindow.OffsetWrite.MaxSourceLine);
         Assert.Equal(1, nextWindow.OffsetTableRead.Calls);
         Assert.Equal(1, nextWindow.DeserializeEvent.Calls);
@@ -88,6 +100,10 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(0, emptyWindow.OffsetTableRead.Calls);
         Assert.Equal(0, emptyWindow.EventWindowRead.Calls);
         Assert.Equal(0, emptyWindow.DeserializeEvent.Calls);
+        Assert.Equal(0, emptyWindow.EventWritePosition.Calls);
+        Assert.Equal(0, emptyWindow.OffsetWritePosition.Calls);
+        Assert.Equal(0, emptyWindow.OffsetReadPosition.Calls);
+        Assert.Equal(0, emptyWindow.EventReadPosition.Calls);
     }
 
     [Fact]
