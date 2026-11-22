@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # MdView HDD benchmark launcher. Never deletes the dataset or changes OS cache.
 set -Eeuo pipefail
-ROOT_INPUT="${1:-/mnt/TEST}"
+# No Linux mount point is assumed until the maintainer specifies one.
+ROOT_INPUT="${1:-${MDVIEW_BENCH_ROOT:-}}"
 MODE="${2:-all}"
+[[ -n "$ROOT_INPUT" ]] || {
+    echo "Supply the mounted test directory or set MDVIEW_BENCH_ROOT." >&2
+    exit 2
+}
 if (( $# >= 2 )); then shift 2; else shift "$#"; fi
 
 command -v realpath >/dev/null || { echo "Missing realpath" >&2; exit 2; }
@@ -67,6 +72,9 @@ done
 (( SIZE_MIB >= 8 && SIZE_MIB <= 8192 )) || {
     echo "Size must be 8–8192 MiB" >&2; exit 2;
 }
+if [[ "$MODE" == "prepare" && "$SIZE_MIB" -lt 2048 ]]; then
+    SIZE_MIB=2048
+fi
 # Conservative reserve: source, validated snapshot, journal,
 # assorted indexes and room for the operating system/filesystem.
 AVAILABLE_KIB="$(df -Pk -- "$ROOT" | awk 'NR==2 {print $4}')"

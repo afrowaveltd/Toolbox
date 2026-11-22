@@ -42,10 +42,13 @@ internal static class MdViewDiskBenchmark
                 Path.GetFullPath(Path.GetTempPath()));
             var desiredTmp = Path.TrimEndingDirectorySeparator(
                 Path.GetFullPath(Path.Combine(options.Root, "tmp")));
-            if (!string.Equals(tmp, desiredTmp, StringComparison.Ordinal))
+            var comparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+            if (!string.Equals(tmp, desiredTmp, comparison))
                 throw new InvalidOperationException(
-                    $"TMPDIR does not point to the target disk. Actual: {tmp}; expected: {desiredTmp}. " +
-                    "Always run through run.sh; do not start the benchmark DLL directly.");
+                    $"Process temporary directory does not match the test disk. Actual: {tmp}; expected: {desiredTmp}. " +
+                    "Use run.ps1 on Windows or run.sh on Linux; do not start the benchmark DLL directly.");
 
             Directory.CreateDirectory(Path.Combine(options.Root, "logs"));
             Directory.CreateDirectory(Path.Combine(options.Root, "data"));
@@ -66,6 +69,18 @@ internal static class MdViewDiskBenchmark
                 first_pass_is_not_proven_cold_cache = true
             });
 
+            if (options.Mode == "prepare")
+            {
+                // Explicit opt-in only: create the full reusable fixture set.
+                // Existing files are verified and reused, never overwritten.
+                foreach (var sizeMiB in new[] { 8, 128, 1024, 2048 })
+                    await GenerateAsync(options with { SizeMiB = sizeMiB }, log);
+                log.Write("fixture_set_completed", new
+                {
+                    sizes_mib = new[] { 8, 128, 1024, 2048 },
+                    total_mib = 3208
+                });
+            }
             if (options.Mode is "generate" or "all")
                 await GenerateAsync(options, log);
             if (options.Mode is "measure" or "all")
@@ -111,13 +126,13 @@ internal static class MdViewDiskBenchmark
     {
         if (args.Length < 2)
             throw new ArgumentException(
-                "Usage: run.sh ROOT all|generate|measure|index " +
+                "Usage: run.sh ROOT all|prepare|generate|measure|index, or run.ps1 -Mode MODE " +
                 "[--size-mib 2048] [--seeks 250] [--passes 1] " +
                 "[--width 120] [--rows 48] [--max-width 100] " +
                 "[--seed N] [--long-tables].");
 
         var mode = args[0].ToLowerInvariant();
-        if (mode is not ("all" or "generate" or "measure" or "index"))
+        if (mode is not ("all" or "prepare" or "generate" or "measure" or "index"))
             throw new ArgumentException("Unsupported mode: " + args[0]);
 
         var root = Path.TrimEndingDirectorySeparator(
@@ -562,14 +577,14 @@ internal static class MdViewDiskBenchmark
 
     private static long GetFreeBytes(string root)
     {
-        // run.sh obtains free space with df -Pk on the *actual mount*.
-        // Do not accidentally query the root filesystem when the
-        // test drive is mounted as a subdirectory on Linux.
+        // Each platform launcher measures the intended test filesystem:
+        // df -Pk on Linux; Get-Volume on Windows. DriveInfo can
+        // accidentally resolve another filesystem for nested mounts.
         var value = Environment.GetEnvironmentVariable(
             "MDVIEW_BENCH_AVAILABLE_BYTES");
         if (!long.TryParse(value, out var free) || free < 0)
             throw new InvalidOperationException(
-                "Missing mounted-volume free-space check; launch through run.sh. " +
+                "Missing test-volume free-space check; launch through run.ps1 or run.sh. " +
                 "Selected benchmark root: " + root);
         return free;
     }
