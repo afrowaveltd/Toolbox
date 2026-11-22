@@ -165,3 +165,11 @@ using .NET 10, without invoking `run.sh`, `run.ps1`, creating large
 fixtures or requiring a real HDD. Cross-platform build results remain
 pending until that CI run finishes. This is not a substitute for
 real-HDD smoke tests on Windows H: and the future Linux mount.
+
+### Launcher syntax coverage
+
+The two-platform benchmark CI job now validates the PowerShell
+script through PowerShell's own AST parser and the Linux launcher
+through `bash -n` before compiling the project. These are
+syntax checks only; the separate physical-disk guards and benchmark
+workloads are deliberately not run on hosted CI disks.
