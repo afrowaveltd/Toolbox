@@ -870,3 +870,134 @@ whether any new stage explains
 repeated 1-GiB stalls before planning
 write buffering or further physical
 device investigations.
+
+## 1-GiB eight-stage trace — 2026-11-22 14:57 UTC
+
+Physical Windows H: HDD results submitted as
+matching paired files
+`mdview-hdd-20261122T145716681Z-543ebae1.{jsonl,txt}`.
+One pass, prepared 1-GiB synthetic Markdown fixture,
+`-ProgressStep 1 -TraceJournalIo`,
+.NET 10.0.15. There are **100 progress records**,
+2 random-seek summaries, a successful
+`session_completed`, and no failures.
+Diagnostics remained buffered in RAM during
+measurement.
+
+| Metric | Observed |
+| --- | ---: |
+| Source bytes / lines | **1,073,741,824 / 807,433** |
+| Snapshot elapsed | **25,123.997 ms** (40.758 MiB/s) |
+| Event journal bytes | **2,510,275,305** |
+| Journal elapsed | **47,723.939 ms** (21.457 MiB/s) |
+| Journal managed allocations | **13,113,580,248 bytes** |
+| Journal GC pause | **753.859 ms** |
+| Maximum process working set | **73,170,944 B (69.781 MiB)** |
+| First/repeated warm indexed seek median | **0.0575 / 0.0535 ms** |
+| Correctness | **200/200 sampled seeks** |
+
+### All eight journal stages, summed across 100 windows
+
+| Stage | Aggregate time, ms | Count |
+| --- | ---: | ---: |
+| `ScannerAdvance` | **3,807.094** | 807,434 |
+| `SerializeEvent` | **1,838.367** | 807,433 |
+| `EventLengthWrite` | **88.150** | 807,433 |
+| `EventPayloadWrite` | **115.499** | 807,433 |
+| `OffsetWrite` | **68.508** | 807,433 |
+| `OffsetTableRead` | **80.465** | 6,309 |
+| `EventWindowRead` | **573.736** | 12,617 |
+| `DeserializeEvent` | **1,920.612** | 807,433 |
+| **Instrumented total** | **8,492.430** | |
+
+The three write-await totals sum to
+**272.157 ms**, compared with
+**47,723.939 ms** for the entire phase.
+The difference (about 39.2 seconds)
+is **unaccounted time**, not evidence
+that the HDD was idle or that the
+write calls performed no physical I/O.
+`FileStream` may defer operating-system
+work into other synchronous operations.
+
+The typical one-percent interval median
+was **218.225 ms**. But the **67–68%**
+interval lasted **23,035.088 ms**,
+starting at journal offset
+**1,682,002,689 bytes** and ending at
+**1,707,059,208 bytes**. In this
+window, six cursor calls exceeded
+100ms; the longest single `ReadAsync`
+lasted **14,803.923 ms**, starting
+at source line **544,512**, journal
+offset **1,692,778,274 bytes**
+and ending after a call at
+**1,693,174,920 bytes**.
+
+**This interval's eight operations
+accounted for just 75.655 ms**.
+The interval GC pause was **7.797 ms**;
+its previous diagnostic log write
+took **0.0238 ms**. None of the
+eight measured operation types
+reported a call >=100ms.
+The time is therefore within cursor
+`ReadAsync` but **outside** these
+eight timed operation boundaries.
+It is not directly attributable to
+JSON serialization, scanning,
+a timed async write/read await,
+or GC stop-the-world.
+
+Several other progress windows had
+shorter unaccounted cursor stalls:
+31–32% **198.529 ms** largest
+`ReadAsync`; 59–60%
+**233.055 ms**; 68–69%
+**487.825 ms**; 69–70%
+**178.127 ms**. All were absent
+from the eight instrumented
+stage maxima.
+
+### Investigation and code change
+
+Source inspection showed an important
+unmeasured operation before each
+read/write timer: synchronous
+`FileStream.Position` setters for
+the event-journal file and its
+offset table, both during append
+and replay. Because each position
+setter runs *before* the corresponding
+async I/O stopwatch begins, it may
+carry filesystem/runtime overhead
+without appearing in existing stage
+timings. This is a **candidate**,
+not yet proven to be the source of
+the long stalls.
+
+In commit
+`a87d144045fb764a1e8efc0e2b81e51312d829c4`,
+the optional observer was extended
+from eight to **twelve** counters:
+`EventWritePosition`,
+`OffsetWritePosition`,
+`OffsetReadPosition` and
+`EventReadPosition`. The cursor now
+times those setters separately.
+No persistent journal format,
+public interface, buffer/flush
+behavior, cancellation or budget
+logic was changed.
+
+**Next experiment:** on the *same
+prepared source*, once CI confirms
+build and correctness, rerun with
+`-ProgressStep 1 -TraceJournalIo`.
+Compare each position-setter's
+`MaxMs` and source line/offset with
+the longest cursor request in the
+1.68–1.71 GB journal region.
+Do not assert a physical disk
+seek measurement or a successful
+performance optimization.

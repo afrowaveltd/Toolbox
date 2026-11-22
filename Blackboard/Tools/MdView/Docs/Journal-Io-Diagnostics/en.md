@@ -30,10 +30,12 @@ The production cursor's `ScanTimings` property is **null by default**.
 When null, each stage skips high-resolution timestamp collection and
 does not create per-line diagnostic objects.
 
-When enabled, eight separate, non-overlapping logical operation
-boundaries are measured. The first five were introduced before the
-128-MiB profiling baseline; the remaining three were added afterward
-to cover previously unaccounted journal replay:
+When enabled, **twelve separate, non-overlapping logical operation
+boundaries** are measured. The first five were introduced before
+the 128-MiB profiling baseline; three readback stages were added
+before the 1-GiB profile. That profile exposed a very long
+unaccounted synchronous operation, motivating four more stages
+around stream-position setters:
 
 1. `ScannerAdvance` — await incremental scanner `MoveNextAsync`.
 2. `SerializeEvent` — UTF-8 JSON event serialization.
@@ -43,6 +45,10 @@ to cover previously unaccounted journal replay:
 6. `OffsetTableRead` — await the contiguous offset-table read.
 7. `EventWindowRead` — await the bounded contiguous event read.
 8. `DeserializeEvent` — parse a stored JSON event back into a line.
+9. `EventWritePosition` — set `_events.Position` before appending.
+10. `OffsetWritePosition` — set `_offsets.Position` before appending.
+11. `OffsetReadPosition` — set `_offsets.Position` before indexed read.
+12. `EventReadPosition` — set `_events.Position` before bulk event read.
 
 Each operation updates fixed-size in-RAM counters: number of completed
 calls, cumulative ticks, worst call, number of calls lasting at
@@ -81,7 +87,7 @@ The harness adds a nested `journal_scan_stages` object to each
 `null` otherwise. For every stage it records `Calls`, `TotalMs`,
 `MaxMs`, `CallsAtLeast100Ms`, `MaxSourceLine` and
 `MaxJournalOffset`. The object also contains `AccountedMs`
-(the sum of the eight measured stages). Compare this sum with
+(the sum of the twelve measured stages). Compare this sum with
 `interval_cursor_read_total_ms` and `interval_elapsed_ms`,
 mindful that tracing per-line stages adds measurement overhead.
 The benchmark's existing RAM-buffered logger persists JSONL/TXT
@@ -91,11 +97,30 @@ The 128-MiB five-stage diagnostic test completed successfully
 on the physical Windows H: HDD on 2026-11-22 with 200/200 sampled
 seek checks. It left approximately **2.77 seconds** of the
 4.16-second journal scan outside the measured five stages; this
-motivated adding the three readback stages. The **next experiment**
-should use the unchanged **1-GiB** fixture with all eight stage
-counters. Do not infer disk failure or a speed improvement from
-one traced run. Do not call a smoke-test CI run a physical-HDD
-throughput benchmark.
+motivated adding three readback stages.
+
+The subsequent **1-GiB eight-stage** test
+`mdview-hdd-20261122T145716681Z-543ebae1`
+also passed all 200 seeks, but its **67–68%** interval
+lasted **23,035 ms**, including a **14,804-ms**
+`ReadAsync`. All eight measured stages together
+totalled just **75.655 ms** in that interval,
+and GC pauses were **7.797 ms**. None of the
+eight stages showed a call of 100 ms or longer.
+The test therefore did not explain that stall,
+but narrows the missing time to other cursor
+work, including synchronous `FileStream.Position`
+setters which previously occurred *outside*
+the read/write timing windows.
+
+**The next experiment** uses twelve stage counters,
+with the four stream-position stages added. They
+measure the *setter itself*, and may reveal stalls
+caused by filesystem buffering or runtime behavior
+when transitioning between reads and writes.
+This remains a hypothesis: such times still
+are not hardware device metrics. Do not call
+a smoke-test CI run a physical-HDD benchmark.
 
 ## Correctness and safety
 

@@ -374,3 +374,48 @@ JSONL/TXT logger remains buffered in RAM and exports only
 after the benchmark. No new progress writes are generated
 on the slow disk. See the
 [technical design](../MdView/Docs/Journal-Io-Diagnostics/en.md).
+
+## 1-GiB eight-stage follow-up; four synchronous position timers
+
+The successful 2026-11-22 1-GiB physical
+HDD run `mdview-hdd-20261122T145716681Z-543ebae1`
+reproduced a **23.035-second** stall
+at 67–68% source progress (about
+1.682–1.707 GB of journal bytes).
+All eight existing stage timers totaled
+only **75.655 ms** in that window,
+none with a 100ms operation. The
+previous progress log took only
+**0.0238 ms**, and GC pause was
+**7.797 ms**. This is evidence of
+unmeasured work **inside** cursor
+`ReadAsync`.
+
+The observer now includes four more
+time counters:
+`EventWritePosition`, `OffsetWritePosition`,
+`OffsetReadPosition`, `EventReadPosition`.
+These surround synchronous FileStream
+position changes that occur before the
+timed async read/write operations. The
+mode stays `-TraceJournalIo` (Windows)
+or `--trace-journal-io` (Linux), off
+by default. Journal bytes, offset
+format, cancellation and bounds are
+unchanged.
+
+**Recommended next manual run** on
+the unchanged 1-GiB file:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+```
+
+Inspect the four new stage maxima in
+`journal_progress.journal_scan_stages`
+against the longest cursor request.
+A large position-setter time may include
+runtime scheduling or filesystem state,
+not necessarily actual physical seek
+latency or media defects.

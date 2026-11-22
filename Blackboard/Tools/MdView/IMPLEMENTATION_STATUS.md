@@ -2183,3 +2183,90 @@ that old file. CI verification of the
 new stage counters is tracked separately.
 Next: prepared **1-GiB** profile with
 `-TraceJournalIo` after a green CI.
+
+## 2026-11-22 — 1-GiB eight-stage stall traced; position setters instrumented
+
+Maintainer evidence:
+`mdview-hdd-20261122T145716681Z-543ebae1`
+(JSONL and TXT; Windows H: physical HDD,
+.NET 10.0.15, one 1-GiB pass, 1% progress,
+eight-stage `TraceJournalIo=true`,
+RAM-buffered diagnostic export).
+**807,433 source lines**; snapshot
+**25,123.9971 ms**, journal
+**47,723.939 ms**, journal
+**2,510,275,305 bytes**, all
+**200/200** sampled source-line checks
+correct. Peak process working set
+**73,170,944 bytes (69.781 MiB)**.
+Journal managed allocations
+**13,113,580,248 bytes**; GC pause
+**753.859 ms**.
+
+Across all 100 intervals, the eight
+stage totals were: scanner advance
+**3,807.094 ms**; serializer
+**1,838.367 ms**; event length write
+**88.150 ms**; payload write
+**115.499 ms**; offset write
+**68.508 ms**; offset table read
+**80.465 ms**; event window read
+**573.736 ms**; JSON deserialization
+**1,920.612 ms**. Sum
+**8,492.430 ms** against
+**47,723.939 ms** of journal wall time.
+The original three write-await stages
+accounted for **272.157 ms** total.
+
+**Critical reproduction:** the 67–68%
+progress interval at event-journal bytes
+**1,682,002,689 → 1,707,059,208**
+lasted **23,035.0882 ms**, with
+six `ReadAsync` calls over 100ms
+and a maximum single call of
+**14,803.9228 ms** starting at
+source line **544,512**, journal
+offset **1,692,778,274 bytes**.
+Eight stage totals in that entire
+interval were only **75.655 ms**;
+GC pause **7.797 ms**; preceding
+diagnostic log write **0.0238 ms**.
+No old stage had an operation above
+100ms. The 1-GiB stall therefore
+occurs inside `ReadAsync` but
+**outside** the eight timed boundaries.
+Do not attribute it to Windows disk
+hardware without tracing physical I/O.
+
+**Code change:** instrument the
+synchronous setters for
+`_events.Position` and
+`_offsets.Position` before both
+writing and reading, adding four
+new `MdViewJournalScanStage` values
+and extending the fixed-size
+observer to **twelve** counters.
+The original stage API, event
+format, journal bounds, cancellation,
+failure-closed semantics and default
+null observer are unchanged.
+The focused test now verifies that
+cached navigation performs reads
+but not new write-position operations.
+GitHub CI verification follows this
+source change; no optimization claimed.
+
+**NEXT:** rerun the existing 1 GiB
+physical-HDD fixture with
+`-ProgressStep 1 -TraceJournalIo`
+and compare `EventWritePosition`,
+`OffsetWritePosition`, `OffsetReadPosition`,
+`EventReadPosition` maxima with
+`interval_cursor_read_max_ms`.
+If the 1.7-GiB region stalls again,
+the new boundary should help identify
+whether seeking/repositioning is
+responsible. If unaccounted, further
+break down allocations/validation
+and runtime transitions. No physical
+sector defect is established.

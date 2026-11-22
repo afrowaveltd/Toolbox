@@ -694,3 +694,76 @@ the five writer/scanner maxima and
 `interval_cursor_read_total_ms`.
 No specific disk hardware diagnosis
 has been established.
+
+## 2026-11-22 — 1-GiB eight-stage trace, 12-stage position follow-up
+
+Received full paired
+`mdview-hdd-20261122T145716681Z-543ebae1`
+results (Windows H: HDD, .NET 10.0.15,
+prepared 1-GiB Markdown, 1% progress,
+eight-stage `-TraceJournalIo`,
+RAM-buffered log export).
+Snapshot **25,123.997 ms**, 807,433
+source lines. Journal **47,723.939 ms**,
+**2,510,275,305 bytes**, process
+peak **73,170,944 bytes (69.781 MiB)**,
+GC pause **753.859 ms**. All
+**200/200 sampled indexed seeks
+returned correct source lines**.
+
+Eight stage totals:
+scanner **3,807.094 ms**, serialization
+**1,838.367 ms**, event-length
+write **88.150 ms**, event-payload
+write **115.499 ms**, offset write
+**68.508 ms**, offset read
+**80.465 ms**, event read
+**573.736 ms**, deserialization
+**1,920.612 ms**. Total
+**8,492.430 ms** of 47,723.939-ms
+journal wall time.
+
+**Reproduced bottleneck:** 67–68%
+interval **23,035.088 ms**, journal
+**1,682,002,689–1,707,059,208 bytes**.
+Worst cursor `ReadAsync` **14,803.923 ms**
+at source line 544,512 and journal
+offset 1,692,778,274 bytes.
+Eight stages accounted for only
+**75.655 ms** and GC pause
+**7.797 ms**; previous log write
+**0.0238 ms**. None of the eight
+stage types had a 100-ms+ call.
+The large stall is inside
+`ReadAsync` but **outside** the
+eight instrumented operations.
+
+Code reviewed: assigning
+`_events.Position` /
+`_offsets.Position` occurs before
+per-read/write time measurement.
+Added four opt-in timing stages:
+`EventWritePosition`,
+`OffsetWritePosition`,
+`OffsetReadPosition`,
+`EventReadPosition`.
+Now **twelve fixed-size in-memory
+stage counters**, disabled by default.
+The focused test verifies first
+read/write, cached backward reading,
+forward extension and counter reset.
+Source format, limits, failure-closed
+semantics and write buffering remain
+untouched. CI for new revision
+must be checked.
+
+**NEXT:** physical 1-GiB rerun after
+green CI:
+`run.cmd measure -SizeMiB 1024
+-Seeks 100 -Passes 1 -ProgressStep 1
+-TraceJournalIo`. Check position
+setter worst call/offset against
+long cursor calls and 1.69-GB
+journal hotspot. Do not claim
+a root cause or hardware failure
+until directly measured.

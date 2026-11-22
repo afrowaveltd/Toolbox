@@ -331,3 +331,40 @@ offset/event read, or JSON deserialization.
 The per-operation clock reads affect
 overhead, and logical await time is
 not physical disk latency.
+
+## 1-GiB eight-stage stall and stream-position extension
+
+The 2026-11-22 1-GiB physical H: run
+`mdview-hdd-20261122T145716681Z-543ebae1`
+completed all 200 sampled seek
+validations with an unchanged source.
+It reproduced a **23.035-second**
+67–68% journal scan progress window,
+with one `ReadAsync` call reaching
+**14.804 seconds**. Despite eight
+time counters, their summed
+operations covered only **75.655 ms**
+of the slow window. Journal GC
+pause was **7.797 ms** and previous
+diagnostic log write **0.0238 ms**.
+
+The trace has been expanded with
+four more counters around synchronous
+`FileStream.Position` changes
+for event/offset streams in the
+write and read paths. Therefore the
+next `-TraceJournalIo` run records
+**twelve** stage types. The default
+observer remains null and
+diagnostic JSONL/TXT persistence
+remains after timed work.
+
+The next run must use the already
+prepared **1-GiB** input; do not
+regenerate. Evaluate high-latency
+position setters separately before
+considering stream buffering,
+write coalescing or altering
+seek handling. A position setter
+is not necessarily a physical
+disk seek operation.

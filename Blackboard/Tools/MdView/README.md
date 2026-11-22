@@ -1006,3 +1006,21 @@ timestamps, so it is deliberately not a strict unprofiled
 throughput comparison. See
 [journal I/O diagnostics](Docs/Journal-Io-Diagnostics/en.md)
 and [the measured HDD history](../MdView.Benchmarks/Docs/Results-2026-11-22/en.md).
+
+### Twelve-stage stream-position trace (2026-11-22)
+
+The successful eight-stage 1-GiB HDD profile
+(`mdview-hdd-20261122T145716681Z-543ebae1`)
+isolated a **23.035-s** 67–68% progress-window
+stall, while all eight previously instrumented
+stages totaled only **75.655 ms** in that window.
+To avoid misattributing this to write/reader awaits,
+the opt-in observer now separately times four
+synchronous `FileStream.Position` assignments:
+`EventWritePosition`, `OffsetWritePosition`,
+`OffsetReadPosition` and `EventReadPosition`.
+These are additions to the existing eight stages,
+and they remain off by default. Test with the
+same prepared 1-GiB source to identify the
+exact boundary that blocks. See
+[journal diagnostics](Docs/Journal-Io-Diagnostics/en.md).
