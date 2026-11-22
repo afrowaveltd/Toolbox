@@ -1396,3 +1396,35 @@ This decision closes the conditional-position
 optimization experiment. Analyze the
 ~70–73% intermittent A-mode stall separately
 before considering changes to write batching.
+
+## Debian NTFS/FUSE cross-OS 1-GiB run — 2026-11-22 19:11 UTC
+
+The first physical Debian run completed successfully on the
+same pre-existing 1-GiB NTFS HDD fixture. In production A mode:
+snapshot **26,511.893 ms**, journal **58,779.744 ms**
+(17.421 source MiB/s), 807,433 source lines,
+2,510,275,305 event bytes, all **200/200** seek checks correct
+and peak process working set **84.10 MiB**.
+
+Versus the earlier Windows A repeat
+(snapshot 24,431.445 ms, journal 47,552.161 ms),
+Debian journal elapsed was **+23.61%** and the
+snapshot **+8.52%**. Both filesystems were NTFS on
+the same HDD, but Debian exposed it as `fuseblk`
+(user-space filesystem layer) whereas Windows
+uses native NTFS; this is **not** proof of general
+OS speed differences.
+
+Two Linux append-position timing stages accounted for
+**45,642.525 ms (77.65%)** of the 58.780-second
+journal, with `EventWindowRead=3,888.472 ms`.
+Unlike Windows, Linux had **no 70–73% multi-second
+stall**; its slowest 1% progress window was
+**889.330 ms at startup**.
+All source-line seek samples were warm-cache
+measurements, not mechanical cold seeks.
+No source-code behavior was changed because of
+this observational run.
+
+[Full Debian vs Windows methodology, stages and
+caveats](../Debian-NTFS-Cross-Platform/en.md).

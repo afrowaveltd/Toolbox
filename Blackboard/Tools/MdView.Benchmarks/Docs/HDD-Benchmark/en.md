@@ -513,3 +513,28 @@ progress, and strict disk preflight.
 Do not repeat unnecessary 1-GiB wear
 tests; the full comparison is recorded
 in [the results](../Results-2026-11-22/en.md).
+
+## First measured Debian 13 /mnt/test result (2026-11-22)
+
+The benchmark root was verified as
+`/mnt/test/MDViewTest` on mounted rotational
+`/dev/sdg2`, NTFS exposed as `fuseblk`.
+The original `1024MiB` fixture was reused,
+not regenerated. With `measure --size-mib 1024
+--seeks 100 --passes 1 --progress-step 1
+--trace-journal-io`, the production/default
+unconditional append strategy completed in
+**58.780 s journal**, **26.512 s snapshot**,
+**200/200** correct seek checks, **84.10 MiB**
+peak working set and **2,510,275,305 B**
+of event journal.
+
+Windows A on the same physical drive
+(previous run) measured **47.552 s journal**
+and **24.431 s snapshot**. Debian was
+slower but showed **no intermittent
+multi-second journal stall**. The NTFS
+driver differs, warm caches are uncontrolled,
+and one run cannot isolate an OS effect.
+See [detailed cross-platform evidence]
+(../Debian-NTFS-Cross-Platform/en.md).

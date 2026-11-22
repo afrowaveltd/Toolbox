@@ -377,3 +377,43 @@ from B's continuous slow payload writes.
 Do not attribute either to damaged media
 or claim a low-level FileStream flush
 mechanism without additional evidence.
+
+## Physical Debian 13 NTFS/FUSE verification (19:11 UTC)
+
+The `2026-11-22T19:11:10Z` 1-GiB
+physical HDD run completed successfully
+with the verified fast/default A strategy.
+All 807,433 source lines were processed,
+the event journal was exactly
+2,510,275,305 bytes (as in Windows),
+both actual append-position assignment
+counters were **807,433**, and
+**200/200** sampled source-line checks
+passed. On Debian `fuseblk`, journal
+elapsed **58.780 s**, snapshot **26.512 s**,
+and peak process working set **84.10 MiB**.
+
+The 100 individual progress intervals
+were very even (median **581.237 ms**,
+max **889.330 ms** on interval 1).
+Crucially the prior 70–73% Windows
+20–25-second stall did **not** recur:
+Linux intervals 69–74% were all below
+600 ms. The two write-position stages
+together accounted for **45.643 s
+(77.65%)** of Debian journal elapsed;
+`EventWindowRead` another **3.888 s**.
+This stage distribution differs from
+Windows A despite identical event-journal
+size and source-line count.
+
+This is a **filesystem-driver comparison
+with uncontrolled caches**, not a proof
+that Debian generally has worse I/O,
+or that the Windows stalls indicate a
+damaged drive. Do not automatically
+change mount driver, journal strategy,
+disk limits or production mode.
+Complete method and stage comparison:
+[Debian NTFS cross-platform run]
+(../../../MdView.Benchmarks/Docs/Debian-NTFS-Cross-Platform/en.md).

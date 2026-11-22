@@ -2657,3 +2657,70 @@ Debian Konsole interactive source menu, FileBrowser,
 SSH no-GUI terminal. Investigate limitations and
 issue a new immutable preview version for fixes.
 Do not overwrite the published tag or artifacts.
+
+## 2026-11-22 19:11 UTC — first physical Debian cross-OS HDD run
+
+Reviewed the three uploaded actual files:
+`system-20261122T191104Z-5367.txt`,
+`mdview-hdd-20261122T191110559Z-1c8198b5.jsonl`
+and its human-readable `.txt`.
+Debian 13 x64, kernel 6.12.117,
+.NET runtime **10.0.15** (CLI SDK
+reports **11.0.100**), NTFS on
+rotational `/dev/sdg2` through
+FUSE/`fuseblk`, mounted at
+`/mnt/test`. Benchmark root
+`/mnt/test/MDViewTest`; same
+previously generated physical
+1024-MiB fixture and dedicated
+HDD TEMP directory.
+
+The production A/default mode
+(`legacy_unconditional_position_setters`)
+completed successfully:
+- Snapshot **26,511.893 ms**,
+  journal **58,779.744 ms**,
+  throughput **17.421 source MiB/s**.
+- 807,433 lines, event journal
+  exactly **2,510,275,305 B**,
+  200/200 correct seek samples.
+- Peak working set **88,182,784 B
+  (84.10 MiB)**, journal managed
+  allocations **12,828,807,712 B**,
+  GC pause **728.412 ms**.
+- Actual event and offset append
+  Position assignment counters
+  both **807,433**, matching
+  the expected A path.
+- No Windows-style 70–73%
+  20–25-second interruption.
+  Across 100 journal intervals,
+  median **581.237 ms**, maximum
+  **889.330 ms** at 1%.
+- `EventWritePosition` **28,429.150 ms**,
+  `OffsetWritePosition` **17,213.375 ms**,
+  `EventWindowRead` **3,888.472 ms**.
+  All 12 stage timers total
+  **57,741.212 ms**.
+
+Windows original/forced A reference
+on the same physical HDD:
+snapshot **24,431.445 ms** and
+journal **47,552.161 ms**.
+Debian was **23.61% slower in journal
+elapsed time** in this single
+observational test. The mount driver
+differs from native Windows NTFS and
+cached states were not controlled.
+No proof of mechanical disk damage
+or general OS speed ranking.
+
+**DECISION:** leave default A,
+journal representation, memory
+limits and production code untouched.
+Document cross-platform observations
+in `Docs/Debian-NTFS-Cross-Platform/en.md`
+in benchmark project. Next practical
+work is manual Debian interactive
+acceptance of MdView preview release
+(menu, source/preview, resize, SSH).

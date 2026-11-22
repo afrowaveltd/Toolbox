@@ -561,3 +561,30 @@ the remaining intermittent stalls of
 the otherwise fast A path, **not**
 restoring B as a default. See
 [full measured comparison](Docs/Results-2026-11-22/en.md).
+
+### Debian 13 / same physical NTFS HDD (2026-11-22)
+
+The first actual Debian 13 cross-OS run used
+`/mnt/test/MDViewTest/data/mdview-synthetic-1024MiB.md`
+on rotational `/dev/sdg2`, mounted as `fuseblk`.
+Production A mode journal elapsed
+**58.780 s**, compared with **47.552 s**
+in the preceding Windows A repeat (same
+HDD and named source): **+23.61%**.
+Snapshot elapsed: **26.512 s** Debian
+versus **24.431 s** Windows.
+All **200/200** sampled source-line checks
+succeeded, with equal **2,510,275,305 B**
+event journal and peak working set
+**84.10 MiB**. Linux did **not** reproduce
+Windows's intermittent ~25-second stall
+near 70–73%; its slowest 1% window
+was **0.889 s** (startup).
+Do not ascribe this difference solely to
+the OS: Debian is running NTFS via FUSE,
+which differs from Windows native NTFS.
+No default or code change is warranted
+on these measurements.
+
+[Detailed Linux vs Windows run and the
+12-stage timing table](Docs/Debian-NTFS-Cross-Platform/en.md).
