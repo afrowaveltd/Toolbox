@@ -41,3 +41,6 @@ Thumbs.db
 
 Jsons/WhenItFails/*.bak.json
 Jsons/WhenItFails/.*.tmp
+# Unpacked MdView preview smoke-testing directory (generated release binaries)
+/Blackboard/Tools/MdView/mdview-test/
+/dist/

@@ -23,7 +23,7 @@ permissions:
 jobs:
   package:
     name: Publish and smoke test MdView (${{ matrix.rid }})
-    if: github.event_name != 'create' || (github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.1')
+    if: github.event_name != 'create' || (github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.2')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -54,7 +54,7 @@ jobs:
           $bin = Join-Path (Resolve-Path dist/stage) $exe
           if (-not $IsWindows) { chmod +x $bin }
           $versionOutput = (& $bin --version | Out-String).Trim()
-          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne 'mdview 0.1.0-preview.1') {
+          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne 'mdview 0.1.0-preview.2') {
             throw "Incorrect published executable version: $versionOutput"
           }
           $helpOutput = (& $bin --help | Out-String)
@@ -68,14 +68,54 @@ jobs:
             throw 'Published local Markdown rendering failed.'
           }
           Remove-Item -LiteralPath $sample
-      - name: Build archive with documentation, license and SHA-256
+      - name: Verify icon integration in the published app
         shell: pwsh
         run: |
+          $png = 'dist/stage/icon.png'
+          if (-not (Test-Path -LiteralPath $png)) {
+            throw 'Canonical icon.png was not included in published app.'
+          }
+          $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path $png))
+          $signature = [byte[]](137, 80, 78, 71, 13, 10, 26, 10)
+          if ($bytes.Length -lt 1024 -or
+              [System.Linq.Enumerable]::SequenceEqual(
+                [byte[]]$bytes[0..7], $signature) -eq $false) {
+            throw 'Published icon.png is missing or invalid.'
+          }
+          if ($IsWindows) {
+            $ico = 'Blackboard/Tools/MdView/obj/mdview.ico'
+            if (-not (Test-Path -LiteralPath $ico)) {
+              throw 'MSBuild did not generate the Windows ICO resource.'
+            }
+            $resource = [System.IO.File]::ReadAllBytes((Resolve-Path $ico))
+            $frameCount = [System.BitConverter]::ToUInt16($resource, 4)
+            if ($resource.Length -lt 1024 -or
+                [System.BitConverter]::ToUInt16($resource, 2) -ne 1 -or
+                $frameCount -ne 7) {
+              throw 'Windows icon must contain seven valid size entries.'
+            }
+            Write-Host "Windows ICO resource generated ($frameCount sizes)."
+          }
+          else {
+            Copy-Item Blackboard/Tools/MdView/Assets/install-desktop.sh dist/stage/install-desktop.sh
+            chmod +x dist/stage/install-desktop.sh
+            bash -n dist/stage/install-desktop.sh
+            if ($LASTEXITCODE -ne 0) { throw 'Invalid Linux launcher script.' }
+            $env:XDG_DATA_HOME = Join-Path (Resolve-Path dist) 'xdg-test'
+            bash dist/stage/install-desktop.sh
+            if ($LASTEXITCODE -ne 0) { throw 'Linux launcher install smoke test failed.' }
+            $entry = Join-Path $env:XDG_DATA_HOME 'applications/afrowave-mdview.desktop'
+            if (-not (Test-Path -LiteralPath $entry)) {
+              throw 'Linux desktop entry not created.'
+            }
+            $desktopText = [System.IO.File]::ReadAllText((Resolve-Path $entry))
+            if ($desktopText -notmatch '(?m)^Terminal=true
+        run: |
           Copy-Item LICENSE.txt dist/stage/LICENSE.txt
-          Copy-Item Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md dist/stage/README.md
+          Copy-Item Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md dist/stage/README.md
           Copy-Item Blackboard/Tools/MdView/README.md dist/stage/PROJECT_README.md
           New-Item -ItemType Directory -Force -Path dist/packages | Out-Null
-          $name = 'mdview-0.1.0-preview.1-${{ matrix.rid }}'
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
           if ($IsWindows) {
             $archive = "dist/packages/$name.zip"
             Compress-Archive -Path 'dist/stage/*' -DestinationPath $archive -CompressionLevel Optimal
@@ -92,7 +132,7 @@ jobs:
       - name: Smoke test extracted archive (not just publish directory)
         shell: pwsh
         run: |
-          $name = 'mdview-0.1.0-preview.1-${{ matrix.rid }}'
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
           $extracted = 'dist/extracted'
           New-Item -ItemType Directory -Force -Path $extracted | Out-Null
           if ($IsWindows) {
@@ -107,7 +147,97 @@ jobs:
           $bin = Join-Path (Resolve-Path $extracted) $exe
           if (-not (Test-Path -LiteralPath $bin)) { throw 'Packaged executable missing.' }
           $version = (& $bin --version | Out-String).Trim()
-          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.1') {
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.2') {
+            throw "Extracted archive smoke test failed: $version"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'LICENSE.txt'))) {
+            throw 'Packaged LICENSE.txt missing.'
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'README.md'))) {
+            throw 'Packaged README.md missing.'
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'icon.png'))) {
+            throw 'Packaged PNG application icon missing.'
+          }
+          if (-not $IsWindows -and
+              -not (Test-Path -LiteralPath (Join-Path $extracted 'install-desktop.sh'))) {
+            throw 'Packaged Linux launcher registration script missing.'
+          }
+      - name: Upload smoke-tested preview archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdview-0.1.0-preview.2-${{ matrix.rid }}
+          path: dist/packages/*
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub prerelease from explicitly created release branch
+    needs: [package]
+    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.2'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mdview-0.1.0-preview.2-*
+          path: dist/packages
+          merge-multiple: true
+      - name: Publish prerelease after both smoke-tested archives exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f dist/packages/mdview-0.1.0-preview.2-win-x64.zip
+          test -f dist/packages/mdview-0.1.0-preview.2-linux-x64.tar.gz
+          test -f dist/packages/mdview-0.1.0-preview.2-win-x64.zip.sha256
+          test -f dist/packages/mdview-0.1.0-preview.2-linux-x64.tar.gz.sha256
+          gh release create mdview-v0.1.0-preview.2 dist/packages/* \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "MdView 0.1.0-preview.2" \
+            --notes-file Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md \
+            --prerelease
+ -or
+                $desktopText -notmatch '(?m)^Icon=/.+/icon\.png
+        run: |
+          Copy-Item LICENSE.txt dist/stage/LICENSE.txt
+          Copy-Item Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md dist/stage/README.md
+          Copy-Item Blackboard/Tools/MdView/README.md dist/stage/PROJECT_README.md
+          New-Item -ItemType Directory -Force -Path dist/packages | Out-Null
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          if ($IsWindows) {
+            $archive = "dist/packages/$name.zip"
+            Compress-Archive -Path 'dist/stage/*' -DestinationPath $archive -CompressionLevel Optimal
+          }
+          else {
+            $archive = "dist/packages/$name.tar.gz"
+            tar -czf $archive -C dist/stage .
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $basename = [System.IO.Path]::GetFileName($archive)
+          [System.IO.File]::WriteAllText("$archive.sha256", "$hash  $basename" + [Environment]::NewLine)
+          Write-Host "$basename : $hash"
+      - name: Smoke test extracted archive (not just publish directory)
+        shell: pwsh
+        run: |
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          $extracted = 'dist/extracted'
+          New-Item -ItemType Directory -Force -Path $extracted | Out-Null
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath "dist/packages/$name.zip" -DestinationPath $extracted
+            $exe = 'mdview.exe'
+          }
+          else {
+            tar -xzf "dist/packages/$name.tar.gz" -C $extracted
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $exe = 'mdview'
+          }
+          $bin = Join-Path (Resolve-Path $extracted) $exe
+          if (-not (Test-Path -LiteralPath $bin)) { throw 'Packaged executable missing.' }
+          $version = (& $bin --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.2') {
             throw "Extracted archive smoke test failed: $version"
           }
           if (-not (Test-Path -LiteralPath (Join-Path $extracted 'LICENSE.txt'))) {
@@ -119,7 +249,7 @@ jobs:
       - name: Upload smoke-tested preview archive
         uses: actions/upload-artifact@v4
         with:
-          name: mdview-0.1.0-preview.1-${{ matrix.rid }}
+          name: mdview-0.1.0-preview.2-${{ matrix.rid }}
           path: dist/packages/*
           if-no-files-found: error
           retention-days: 30
@@ -127,7 +257,7 @@ jobs:
   release:
     name: Publish GitHub prerelease from explicitly created release branch
     needs: [package]
-    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.1'
+    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.2'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -135,17 +265,184 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          pattern: mdview-0.1.0-preview.1-*
+          pattern: mdview-0.1.0-preview.2-*
           path: dist/packages
           merge-multiple: true
       - name: Publish prerelease after both smoke-tested archives exist
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          test -f dist/packages/mdview-0.1.0-preview.1-win-x64.zip
-          test -f dist/packages/mdview-0.1.0-preview.1-linux-x64.tar.gz
-          gh release create mdview-v0.1.0-preview.1 dist/packages/* \
+          test -f dist/packages/mdview-0.1.0-preview.2-win-x64.zip
+          test -f dist/packages/mdview-0.1.0-preview.2-linux-x64.tar.gz
+          gh release create mdview-v0.1.0-preview.2 dist/packages/* \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "MdView 0.1.0-preview.1" \
-            --notes-file Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md \
+            --title "MdView 0.1.0-preview.2" \
+            --notes-file Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md \
+            --prerelease
+ -or
+                $desktopText -notmatch '(?m)^Exec="/.+/mdview"
+        run: |
+          Copy-Item LICENSE.txt dist/stage/LICENSE.txt
+          Copy-Item Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md dist/stage/README.md
+          Copy-Item Blackboard/Tools/MdView/README.md dist/stage/PROJECT_README.md
+          New-Item -ItemType Directory -Force -Path dist/packages | Out-Null
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          if ($IsWindows) {
+            $archive = "dist/packages/$name.zip"
+            Compress-Archive -Path 'dist/stage/*' -DestinationPath $archive -CompressionLevel Optimal
+          }
+          else {
+            $archive = "dist/packages/$name.tar.gz"
+            tar -czf $archive -C dist/stage .
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $basename = [System.IO.Path]::GetFileName($archive)
+          [System.IO.File]::WriteAllText("$archive.sha256", "$hash  $basename" + [Environment]::NewLine)
+          Write-Host "$basename : $hash"
+      - name: Smoke test extracted archive (not just publish directory)
+        shell: pwsh
+        run: |
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          $extracted = 'dist/extracted'
+          New-Item -ItemType Directory -Force -Path $extracted | Out-Null
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath "dist/packages/$name.zip" -DestinationPath $extracted
+            $exe = 'mdview.exe'
+          }
+          else {
+            tar -xzf "dist/packages/$name.tar.gz" -C $extracted
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $exe = 'mdview'
+          }
+          $bin = Join-Path (Resolve-Path $extracted) $exe
+          if (-not (Test-Path -LiteralPath $bin)) { throw 'Packaged executable missing.' }
+          $version = (& $bin --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.2') {
+            throw "Extracted archive smoke test failed: $version"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'LICENSE.txt'))) {
+            throw 'Packaged LICENSE.txt missing.'
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'README.md'))) {
+            throw 'Packaged README.md missing.'
+          }
+      - name: Upload smoke-tested preview archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdview-0.1.0-preview.2-${{ matrix.rid }}
+          path: dist/packages/*
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub prerelease from explicitly created release branch
+    needs: [package]
+    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.2'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mdview-0.1.0-preview.2-*
+          path: dist/packages
+          merge-multiple: true
+      - name: Publish prerelease after both smoke-tested archives exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f dist/packages/mdview-0.1.0-preview.2-win-x64.zip
+          test -f dist/packages/mdview-0.1.0-preview.2-linux-x64.tar.gz
+          gh release create mdview-v0.1.0-preview.2 dist/packages/* \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "MdView 0.1.0-preview.2" \
+            --notes-file Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md \
+            --prerelease
+) {
+              throw 'Linux desktop launcher lacks a valid terminal, executable or PNG icon.'
+            }
+            Write-Host 'Linux user-local desktop launcher and icon verified.'
+          }
+      - name: Build archive with documentation, license and SHA-256
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE.txt dist/stage/LICENSE.txt
+          Copy-Item Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md dist/stage/README.md
+          Copy-Item Blackboard/Tools/MdView/README.md dist/stage/PROJECT_README.md
+          New-Item -ItemType Directory -Force -Path dist/packages | Out-Null
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          if ($IsWindows) {
+            $archive = "dist/packages/$name.zip"
+            Compress-Archive -Path 'dist/stage/*' -DestinationPath $archive -CompressionLevel Optimal
+          }
+          else {
+            $archive = "dist/packages/$name.tar.gz"
+            tar -czf $archive -C dist/stage .
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $basename = [System.IO.Path]::GetFileName($archive)
+          [System.IO.File]::WriteAllText("$archive.sha256", "$hash  $basename" + [Environment]::NewLine)
+          Write-Host "$basename : $hash"
+      - name: Smoke test extracted archive (not just publish directory)
+        shell: pwsh
+        run: |
+          $name = 'mdview-0.1.0-preview.2-${{ matrix.rid }}'
+          $extracted = 'dist/extracted'
+          New-Item -ItemType Directory -Force -Path $extracted | Out-Null
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath "dist/packages/$name.zip" -DestinationPath $extracted
+            $exe = 'mdview.exe'
+          }
+          else {
+            tar -xzf "dist/packages/$name.tar.gz" -C $extracted
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $exe = 'mdview'
+          }
+          $bin = Join-Path (Resolve-Path $extracted) $exe
+          if (-not (Test-Path -LiteralPath $bin)) { throw 'Packaged executable missing.' }
+          $version = (& $bin --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'mdview 0.1.0-preview.2') {
+            throw "Extracted archive smoke test failed: $version"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'LICENSE.txt'))) {
+            throw 'Packaged LICENSE.txt missing.'
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $extracted 'README.md'))) {
+            throw 'Packaged README.md missing.'
+          }
+      - name: Upload smoke-tested preview archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdview-0.1.0-preview.2-${{ matrix.rid }}
+          path: dist/packages/*
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub prerelease from explicitly created release branch
+    needs: [package]
+    if: github.event_name == 'create' && github.ref_type == 'branch' && github.ref_name == 'release/mdview-v0.1.0-preview.2'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mdview-0.1.0-preview.2-*
+          path: dist/packages
+          merge-multiple: true
+      - name: Publish prerelease after both smoke-tested archives exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f dist/packages/mdview-0.1.0-preview.2-win-x64.zip
+          test -f dist/packages/mdview-0.1.0-preview.2-linux-x64.tar.gz
+          gh release create mdview-v0.1.0-preview.2 dist/packages/* \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "MdView 0.1.0-preview.2" \
+            --notes-file Blackboard/Tools/MdView/Docs/Second-Preview-Release/en.md \
             --prerelease

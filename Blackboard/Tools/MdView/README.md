@@ -1,4 +1,4 @@
-# mdview — terminal Markdown reader (0.1.0-preview.1 prerelease)
+# mdview — terminal Markdown reader (0.1.0-preview.2 candidate)
 
 > **Current journal I/O behavior (2026-11-22):** Production MdView
 > uses the **original unconditional append-position setters** (mode A),
@@ -24,6 +24,34 @@ smoke tests and post-extraction smoke tests on their target
 platforms. See [first-preview release scope and installation
 instructions](Docs/First-Preview-Release/en.md).
 This is not a NuGet package, system installer or stable TUI.
+
+
+## Desktop icon integration (preview.2 candidate)
+
+The project uses the maintainer's original
+[PNG artwork](Assets/icon.png) as the **single icon source**.
+For Windows builds, MSBuild automatically produces a
+multi-resolution ICO (16–256 px) and supplies it via
+`ApplicationIcon`, so Windows Explorer and shortcuts
+can use the icon embedded in `mdview.exe`. The
+converter runs on Windows and needs no extra tools.
+
+Linux distributions do not have an icon field in
+ELF executables. The portable archive instead
+contains `icon.png` plus an optional, root-free
+`install-desktop.sh`, which creates a
+Freedesktop `Terminal=true` menu launcher for
+the unpacked executable in the current user's
+`XDG_DATA_HOME/applications` directory.
+The menu launcher refers to the unpacked location;
+re-run the script if you move the folder.
+The terminal viewer itself is unchanged.
+
+The public `0.1.0-preview.1` artifacts are
+**immutable and do not contain this integration**;
+the icon-enabled build is prepared as a
+new `0.1.0-preview.2` prerelease once Windows
+and Linux CI are green.
 
 ## Start from the Toolbox root
 

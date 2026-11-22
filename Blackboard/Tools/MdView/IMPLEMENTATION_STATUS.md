@@ -2795,3 +2795,33 @@ metadata has been advanced to `0.1.0-preview.2`.
 Windows/Linux release workflow integration, package
 smoke tests and documentation are to be verified
 before publishing a new immutable prerelease.
+
+## 2026-11-22 — icon packaging and smoke checks authored
+
+The `0.1.0-preview.2` distribution workflow
+generates the Windows ICO during build from
+`Assets/icon.png` and verifies that seven
+image sizes are present. The published output
+must contain the original `icon.png` on
+**both platforms**. The Linux archive includes
+`install-desktop.sh`, which is validated
+with `bash -n` and a sandboxed, user-local
+`XDG_DATA_HOME` registration test.
+Both extracted archives are smoke tested
+for icon presence and version.
+
+`Docs/Second-Preview-Release/en.md`
+describes Windows Explorer integration,
+Linux Desktop Entry registration,
+source and supported limitations.
+User-prepared, unpacked release binaries
+under `mdview-test/` are excluded from
+the **source-documentation** link checker
+(they contain release copies of Markdown
+without the whole source Docs tree),
+and .gitignore excludes future additions.
+Existing tracked user files are not deleted.
+
+Await **actual** GitHub Actions results
+before declaring the new release ready;
+`0.1.0-preview.1` remains unchanged.

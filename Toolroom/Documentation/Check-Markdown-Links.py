@@ -60,7 +60,7 @@ def inspect_file(path: Path) -> tuple[int, list[str]]:
 def main() -> int:
     total, errors, count = 0, [], 0
     for file in sorted(ROOT.rglob("*.md")):
-        if any(part in {".git", ".vs", "bin", "obj", ".idea", "node_modules"} for part in file.parts):
+        if any(part in {".git", ".vs", "bin", "obj", ".idea", "node_modules", "mdview-test", "dist"} for part in file.parts):
             continue
         checked, issues = inspect_file(file)
         total += checked
