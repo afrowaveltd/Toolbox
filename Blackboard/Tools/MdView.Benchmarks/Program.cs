@@ -24,7 +24,8 @@ internal static class MdViewDiskBenchmark
         string Mode, string Root, int SizeMiB = 2048, int Seeks = 250,
         int Passes = 1, int Width = 120, int Rows = 48,
         int MaxWidth = 100, int Seed = 20261115,
-        bool LongTables = false, int ProgressStep = 10)
+        bool LongTables = false, int ProgressStep = 10,
+        bool TraceJournalIo = false)
     {
         public long TargetBytes => checked(SizeMiB * MiB);
         public string SourcePath => Path.Combine(
@@ -67,7 +68,7 @@ internal static class MdViewDiskBenchmark
                 options.SizeMiB, target_bytes = options.TargetBytes,
                 options.Seeks, options.Passes, options.Width, options.Rows,
                 options.MaxWidth, options.Seed, options.LongTables,
-                options.ProgressStep,
+                options.ProgressStep, options.TraceJournalIo,
                 temp_path = tmp,
                 os = RuntimeInformation.OSDescription,
                 runtime = RuntimeInformation.FrameworkDescription,
@@ -230,7 +231,7 @@ internal static class MdViewDiskBenchmark
                 "Usage: run.sh ROOT all|prepare|generate|measure|index, or run.ps1 -Mode MODE " +
                 "[--size-mib 2048] [--seeks 250] [--passes 1] " +
                 "[--width 120] [--rows 48] [--max-width 100] " +
-                "[--seed N] [--progress-step 1..10] [--long-tables].");
+                "[--seed N] [--progress-step 1..10] [--trace-journal-io] [--long-tables].");
 
         var mode = args[0].ToLowerInvariant();
         if (mode is not ("all" or "prepare" or "generate" or "measure" or "index"))
@@ -251,6 +252,11 @@ internal static class MdViewDiskBenchmark
             if (flag.Equals("--long-tables", StringComparison.OrdinalIgnoreCase))
             {
                 opt = opt with { LongTables = true };
+                continue;
+            }
+            if (flag.Equals("--trace-journal-io", StringComparison.OrdinalIgnoreCase))
+            {
+                opt = opt with { TraceJournalIo = true };
                 continue;
             }
             if (++i >= args.Length ||
@@ -447,6 +453,13 @@ internal static class MdViewDiskBenchmark
                 snapshot,
                 maximumJournalBytes: BenchmarkJournalLimit,
                 maximumOffsetBytes: BenchmarkOffsetLimit);
+            // Disabled by default: production cursor incurs no per-line
+            // clock reads when ScanTimings is null. The trace stays in RAM,
+            // adding no disk writes or per-event log records.
+            var journalScanTimings = settings.TraceJournalIo
+                ? new MdViewJournalScanTimings()
+                : null;
+            cursor.ScanTimings = journalScanTimings;
 
             await TimedAsync(log, $"journal_sequential_pass_{pass}",
                 settings.TargetBytes, async () =>
@@ -538,6 +551,11 @@ internal static class MdViewDiskBenchmark
                                 interval_cursor_max_start_line = intervalCursorMaxLine,
                                 interval_cursor_max_journal_before = intervalCursorMaxJournalBefore,
                                 interval_cursor_max_journal_after = intervalCursorMaxJournalAfter,
+                                // Each stage's Calls, TotalMs, MaxMs,
+                                // CallsAtLeast100Ms and worst line/offset.
+                                // Null unless the opt-in trace is enabled.
+                                journal_scan_stages =
+                                    journalScanTimings?.TakeWindowAndReset(),
                                 previous_progress_log_write_ms = previousProgressLogWriteMs
                             });
                             previousProgressLogWriteMs =

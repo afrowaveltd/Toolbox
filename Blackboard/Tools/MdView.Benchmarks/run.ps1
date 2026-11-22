@@ -33,6 +33,7 @@ param(
     [int] $Seed = 20261115,
     [ValidateRange(1, 10)]
     [int] $ProgressStep = 10,
+    [switch] $TraceJournalIo,
     [switch] $LongTables
 )
 
@@ -187,6 +188,7 @@ $benchmarkArguments = @(
     '--progress-step', [string]$ProgressStep
 )
 if ($LongTables) { $benchmarkArguments += '--long-tables' }
+if ($TraceJournalIo) { $benchmarkArguments += '--trace-journal-io' }
 $benchmarkExitCode = 1
 try {
     & dotnet $binary @benchmarkArguments

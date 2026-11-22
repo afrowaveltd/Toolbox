@@ -88,6 +88,8 @@ jobs:
       run: dotnet build Blackboard/Tools/MdView.Benchmarks/MdView.Benchmarks.csproj -c Release --nologo
     - name: Verify RAM-only log buffering and delayed export (no HDD workload)
       run: dotnet Blackboard/Tools/MdView.Benchmarks/bin/Release/net10.0/MdView.Benchmarks.dll --self-test-log-buffer
+    - name: Verify opt-in journal timings preserve data and counters
+      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal" --nologo
 
   documentation-links:
     name: Markdown local documentation links
