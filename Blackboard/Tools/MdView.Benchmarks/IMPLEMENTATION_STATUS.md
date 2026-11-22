@@ -813,3 +813,31 @@ unchanged.
 build and regression success; physical
 1-GiB replay to measure impact.
 Do not claim speedup until the latter.
+
+## 2026-11-22 — verification after redundant-position fix
+
+GitHub Actions workflow `.github/workflows/dotnet.yml`
+now runs the targeted
+`SequentialJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream`
+regression on **both Ubuntu and Windows** in addition to the
+existing optional-journal-timing regression and RAM-log self-test.
+
+Verification:
+- Source/test/documentation change
+  `133250d85fa5ade5334961f7c04905168d6abc4b`:
+  run `45037094393` **fully green** (normal build and
+  tests, Windows UI regressions, Linux/Windows benchmark
+  compilation and focused tests, Markdown links).
+- Dedicated cross-platform regression workflow change
+  `8b9b671b795a6937e647d47c8f9b0cf5c2f053ab`:
+  run `45037207910` **fully green**. The new specific
+  no-redundant-position-setters test passed on both OS runners.
+
+These are correctness and build validations on CI hosts.
+The real Windows H: physical HDD has **not yet been retested
+after the fix**. Performance impact remains pending. The next
+owner action is an unchanged 1-GiB
+`-ProgressStep 1 -TraceJournalIo` measurement and examination
+of cumulative actual position setter counts. No journal format
+migration, API break or additional memory allocation policy
+is introduced.
