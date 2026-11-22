@@ -1143,3 +1143,31 @@ in benchmark project. Next practical
 work is manual Debian interactive
 acceptance of MdView preview release
 (menu, source/preview, resize, SSH).
+
+## 2026-11-22 — green CI for first physical Debian cross-OS evidence
+
+Measured result and documentation committed as
+`3256cf873fc8da21637a706555d7bdec6c723600`,
+with relative-link normalization in
+`6e1441d63d35e7379ec471f62079469a818cd22c`.
+The latter commit's GitHub Actions checks are
+**fully green**:
+
+- https://github.com/afrowaveltd/Toolbox/actions/runs/45059853114
+  — **all five .NET jobs passed** (solution build/tests,
+  Windows UI regressions, both Ubuntu/Windows MdView
+  benchmark build/regression jobs and documentation links).
+- https://github.com/afrowaveltd/Toolbox/actions/runs/45059853133
+  — **both Windows and Linux self-contained
+  archive smoke-testing jobs passed**.
+  Automatic GitHub prerelease publication
+  correctly skipped for an ordinary `master`
+  documentation commit; the original release
+  `mdview-v0.1.0-preview.1` remains immutable.
+
+No physical Debian rerun or production code
+modification was made. The user-provided trace
+supports **200/200** correct indexed lookups,
+**58.780 s** Debian journal time, **84.10 MiB**
+peak working set, and no Windows-style
+70–73% multi-second journal stall.
