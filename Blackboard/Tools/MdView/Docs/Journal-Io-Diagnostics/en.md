@@ -30,13 +30,19 @@ The production cursor's `ScanTimings` property is **null by default**.
 When null, each stage skips high-resolution timestamp collection and
 does not create per-line diagnostic objects.
 
-When enabled, five mutually exclusive logical operations are measured:
+When enabled, eight separate, non-overlapping logical operation
+boundaries are measured. The first five were introduced before the
+128-MiB profiling baseline; the remaining three were added afterward
+to cover previously unaccounted journal replay:
 
 1. `ScannerAdvance` — await incremental scanner `MoveNextAsync`.
 2. `SerializeEvent` — UTF-8 JSON event serialization.
 3. `EventLengthWrite` — await the four-byte record-length write.
 4. `EventPayloadWrite` — await the JSON record write.
 5. `OffsetWrite` — await the eight-byte source-line-offset write.
+6. `OffsetTableRead` — await the contiguous offset-table read.
+7. `EventWindowRead` — await the bounded contiguous event read.
+8. `DeserializeEvent` — parse a stored JSON event back into a line.
 
 Each operation updates fixed-size in-RAM counters: number of completed
 calls, cumulative ticks, worst call, number of calls lasting at
@@ -48,10 +54,11 @@ collection or external telemetry call happens from the cursor.
 These are **logical await boundaries**. Even if a write reports a large
 elapsed time, it may include runtime and OS scheduling, managed code,
 filesystem buffering or device I/O. It is **not** a direct measurement
-of actual physical platter writes or kernel I/O operations. The sum
-of instrumented stages excludes other cursor work such as replaying
-newly journaled event rows, allocations of temporary read buffers,
-offset reads, JSON deserialization and benchmark overhead.
+of actual physical platter writes or kernel I/O operations. The sum of instrumented stages includes **both journal
+construction and its readback**, but excludes other cursor
+work such as buffer allocation, offset validation, line
+copying and collection management. It also excludes the
+benchmark's own instrumentation outside the cursor.
 
 ## Benchmark activation
 
@@ -60,7 +67,7 @@ results. The trace is an explicit opt-in:
 
 ```powershell
 # Run from Toolbox root, using the prepared H: source.
-.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 128 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
 ```
 
 On Linux, after verifying the separate HDD mount:
@@ -74,15 +81,21 @@ The harness adds a nested `journal_scan_stages` object to each
 `null` otherwise. For every stage it records `Calls`, `TotalMs`,
 `MaxMs`, `CallsAtLeast100Ms`, `MaxSourceLine` and
 `MaxJournalOffset`. The object also contains `AccountedMs`
-(the sum of the five measured stages). Compare this sum with
+(the sum of the eight measured stages). Compare this sum with
 `interval_cursor_read_total_ms` and `interval_elapsed_ms`,
 mindful that tracing per-line stages adds measurement overhead.
 The benchmark's existing RAM-buffered logger persists JSONL/TXT
 only **after** the measured run.
 
-The 8-MiB and 128-MiB fixtures are suitable for a low-cost first
-validation before trying 1 GiB/2 GiB with tracing. Do not call a
-smoke-test CI run a physical-HDD speed benchmark.
+The 128-MiB five-stage diagnostic test completed successfully
+on the physical Windows H: HDD on 2026-11-22 with 200/200 sampled
+seek checks. It left approximately **2.77 seconds** of the
+4.16-second journal scan outside the measured five stages; this
+motivated adding the three readback stages. The **next experiment**
+should use the unchanged **1-GiB** fixture with all eight stage
+counters. Do not infer disk failure or a speed improvement from
+one traced run. Do not call a smoke-test CI run a physical-HDD
+throughput benchmark.
 
 ## Correctness and safety
 
@@ -90,8 +103,9 @@ All existing journal bounds, read-back format, cancellation checks,
 faulted-cursor handling, line numbering and source ownership remain
 unchanged. The xUnit regression test
 `OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal`
-checks stage-call counts, exact source text, cached backward
-navigation without new writes, partial forward continuation and
+checks stage-call counts including readback, exact source
+text, cached backward navigation without new *writes* but
+with fresh *reads*, partial forward continuation and
 resettable counters. The existing MdView test suite continues to
 cover cancellation, journal-cap exhaustion and offset-table limits.
 

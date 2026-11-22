@@ -760,3 +760,113 @@ on the already prepared dataset with
 `-ProgressStep 1 -TraceJournalIo`. No speedup
 is claimed until comparing results and, if needed,
 making a separate write-batching change.
+
+## 128-MiB five-stage journal profile — 2026-11-22 14:52 UTC
+
+The maintainer uploaded both complete,
+matching `mdview-hdd-20261122T145233390Z-5ca3b47a`
+JSONL/TXT files. The run completed on
+Windows H: with **1% progress**, **one
+128-MiB journal pass**, `TraceJournalIo=true`
+and a post-test RAM-log export, using
+.NET **10.0.15**. No `session_failed`
+record is present. The log contains
+100 `journal_progress` records and
+two `random_seek_summary` records;
+all **200 sampled seeks** returned the
+expected source lines.
+
+| Item | Observed |
+| --- | ---: |
+| Source lines / size | **100,930 / 134,217,728 B** |
+| Snapshot and offset index | **3,455.2965 ms / 807,448 B** |
+| Event journal | **313,601,334 B** |
+| Journal scan | **4,159.7241 ms** (30.771 MiB/s) |
+| Journal-phase managed allocations | **1,640,653,072 B** |
+| Journal-phase GC pause duration | **96.631 ms** |
+| Peak process working set | **71,892,992 B** (68.56 MiB) |
+| First seek median / repeat median | **0.0496 / 0.0489 ms** |
+| 1% window median / maximum | **35.504 / 110.301 ms** |
+| Cursor ReadAsync calls >= 100 ms | **0** |
+
+The five new-to-benchmark **construction**
+stage totals in the 100 progress records
+were:
+
+| Stage | Total calls | Wall time (ms) | Longest single operation (ms) |
+| --- | ---: | ---: | ---: |
+| `ScannerAdvance` | 100,931 | **772.621** | 6.8147 |
+| `SerializeEvent` | 100,930 | **573.825** | 16.8310 |
+| `EventLengthWrite` | 100,930 | **15.907** | 0.0098 |
+| `EventPayloadWrite` | 100,930 | **17.226** | 0.0487 |
+| `OffsetWrite` | 100,930 | **11.617** | 0.0151 |
+| **Total accounted** | | **1,391.197** | |
+
+The scanner attempted to advance the
+iterator once beyond EOF, explaining the
+one-call difference between
+`ScannerAdvance` and serialized line
+count.
+
+All three logical **write-await** stages
+together accounted for **44.750 ms**.
+They never exceeded the 100-ms
+threshold. The **remaining approximately
+2,768.527 ms** of the 4.16-second
+journal phase were **not measured by
+these five stages**, and cannot simply
+be attributed to disk writes, physical
+disk reads or the Markdown parser.
+Reading offsets/events back from the
+journal, deserializing JSON, allocating
+buffers and other cursor work are
+possible contributors.
+
+The 128-MiB traced run did **not**
+reproduce the multi-second stalls
+seen at 1/2 GiB. The maximum whole
+1% progress window was **110.3 ms**
+at startup, and the median was
+**35.5 ms**. Compared with the earlier
+128-MiB untraced runs, differences
+must not be presented as an
+optimization speedup; runtime caches
+and profiling overhead differ.
+
+### Instrumentation follow-up
+
+The five-stage trace was expanded in
+commit
+`bfa0847a2bfe1761efc6a065f39ed2e27cd2d4b8`
+with three additional, bounded-RAM
+logical stages: `OffsetTableRead`,
+`EventWindowRead` and
+`DeserializeEvent`. These operate
+during the **replay** portion of each
+`cursor.ReadAsync`, even when the
+source line is already journaled.
+
+**Important:** the current 128-MiB
+log predates these additions; do not
+report invented readback-stage times
+for this run. The benchmark now
+reports all eight stage totals in
+the same `journal_scan_stages`
+JSONL object without changing
+persistent journal bytes, public
+APIs or the normal disabled-by-default
+production path.
+
+**Next controlled real-HDD run**, after
+updating to a green CI revision:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+```
+
+Use the existing fixture. Inspect
+whether any new stage explains
+repeated 1-GiB stalls before planning
+write buffering or further physical
+device investigations.

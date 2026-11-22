@@ -294,3 +294,40 @@ The Linux/Windows CI matrix builds the benchmark and
 runs `OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal`
 in the MdView test project. This does **not**
 replace real HDD measurements.
+
+## Expanded eight-stage journal profile after 128-MiB smoke
+
+The physical Windows H: smoke run
+`mdview-hdd-20261122T145233390Z-5ca3b47a`
+(128 MiB, 100 seek positions repeated)
+passed successfully. The original five
+journal-construction stages explained
+1,391.197 ms of the 4,159.724-ms
+journal phase; write-await calls summed
+to only 44.750 ms in the entire phase.
+No operation exceeded 100 ms. This
+small result does not exclude stalls
+on 1/2-GiB datasets.
+
+The opt-in observer has therefore been
+expanded with **offset-table reading,
+contiguous event-journal reading and
+JSON event deserialization**. These
+are recorded in the existing
+`journal_scan_stages` progress field,
+alongside the five construction stages;
+all metrics are accumulated in fixed
+managed-memory counters. The new
+readback timings do not exist in the
+previous 128-MiB log and cannot be
+reconstructed from it.
+
+After green Windows/Linux build and
+focused tests, run the unchanged 1-GiB
+fixture with `-TraceJournalIo` to
+identify whether the slowest individual
+await is scanner, record/offset write,
+offset/event read, or JSON deserialization.
+The per-operation clock reads affect
+overhead, and logical await time is
+not physical disk latency.

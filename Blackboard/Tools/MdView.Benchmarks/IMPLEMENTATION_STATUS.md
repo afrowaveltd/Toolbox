@@ -633,3 +633,64 @@ time before deciding whether write batching is
 worth implementing. The independent full visual-page
 `index` performance baseline and Linux physical
 HDD comparison remain pending.
+
+## 2026-11-22 — physical 128-MiB profile and readback expansion
+
+The maintainer supplied and we analyzed both files
+`mdview-hdd-20261122T145233390Z-5ca3b47a.{jsonl,txt}`.
+Session: **Windows H:, .NET 10.0.15, one pass,
+128 MiB, 100 sampled seeks repeated twice**,
+`-ProgressStep 1 -TraceJournalIo`,
+RAM-buffered diagnostics. Completed successfully.
+
+**Snapshot:** **3,455.2965 ms**, 37.045 MiB/s,
+100,930 physical source lines, 807,448-byte index.
+**Journal:** **4,159.7241 ms**, 30.771 MiB/s,
+313,601,334 bytes. Managed allocations
+1,640,653,072 bytes, journal GC pause
+96.631 ms, peak process working set
+71,892,992 bytes (68.56 MiB).
+All 200/200 sampled seeks returned the
+expected source lines; warm first/repeat
+medians **0.0496/0.0489 ms**.
+
+The 100 progress windows had median
+**35.504 ms**, maximum **110.301 ms**
+(1%, startup) and **zero** cursor
+requests above 100 ms. The five measured
+stages totaled: scanner **772.621 ms**,
+serializer **573.825 ms**, event prefix
+write **15.907 ms**, event payload write
+**17.226 ms**, offset write **11.617 ms**.
+All writes combined: **44.750 ms**.
+Accounted original stages: **1,391.197 ms**,
+leaving about **2,768.527 ms** of the
+overall journal scan outside them.
+This *cannot* be assigned to reads
+without measuring them; the first
+profile did not time readback.
+
+**Implemented next:** three additional
+optional readback stages:
+`OffsetTableRead`, `EventWindowRead`
+and `DeserializeEvent`. They are now
+reported in the same RAM-buffered
+`journal_scan_stages` progress JSON.
+The focused MdView test covers source
+correctness, first-stage calls, cached
+navigation (reads without writes),
+continuation, and resets. Runtime
+journal format and public API unchanged.
+New CI verification is pending until
+latest workflow completes.
+
+**NEXT:** after green CI, run the
+existing 1-GiB fixture with
+`run.cmd measure -SizeMiB 1024 -Seeks 100
+-Passes 1 -ProgressStep 1 -TraceJournalIo`.
+If a stall occurs, compare the
+three new readback-stage maxima with
+the five writer/scanner maxima and
+`interval_cursor_read_total_ms`.
+No specific disk hardware diagnosis
+has been established.

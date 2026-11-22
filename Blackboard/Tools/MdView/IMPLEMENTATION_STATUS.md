@@ -2143,3 +2143,43 @@ changing source files. Attribute stalls to
 individual logical phases before considering
 optional write coalescing. Performance improvements
 are not yet claimed.
+
+## 2026-11-22 — journal readback included in optional timings
+
+The 128-MiB five-stage physical Windows H: test
+`mdview-hdd-20261122T145233390Z-5ca3b47a`
+passed **200/200 indexed seek checks** with a
+**4,159.724-ms** journal scan. Of this,
+the five original stages accounted for
+**1,391.197 ms**. The three logical journal
+write awaits collectively accounted for only
+**44.750 ms**; there were no per-stage calls
+at or above 100 ms. Consequently the
+remainder was not correctly attributable
+solely to journal writes.
+
+The optional `MdViewJournalScanTimings`
+observer was expanded to eight stages, adding:
+- `OffsetTableRead` for the offset-table
+  `ReadExactlyAsync`;
+- `EventWindowRead` for the bounded
+  contiguous journal `ReadExactlyAsync`;
+- `DeserializeEvent` for the replay
+  `JsonSerializer.Deserialize`.
+
+These are opt-in, fixed-size in-memory
+aggregates; the default null observer,
+persisted bytes, format and bounds
+are unchanged. The existing test
+`OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal`
+now checks the new counters during first
+forward read, cached backward read and
+further forward extension, plus reset.
+
+The physical 128-MiB result predates
+the three readback counters; **no
+readback timings are inferred** from
+that old file. CI verification of the
+new stage counters is tracked separately.
+Next: prepared **1-GiB** profile with
+`-TraceJournalIo` after a green CI.

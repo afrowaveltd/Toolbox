@@ -991,8 +991,9 @@ and [English experiment protocol](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md)
 ## Optional journal-construction stage profiling (2026-11-22)
 
 Large-file benchmarks now offer **internal, opt-in per-stage** timing
-of the scanner, JSON serializer, event length/payload writes and
-offset writes. By default `MdViewContainerPageCursor.ScanTimings`
+of the scanner, JSON serializer, event length/payload writes,
+offset writes, offset-table reads, contiguous event reads and
+JSON event deserialization. By default `MdViewContainerPageCursor.ScanTimings`
 is null, so normal MdView does **not** time each line. The
 on-disk journal format and public cursor API are unchanged.
 This follows a verified 2-GiB HDD run (200/200 source-line seeks

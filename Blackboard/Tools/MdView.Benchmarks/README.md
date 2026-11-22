@@ -336,7 +336,7 @@ before/after benchmarks.
 ## Opt-in journal stage tracing (2026-11-22)
 
 After successfully processing 2 GiB on the physical Windows HDD,
-the next experiment is a **five-stage scan profile** of
+the next experiment is an **eight-stage build-and-replay profile** of
 `MdViewContainerPageCursor`. This is a diagnostic mode, not
 a new journal format and not an optimization yet.
 
@@ -344,16 +344,17 @@ a new journal format and not an optimization yet.
 | --- | --- | --- |
 | `-TraceJournalIo` | `--trace-journal-io` | Off |
 
-Example, after `git pull`, on the existing 128-MiB fixture:
+Example, after `git pull`, on the existing 1-GiB fixture (after a successful 128-MiB smoke run):
 
 ```powershell
-.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 128 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
 ```
 
 Each `journal_progress` JSONL event includes the optional
 `journal_scan_stages` object. It has per-window summaries for
 `ScannerAdvance`, `SerializeEvent`, `EventLengthWrite`,
-`EventPayloadWrite`, `OffsetWrite` and `AccountedMs`.
+`EventPayloadWrite`, `OffsetWrite`, `OffsetTableRead`,
+`EventWindowRead`, `DeserializeEvent` and `AccountedMs`.
 Every stage tracks `Calls`, `TotalMs`, `MaxMs`,
 `CallsAtLeast100Ms` and the source line/journal offset
 of the longest call. Compare these with
@@ -361,9 +362,14 @@ of the longest call. Compare these with
 at a file-write stage is evidence of delay **during that
 await**, not proof of mechanical HDD latency.
 
-The trace adds clock reads per scanned source row and can
-perturb throughput, so first use 128 MiB for smoke testing,
-then the unchanged 1-GiB source for diagnosis. The
+The trace adds clock reads per scanned/replayed source row and
+can perturb throughput. The first 128-MiB five-stage
+smoke test has now **passed** (all 200 seeks correct).
+Its three write awaits consumed only **44.75 ms**
+of the 4.16-s journal phase. The new readback
+metrics were added afterward, so their first
+physical-HDD measurements will come from a
+new run using the unchanged 1-GiB source. The
 JSONL/TXT logger remains buffered in RAM and exports only
 after the benchmark. No new progress writes are generated
 on the slow disk. See the
