@@ -215,9 +215,12 @@ flushes caches or invokes privileged commands.
   before removing **only files created by this test**.
 - The harness has Windows and Linux launchers, but remains a manual,
   non-release benchmark utility and creates no NuGet release.
-- Windows and Debian executions are **not yet verified on the real HDD**;
-  a successful build and 8-MiB smoke test on each platform are required
-  before citing benchmark measurements. It has no automatic long-running schedule.
+- Windows H: **8-MiB smoke and four fixture generation passed** in
+  maintainer logs dated 2026-11-22. Larger journal/index measurements
+  and the Linux real-HDD comparison are still pending.
+  This tool has no automatic long-running schedule.
+- [2026-11-22 Windows H: results](Docs/Results-2026-11-22/en.md)
+  document the observed results and measurement caveats.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).

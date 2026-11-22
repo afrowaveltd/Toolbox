@@ -183,7 +183,7 @@ internal static class MdViewDiskBenchmark
     {
         if (!File.Exists(settings.SourcePath))
             throw new FileNotFoundException(
-                "The 2-GiB source file must first be generated using 'generate' or 'all'.",
+                "The requested synthetic source must first be generated using 'generate', 'prepare', or 'all'.",
                 settings.SourcePath);
         if (new FileInfo(settings.SourcePath).Length != settings.TargetBytes)
             throw new InvalidDataException(
@@ -250,6 +250,9 @@ internal static class MdViewDiskBenchmark
         log.Write("disk_preflight", new
         {
             free_bytes = free,
+            free_space_source = OperatingSystem.IsWindows()
+                ? "live_windows_driveinfo_bounded_by_launcher"
+                : "launcher_initial_linux_df",
             required_reserve_bytes = minimum,
             source_bytes = settings.TargetBytes
         });
@@ -577,16 +580,26 @@ internal static class MdViewDiskBenchmark
 
     private static long GetFreeBytes(string root)
     {
-        // Each platform launcher measures the intended test filesystem:
-        // df -Pk on Linux; Get-Volume on Windows. DriveInfo can
-        // accidentally resolve another filesystem for nested mounts.
+        // Always require the platform launcher's verified initial volume.
+        // Windows can then refresh its free-space reading before each
+        // prepare fixture; keeping the smaller of the two readings is
+        // conservative even if unrelated files are removed in between.
+        // The Linux df preflight remains an initial conservative estimate:
+        // DriveInfo(root) may resolve the WRONG filesystem for a nested mount.
         var value = Environment.GetEnvironmentVariable(
             "MDVIEW_BENCH_AVAILABLE_BYTES");
-        if (!long.TryParse(value, out var free) || free < 0)
+        if (!long.TryParse(value, out var initialFree) || initialFree < 0)
             throw new InvalidOperationException(
                 "Missing test-volume free-space check; launch through run.ps1 or run.sh. " +
                 "Selected benchmark root: " + root);
-        return free;
+        if (!OperatingSystem.IsWindows())
+            return initialFree;
+
+        var driveRoot = Path.GetPathRoot(root);
+        if (string.IsNullOrEmpty(driveRoot))
+            throw new InvalidOperationException("Missing Windows test drive root.");
+        var currentFree = new DriveInfo(driveRoot).AvailableFreeSpace;
+        return Math.Min(initialFree, currentFree);
     }
 
     private sealed class BenchLog : IAsyncDisposable

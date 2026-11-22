@@ -173,3 +173,40 @@ script through PowerShell's own AST parser and the Linux launcher
 through `bash -n` before compiling the project. These are
 syntax checks only; the separate physical-disk guards and benchmark
 workloads are deliberately not run on hosted CI disks.
+
+## 2026-11-22 — verified Windows H: smoke + complete fixtures
+
+**Actual maintainer logs reviewed:** successful 8-MiB smoke test and
+`prepare` fixture generation on separate physical Windows disk 8
+(Hitachi HTS541680J9SA00, USB/NTFS), with system disk 7.
+Recorded runtime: .NET 10.0.14; reported CLI SDK: .NET 11 RC3.
+See [dated Windows baseline](Docs/Results-2026-11-22/en.md)
+for complete evidence, rates, memory and cache caveats.
+
+- 8 MiB: generated, source snapshot **282.257 ms**,
+  sequential journal **530.133 ms** and **19,569,254**
+  bytes of journal; max working set **62,078,976** bytes.
+  Random seek medians **0.2020 ms first**,
+  **0.1374 ms repeat**. Correct source lines; the
+  recorded seek durations are cached/indexed latencies,
+  not established physical HDD seek times.
+- Prepared data: existing 8 MiB reused, with
+  **128 / 1024 / 2048 MiB** generated at
+  **40.912 / 44.754 / 43.727 MiB/s** respectively.
+  `fixture_set_completed` reports 3208 MiB.
+- Found stale `free_bytes` reporting within a single
+  `prepare` invocation: originally the launcher sampled
+  the volume only once. Patched Windows to refresh current
+  `DriveInfo` available space at every generator preflight,
+  bounded by the initial launcher-verified allowance;
+  Linux still marks its df-derived measurement as initial.
+  A fresh local run is required to verify this follow-up.
+- GitHub Actions run
+  [45022663997](https://github.com/afrowaveltd/Toolbox/actions/runs/45022663997)
+  **SUCCESS** before this follow-up patch, including
+  both isolated benchmark compilation/launcher syntax checks.
+
+**Next:** `run.cmd measure -SizeMiB 128 -Seeks 100 -Passes 2`.
+Keep the existing `H:\MDViewTest\data` directory intact.
+After 128 MiB, compare the journal:source ratio and managed
+allocations before running 1/2 GiB and the opt-in visual index.
