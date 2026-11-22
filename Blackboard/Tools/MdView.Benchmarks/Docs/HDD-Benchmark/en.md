@@ -405,3 +405,66 @@ and lower stage totals. Changes to
 actual hardware I/O latency or
 application throughput require
 measurement rather than assumptions.
+
+## Controlled A/B strategy after the 1-GiB regression
+
+The 2026-11-22 15:49 UTC run
+`mdview-hdd-20261122T154929922Z-93528de2`
+demonstrated that avoiding redundant
+`FileStream.Position` assignments
+is **not** a demonstrated throughput
+optimization on the physical H:
+5400-RPM test HDD: journal elapsed
+**125.348 s** versus **46.506 s**
+in the previous mode. The optional
+12-stage trace shows **115.955 s**
+in `EventPayloadWrite` and **0**
+actual position setter assignments
+per stream, with all 200 random
+source-line samples correct. Its
+peak working set stayed below
+70 MiB.
+
+A special **benchmark-only**
+PowerShell switch now supports
+`-ForceAppendPositionSetters`
+(`--force-append-position-setters`
+for Linux/CLI). This uses the
+original unconditional file-position
+assignment for every appended line.
+Production viewer defaults and
+public API are unchanged.
+
+Run the two alternatives on the
+**already prepared 1-GiB fixture**,
+without `prepare` or `generate`:
+
+```powershell
+git pull
+# B — conditional, current default
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+
+# A — original unconditional setters, benchmark only
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo -ForceAppendPositionSetters
+
+# B — repeat first command to reduce order/cache confounding
+```
+
+The benchmark outputs a unique new
+JSONL/TXT pair each time, and
+includes `journal_append_mode`
+in `session_start`.
+Compare the journal phase time,
+12 stages, actual setter count,
+source correctness and working set
+across both modes. Do not clear
+system cache, format, modify
+filesystem, or rerun on the
+system disk. In the forced
+mode, actual setter count should
+be 807,433 per stream.
+Different hardware scheduling
+can still dominate single-run
+differences. The long-term goal
+remains efficient streaming with
+bounded RAM and explicit disk limits.

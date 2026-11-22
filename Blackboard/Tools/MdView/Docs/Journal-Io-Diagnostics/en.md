@@ -214,3 +214,61 @@ memory peak, both cumulative setter counts and the
 twelve-stage position totals. The first-pass cache
 state and HDD behavior are not controlled enough to
 claim a precise speedup from a single comparison.
+
+## 1-GiB post-change regression and controlled A/B experiment
+
+The physical Windows H: measurement
+`mdview-hdd-20261122T154929922Z-93528de2`
+confirmed that the conditional append mode performed **0**
+`EventWritePositionSetterCount` and **0**
+`OffsetWritePositionSetterCount` actual assignments throughout
+the 807,433-row scan. The journal is byte-for-byte equal in length
+(**2,510,275,305 bytes**) to the earlier trace, with all
+**200/200** indexed seek samples correct.
+The journal scan nevertheless took **125,347.666 ms**
+(previous: **46,506.152 ms**). The largest stage became
+`EventPayloadWrite` (**115,955.056 ms**), i.e. **92.5%**
+of the new journal phase. Append-position timer total dropped
+from **37,099.580 ms** to **47.697 ms**. The latency did not
+disappear; it moved from the position setters to the
+payload write awaits and increased overall.
+
+This does not prove the whole difference is due to that
+single change, because the physical HDD, its write cache,
+antivirus activity and thermal/cache state are uncontrolled.
+The test also does not demonstrate a defective physical disk.
+
+For controlled comparison, the cursor now exposes an
+**internal** `ForceJournalAppendPositionSetters` A/B
+switch, used only by the manual benchmark. When enabled,
+both append streams set `Position` for **every** row, as
+they did before the conditional-append change. With the
+default false, only genuinely needed position changes
+are performed. Tests cover 384 rows, navigation backwards
+and forwards, fence preservation and exact setter counts
+in each variant. There are no changes to physical journal
+format, readback API, disk limits, or cancellation behavior.
+
+Benchmark controls:
+
+```powershell
+# B: current conditional behavior
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+
+# A: original unconditional Position calls (benchmark only)
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo -ForceAppendPositionSetters
+```
+
+The `session_start` diagnostic record now names
+`journal_append_mode` explicitly, and
+`event_write_position_setter_calls` and
+`offset_write_position_setter_calls` must be zero
+for the uninterrupted conditional scan, or grow to
+807,433 each for forced mode.
+
+An alternating **B/A/B** sequence (or A/B/A when comparing
+from a B baseline) is more informative than one
+before/after pair. Keep the prepared source, machine,
+physical disk, seek count and progress settings fixed.
+Each phase is a separate process and preserves old logs.
+Stop if disk-health monitoring suggests developing failure.

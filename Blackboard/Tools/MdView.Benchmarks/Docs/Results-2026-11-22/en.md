@@ -1097,3 +1097,112 @@ correctness, median windows, hotspot,
 total journal time and actual setter
 counts. Do not claim an optimization
 speedup before this measurement.
+
+## 1-GiB post-optimization measurement — 2026-11-22 15:49 UTC
+
+Paired complete Windows H: files
+`mdview-hdd-20261122T154929922Z-93528de2.{jsonl,txt}`.
+Same `H:\MDViewTest\data\mdview-synthetic-1024MiB.md`
+input path, one pass and 100 indexed random
+seek checks. 1% progress, 12 journal stages,
+RAM-buffered logs until after measured work;
+.NET 10.0.15. Run ended `success` with
+all **200/200** source-line samples correct.
+
+| Measurement | Before: unconditional Position (15:04) | After: conditional Position (15:49) |
+| --- | ---: | ---: |
+| Snapshot | **24,956.187 ms** | **24,283.946 ms** |
+| Journal phase | **46,506.152 ms** | **125,347.666 ms** |
+| Effective source-throughput (journal phase) | **22.02 MiB/s** | **8.17 MiB/s** |
+| Source lines | 807,433 | 807,433 |
+| Journal event bytes | 2,510,275,305 | 2,510,275,305 |
+| Journal allocated managed bytes | 13,113,772,008 | 12,831,621,336 |
+| Journal GC pauses | 724.711 ms | 817.440 ms |
+| Peak working set | **68.06 MiB** | **69.31 MiB** |
+| Correct seek samples | **200/200** | **200/200** |
+| First/repeat warm seek median | 0.0666/0.0568 ms | **0.0588/0.0579 ms** |
+
+This was **2.695× slower (169.5% more
+elapsed time)** for the journal phase,
+not a successful throughput optimization.
+First-pass cold-cache state is *not*
+proven comparable, and no low-level
+drive latency counters are available.
+
+### Timing breakdown after conditional setters
+
+| Stage | 1-GiB aggregate ms |
+| --- | ---: |
+| `EventPayloadWrite` | **115,955.056** |
+| `ScannerAdvance` | 3,700.705 |
+| `DeserializeEvent` | 1,872.787 |
+| `SerializeEvent` | 1,422.854 |
+| `EventWindowRead` | 656.512 |
+| `OffsetReadPosition` | 175.696 |
+| `EventReadPosition` | 165.623 |
+| `OffsetTableRead` | 118.846 |
+| `OffsetWrite` | 61.913 |
+| `EventLengthWrite` | 60.717 |
+| `EventWritePosition` | **25.227** |
+| `OffsetWritePosition` | **22.470** |
+| **Accounted (all 12)** | **124,238.405** |
+| Journal wall | **125,347.666** |
+
+Crucial: Both cumulative
+`event_write_position_setter_calls`
+and `offset_write_position_setter_calls`
+are **0 in all 100 intervals**.
+The implementation change is therefore
+activated and prevents redundant append
+position setters in this workload.
+The blocked time has migrated from
+`FileStream.Position` to
+`EventPayloadWrite`, where it now
+accounts for **92.5%** of journal time.
+The 1% interval median increased to
+**1,120.469 ms**; worst intervals
+were 74% **3,409.1 ms**, 75%
+**3,377.1 ms**, 73% **3,327.5 ms**,
+and 76% **3,284.4 ms**.
+The worst *single* event-payload write
+was **203.032 ms** (source line 782,453,
+journal offset 2,432,591,519).
+The delay became sustained rather than
+concentrated in one or two windows.
+
+### Decision and follow-up
+
+Do **not** declare the previous
+conditional-setter change an
+optimization success. The current
+run is observational; thermal/cache
+conditions and other HDD activity
+can vary. Added a separate
+benchmark-controlled, internally
+scoped `ForceJournalAppendPositionSetters`
+A/B mode to reproduce the original
+unconditional-setter code path,
+without modifying the normal
+viewer or journal format.
+
+The benchmark's `session_start`
+will now explicitly name either
+`conditional_position_setters`
+(default) or
+`legacy_unconditional_position_setters`
+(`-ForceAppendPositionSetters`).
+The forced mode should reach
+**807,433** actual assignments for
+*each* append stream, whereas the
+conditional mode remains at zero
+for the sequential benchmark.
+
+**Next experiment:** on the same
+prepared source, run conditional B,
+forced legacy A, then conditional B
+again with exactly the same settings.
+Compare per-stage timing, correctness
+and aggregate performance before
+deciding to revert or redesign. A
+single test does not implicate a
+specific HDD surface error.

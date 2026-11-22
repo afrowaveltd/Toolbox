@@ -154,6 +154,45 @@ public sealed class MdViewContainerPageCursorTests
     }
 
     [Fact]
+    public async Task ForcedJournalAppendSettersReproduceOriginalWritePathAndPreserveReplay()
+    {
+        using var file = new TestFile();
+        var original = Enumerable.Range(0, 384)
+            .Select(i => i == 2 ? "```md" :
+                i == 350 ? "```" : $"entry {i}")
+            .ToArray();
+        var path = await file.WriteAsync(string.Join("\n", original));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot)
+        {
+            // An internal benchmark control only; normal viewer keeps the
+            // optimized (no redundant setter) mode.
+            ForceJournalAppendPositionSetters = true
+        };
+
+        Assert.Equal(original.Take(128),
+            (await cursor.ReadAsync(0, 128)).Select(x => x.Source.Text));
+        Assert.Equal(128, cursor.EventWritePositionSetterCount);
+        Assert.Equal(128, cursor.OffsetWritePositionSetterCount);
+
+        Assert.Single(await cursor.ReadAsync(0, 1));
+        Assert.Equal(original.Skip(128).Take(128),
+            (await cursor.ReadAsync(128, 128)).Select(x => x.Source.Text));
+        Assert.Equal(256, cursor.EventWritePositionSetterCount);
+        Assert.Equal(256, cursor.OffsetWritePositionSetterCount);
+
+        Assert.Equal(original.Skip(64).Take(3),
+            (await cursor.ReadAsync(64, 3)).Select(x => x.Source.Text));
+        var third = await cursor.ReadAsync(256, 128);
+        Assert.Equal(original.Skip(256).Take(128),
+            third.Select(x => x.Source.Text));
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, third[350 - 256].Kind);
+        Assert.Equal(384, cursor.EventWritePositionSetterCount);
+        Assert.Equal(384, cursor.OffsetWritePositionSetterCount);
+        Assert.Equal(384, cursor.CachedLineCount);
+    }
+
+    [Fact]
     public async Task ForwardAfterBackwardKeepsOriginalFenceState()
     {
         using var file = new TestFile();

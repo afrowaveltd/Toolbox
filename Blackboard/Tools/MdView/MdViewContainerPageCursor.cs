@@ -113,6 +113,13 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     internal long OffsetWritePositionSetterCount { get; private set; }
 
     /// <summary>
+    /// Benchmark-only A/B comparison with the pre-optimization write path.
+    /// When true, restores unconditional Position assignments before every
+    /// journal append. Never enabled by the production viewer.
+    /// </summary>
+    internal bool ForceJournalAppendPositionSetters { get; set; }
+
+    /// <summary>
     /// Returns at most 128 source-preserving classified physical lines,
     /// without replaying already cached scanner events.
     /// </summary>
@@ -313,7 +320,7 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 // Avoid re-seeking on every sequential journal record.
                 // Readback may have moved this stream: in that case restore
                 // the append position exactly once before the next write.
-                if (_events.Position != position)
+                if (ForceJournalAppendPositionSetters || _events.Position != position)
                 {
                     _events.Position = position;
                     EventWritePositionSetterCount++;
@@ -335,7 +342,8 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 var offsetWritePositionStartedAt = timing is null
                     ? 0 : Stopwatch.GetTimestamp();
                 var offsetAppendPosition = checked(_scannedLines * sizeof(long));
-                if (_offsets.Position != offsetAppendPosition)
+                if (ForceJournalAppendPositionSetters ||
+                    _offsets.Position != offsetAppendPosition)
                 {
                     _offsets.Position = offsetAppendPosition;
                     OffsetWritePositionSetterCount++;

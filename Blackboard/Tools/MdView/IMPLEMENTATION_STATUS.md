@@ -2351,3 +2351,54 @@ owner action is an unchanged 1-GiB
 of cumulative actual position setter counts. No journal format
 migration, API break or additional memory allocation policy
 is introduced.
+
+## 2026-11-22 — post-change 1-GiB regression; A/B mode added
+
+New paired physical H: 1-GiB test
+`mdview-hdd-20261122T154929922Z-93528de2`
+on Windows / .NET 10.0.15 is fully successful:
+807,433 source lines; journal
+**2,510,275,305 bytes**; **200/200**
+sampled source-line checks correct; journal
+GC pause **817.440 ms**; peak working set
+**72,675,328 bytes (69.31 MiB)**. Snapshot
+**24,283.946 ms**; journal **125,347.666 ms**.
+Both cumulative actual append-position
+setter counters remained **zero**.
+
+This **regresses** from the immediately prior
+twelve-stage HDD run's **46,506.152 ms**
+journal duration (2.70× slower); do not claim
+the optimization improved performance.
+The `EventPayloadWrite` timer instead took
+**115,955.056 ms (92.5%)** of the new
+journal phase. The two append-position
+stages totaled just **47.697 ms** versus
+**37,099.580 ms** before. This measured
+shift in blocking location does not
+establish whether the kernel, filesystem
+cache or thermal/device state caused
+the entire additional delay.
+
+**New diagnostic experiment:** an internal
+`ForceJournalAppendPositionSetters` property
+defaults false, but a benchmark-only flag
+can restore the original unconditional
+event and offset `FileStream.Position`
+assignments before each row. The benchmark
+labels the mode in session_start; Windows
+PowerShell forwards the A/B option.
+A new regression tests the forced old
+path with backward replay, three pages
+and exact setter counts. Run it on both
+Windows and Linux GitHub Actions.
+Normal MdView default, public surface,
+journal bytes, bounds and cancellation
+semantics remain unchanged.
+
+**NEXT:** alternate manual conditional/
+forced/conditional 1-GiB runs on the
+same prepared HDD source, compare total
+time and per-stage latency, not just
+the location of wait time. Pending
+CI verification of the new A/B wiring.

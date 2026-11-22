@@ -841,3 +841,68 @@ owner action is an unchanged 1-GiB
 of cumulative actual position setter counts. No journal format
 migration, API break or additional memory allocation policy
 is introduced.
+
+## 2026-11-22 — 1-GiB post-change regression and A/B flag
+
+Paired full 1-GiB physical Windows H:
+logs `mdview-hdd-20261122T154929922Z-93528de2`
+show `session_completed:success`,
+200/200 successful seek samples,
+807,433 source lines and identical
+2,510,275,305 event journal bytes.
+Snapshot **24,283.946 ms**,
+journal **125,347.666 ms**,
+peak working set **72,675,328 B
+(69.31 MiB)**, managed allocations
+**12,831,621,336 B**, GC pause
+**817.440 ms**. Both actual append
+position setter counters stayed
+**zero**.
+
+The new journal wall time is
+**2.695×** the previous
+**46,506.152 ms** on identical
+size/path, despite removing
+redundant Position calls.
+`EventPayloadWrite` alone took
+**115,955.056 ms** of total
+125,347.666 ms (92.5%).
+Position timer costs fell
+from **37,099.580 ms** to
+**47.697 ms**, but blocking
+moved to the payload write awaits
+and became sustained. A controlled
+mode comparison is necessary:
+uncontrolled HDD temperature,
+background activity and filesystem
+cache make causal attribution
+from one run unreliable.
+
+**Implementation:** new internal
+cursor flag
+`ForceJournalAppendPositionSetters`
+retains the current default false
+but restores unconditional append
+seek assignments when true.
+Benchmark CLI adds
+`--force-append-position-setters`;
+PowerShell / Windows .cmd add
+`-ForceAppendPositionSetters`,
+and the session start records an
+explicit mode string.
+New xUnit regression asserts the
+forced variant writes 384 records,
+performs 384 assignments per
+stream, replays cached earlier
+ranges and continues correctly.
+The CI matrix includes this test
+on Windows and Ubuntu.
+Production public surface and
+format remain unchanged.
+
+**NEXT:** verify CI then perform
+three distinct 1-GiB A/B/A or
+B/A/B manual runs on H: without
+regenerating source. Decide whether
+to revert the conditional approach
+only with repeated controlled evidence.

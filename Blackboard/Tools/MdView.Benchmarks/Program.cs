@@ -25,7 +25,8 @@ internal static class MdViewDiskBenchmark
         int Passes = 1, int Width = 120, int Rows = 48,
         int MaxWidth = 100, int Seed = 20261115,
         bool LongTables = false, int ProgressStep = 10,
-        bool TraceJournalIo = false)
+        bool TraceJournalIo = false,
+        bool ForceJournalAppendPositionSetters = false)
     {
         public long TargetBytes => checked(SizeMiB * MiB);
         public string SourcePath => Path.Combine(
@@ -69,6 +70,10 @@ internal static class MdViewDiskBenchmark
                 options.Seeks, options.Passes, options.Width, options.Rows,
                 options.MaxWidth, options.Seed, options.LongTables,
                 options.ProgressStep, options.TraceJournalIo,
+                options.ForceJournalAppendPositionSetters,
+                journal_append_mode = options.ForceJournalAppendPositionSetters
+                    ? "legacy_unconditional_position_setters"
+                    : "conditional_position_setters",
                 temp_path = tmp,
                 os = RuntimeInformation.OSDescription,
                 runtime = RuntimeInformation.FrameworkDescription,
@@ -231,7 +236,8 @@ internal static class MdViewDiskBenchmark
                 "Usage: run.sh ROOT all|prepare|generate|measure|index, or run.ps1 -Mode MODE " +
                 "[--size-mib 2048] [--seeks 250] [--passes 1] " +
                 "[--width 120] [--rows 48] [--max-width 100] " +
-                "[--seed N] [--progress-step 1..10] [--trace-journal-io] [--long-tables].");
+                "[--seed N] [--progress-step 1..10] [--trace-journal-io] " +
+                "[--force-append-position-setters] [--long-tables].");
 
         var mode = args[0].ToLowerInvariant();
         if (mode is not ("all" or "prepare" or "generate" or "measure" or "index"))
@@ -257,6 +263,12 @@ internal static class MdViewDiskBenchmark
             if (flag.Equals("--trace-journal-io", StringComparison.OrdinalIgnoreCase))
             {
                 opt = opt with { TraceJournalIo = true };
+                continue;
+            }
+            if (flag.Equals("--force-append-position-setters",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                opt = opt with { ForceJournalAppendPositionSetters = true };
                 continue;
             }
             if (++i >= args.Length ||
@@ -460,6 +472,11 @@ internal static class MdViewDiskBenchmark
                 ? new MdViewJournalScanTimings()
                 : null;
             cursor.ScanTimings = journalScanTimings;
+            // Restore the original per-record Position assignment only
+            // for a controlled A/B run. This does not change the normal
+            // MdView behavior or the stored journal format.
+            cursor.ForceJournalAppendPositionSetters =
+                settings.ForceJournalAppendPositionSetters;
 
             await TimedAsync(log, $"journal_sequential_pass_{pass}",
                 settings.TargetBytes, async () =>

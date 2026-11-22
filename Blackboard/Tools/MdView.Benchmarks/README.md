@@ -448,3 +448,50 @@ or public API change. The next unchanged
 1-GiB physical-HDD run is required to
 confirm improvement and verify the
 expected low number of actual setters.
+
+### Regression after conditional-seek change and A/B control
+
+Physical Windows H: follow-up
+`mdview-hdd-20261122T154929922Z-93528de2`
+completed successfully, including all 200
+sampled indexed source-line checks. Its
+journal took **125.348 s**, compared with
+**46.506 s** before the conditional
+position-setter change: **2.70× slower**.
+Both actual setter counters were **0**
+throughout, but `EventPayloadWrite`
+became the bottleneck at **115.955 s**
+(92.5% of journal time). Working set
+remained small (**69.31 MiB** peak).
+
+Do **not** interpret the elimination
+of redundant seeks as a measured
+speed improvement. To isolate causality
+from uncontrolled HDD write-back and
+cache conditions, a benchmark-only
+`-ForceAppendPositionSetters` switch
+restores the original unconditional
+per-record `FileStream.Position`
+assignments. The default has **not**
+been reverted yet: the next action
+is controlled A/B/A or B/A/B testing.
+
+```powershell
+git pull
+# B (conditional): default
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo
+# A (legacy): forced setters for benchmark only
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1 -TraceJournalIo -ForceAppendPositionSetters
+# B again: repeat the first command without the switch
+```
+
+Each run produces separately named RAM-buffered JSONL/TXT files;
+the source is reused rather than regenerated. Compare
+`session_start.journal_append_mode`, total
+`journal_sequential_pass_1` time,
+`EventPayloadWrite`, `EventWritePosition`,
+`OffsetWritePosition`, memory peak and
+both cumulative setter counts. If the
+forced (legacy) mode consistently wins,
+we can revert the ineffective change
+without altering production journal format.

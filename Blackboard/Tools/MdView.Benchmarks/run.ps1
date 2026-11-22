@@ -34,6 +34,7 @@ param(
     [ValidateRange(1, 10)]
     [int] $ProgressStep = 10,
     [switch] $TraceJournalIo,
+    [switch] $ForceAppendPositionSetters,
     [switch] $LongTables
 )
 
@@ -189,6 +190,9 @@ $benchmarkArguments = @(
 )
 if ($LongTables) { $benchmarkArguments += '--long-tables' }
 if ($TraceJournalIo) { $benchmarkArguments += '--trace-journal-io' }
+if ($ForceAppendPositionSetters) {
+    $benchmarkArguments += '--force-append-position-setters'
+}
 $benchmarkExitCode = 1
 try {
     & dotnet $binary @benchmarkArguments

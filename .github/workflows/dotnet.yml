@@ -92,6 +92,8 @@ jobs:
       run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~OptionalJournalTimingsMeasureEachWriteWithoutChangingJournal" --nologo
     - name: Verify sequential journal appends only reposition after backward replay
       run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~SequentialJournalAppendsDoNotSeekAgainUntilBackwardReplayMovesStream" --nologo
+    - name: Verify legacy forced-position A/B variant preserves replay
+      run: dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj -c Release --filter "FullyQualifiedName~ForcedJournalAppendSettersReproduceOriginalWritePathAndPreserveReplay" --nologo
 
   documentation-links:
     name: Markdown local documentation links

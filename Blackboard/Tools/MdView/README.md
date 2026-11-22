@@ -1048,3 +1048,33 @@ Manual benchmark `journal_progress` records expose cumulative
 stage timers remain available for comparing the next physical-HDD
 measurement. A speedup is **not** claimed without that new run.
 See [diagnostics](Docs/Journal-Io-Diagnostics/en.md).
+
+### 1-GiB follow-up: no redundant seeks, but slower HDD journal (2026-11-22)
+
+The next physical H: run
+`mdview-hdd-20261122T154929922Z-93528de2` confirmed
+**zero** append position assignments in the corrected sequential
+journal path. All 200 sampled source-line checks remained correct,
+with peak working set **69.31 MiB**.
+However, its journal phase took **125,347.666 ms**, versus
+**46,506.152 ms** in the previous, otherwise matching twelve-stage
+run. The phase slowed by a factor **2.70** (not a win).
+In the new trace, `EventPayloadWrite` accounted for
+**115,955.056 ms (92.5%)**, while the two append-position
+stages combined took just **47.697 ms**.
+This is a major I/O timing shift, not proof of a defective HDD.
+A single sequential experiment with uncontrolled disk-cache/thermal
+state is insufficient to assign all of the regression to the code.
+
+We therefore added a **benchmark-controlled internal A/B flag**:
+`ForceJournalAppendPositionSetters`, off by default, which
+restores the original unconditional per-record Position assignments.
+It has no public production API, and the normal viewer still
+uses conditional setters. A separate regression asserts
+the forced path's exact setter counts and backward replay
+correctness; both variants are run in Windows/Linux CI.
+
+Next perform an **alternating B/A/B manual comparison** on
+the same physical H: drive using the commands in
+[the HDD benchmark guide](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md).
+Do not infer an optimization speedup from one run.
