@@ -351,3 +351,51 @@ builds and PowerShell syntax. Then run
 time to stall wall time; inspect narrowed journal
 offset range and Windows disk activity if needed.
 2-GiB fixture remains prepared but untested.
+
+## 2026-11-22 — GC pause exonerated for repeated 1-GiB stall
+
+**Maintainer log verified:** `mdview-hdd-20261122T125720117Z-015b7a39`
+(JSONL/TXT), a successful 1-GiB `-ProgressStep 1` run.
+Snapshot **24,805.267 ms**, journal **48,091.018 ms**,
+peak working set **71,741,440 bytes**, journal size
+**2,510,275,305 bytes**, GC pause for the entire scan
+**730.739 ms**; 200/200 seek requests passed.
+
+The **single 69–70%** interval took **24,918.810 ms**
+(median other 99 windows **221.017 ms**), with
+**656.25 ms CPU**, **131,414,008 bytes allocated**,
+**7/7/7 collections**, and **only 8.182 ms** of
+actual GC pause duration (0.033% of the interval).
+Its exact recorded journal offset boundaries are
+**1,732,164,328 → 1,757,269,452 bytes** and
+source-line boundaries **557,184 → 565,248**.
+This is the third successful 1-GiB run showing a
+repeatable approximately 25-second stall. GC pauses
+cannot explain the extra elapsed time. Cause is not
+proven to be disk I/O or a fault in the physical drive.
+
+**Important instrumentation ambiguity discovered:**
+the progress elapsed measurement includes the preceding
+`BenchLog.Write` call, which synchronously writes JSONL,
+TXT and console output on the test volume. We therefore
+cannot distinguish a slow progress-log write from
+a slow cursor request using the supplied run alone.
+
+**Follow-up committed benchmark-only patch:** each progress
+event now records total and maximum time spent inside
+individual 128-line `cursor.ReadAsync` calls, a >100ms
+request count, starting source line and before/after
+journal offsets of the slowest call, and the
+`previous_progress_log_write_ms` value. It adds no
+per-request log writes and preserves existing log keys.
+Neither production MdView cursor nor its persistent
+journal schema was changed.
+
+**Next:** check Linux/Windows benchmark CI and re-run
+`run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1
+-ProgressStep 1` after pulling master. Compare the
+cursor call durations against previous-progress logging
+duration at the 69–70% boundary. The prepared 2-GiB
+dataset is not yet benchmarked. Continue to avoid
+unverified disk-health claims and keep cold-cache
+assumptions explicit.

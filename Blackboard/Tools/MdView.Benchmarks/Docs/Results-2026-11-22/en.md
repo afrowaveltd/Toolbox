@@ -323,3 +323,97 @@ this may perturb absolute timings. Compare the
 the new total runtime as a strict apples-to-apples
 performance benchmark. Do not run the 2-GiB benchmark
 by default until the anomalous behavior is better understood.
+
+## 1%-resolution diagnosis — 2026-11-22 12:57 UTC
+
+The maintainer supplied a completed diagnostic run:
+`mdview-hdd-20261122T125720117Z-015b7a39.{jsonl,txt}`,
+on the same Windows H: HDD and the existing 1-GiB source,
+with `-Seeks 100 -Passes 1 -ProgressStep 1`. All phases
+completed successfully, including **200/200 sampled
+source-line seeks**; there is no `session_failed`.
+.NET runtime: **10.0.15**.
+
+| Measurement | Observation |
+| --- | ---: |
+| Validated snapshot | 24,805.267 ms (41.282 MiB/s) |
+| Event journal | 2,510,275,305 bytes |
+| Sequential scan | 48,091.018 ms (21.293 MiB/s) |
+| Managed allocations in journal phase | 13,111,998,096 bytes |
+| Journal-phase GC Gen0/Gen1/Gen2 | 743 / 742 / 742 |
+| Total journal-phase GC pause duration | **730.739 ms** |
+| Peak process working set | 71,741,440 bytes (68.42 MiB) |
+| Seek medians (first / repeat, each 100) | 0.0610 / 0.0553 ms |
+
+The previous 10%-resolution runs both showed an anomaly
+in the 60–70% interval. The finer log localizes this
+to the **69–70% interval**:
+
+- `source_lines_scanned`: **557,184 → 565,248**.
+- `journal_bytes`: **1,732,164,328 → 1,757,269,452**.
+- Elapsed wall: **24,918.810 ms**, versus **221.017 ms**
+  median for the other 99 one-percent windows.
+- CPU: **656.25 ms** in the outlier window.
+- Managed allocations: **131,414,008 bytes**.
+- Collections: **7/7/7** (Gen0/Gen1/Gen2).
+- **Actual GC pause: only 8.182 ms** in this window,
+  approximately 0.033% of its wall time. The GC did not
+  account for the roughly 24.7-second extra elapsed
+  interval as a collection stop-the-world pause.
+
+The discrepancy is repeatable in **three independent
+1-GiB runs**, always just before the journal passes
+roughly 1.75 billion bytes. It is consistent with
+a wait in I/O, OS scheduling, storage/cache management,
+console logging or another blocking operation; **it is
+not proof of a defective HDD or of a specific Windows
+write-cache mechanism**.
+
+### Improved attribution before further hardware testing
+
+The log's `interval_elapsed_ms` is measured between
+progress timestamps, and therefore also includes the
+**previous** progress event's synchronous writes to
+the text file, JSONL file and console. GC and CPU
+measurements alone cannot distinguish a slow
+`MdViewContainerPageCursor.ReadAsync` call from a
+slow benchmark log write.
+
+A follow-up benchmark-only patch now records these fields
+in each `journal_progress` entry, without additional
+per-request writes to the slow disk:
+
+- `interval_cursor_read_count`: bounded cursor calls;
+- `interval_cursor_read_total_ms`: elapsed wall
+  time collectively spent awaiting cursor requests;
+- `interval_cursor_read_max_ms`: the single slowest
+  cursor call within that progress window;
+- `interval_cursor_read_above_100ms`: request count
+  crossing 100 ms;
+- `interval_cursor_max_start_line` and
+  `interval_cursor_max_journal_before/after`:
+  the starting source line and pre/post journal offset
+  of that slowest call;
+- `previous_progress_log_write_ms`: duration of the
+  **previous** progress logger call, which was included
+  in this progress interval's measured elapsed time.
+
+These fields can distinguish cursor-level blocking from
+logging overhead and localize a slow request. They still
+cannot directly identify a kernel disk write, a driver or
+the physical device without an OS-level trace.
+
+Next minimally invasive experiment, after pulling
+the updated branch:
+
+```powershell
+git pull
+.\Blackboard\Tools\MdView.Benchmarks\run.cmd measure -SizeMiB 1024 -Seeks 100 -Passes 1 -ProgressStep 1
+```
+
+The prepared test file remains unchanged. This benchmark
+does not clear caches, format devices or overwrite data.
+Consider a Windows disk Active Time / response-time trace
+**only if** the new telemetry confirms a cursor-level wait;
+do not infer a hardware failure. The 2-GiB test is still
+pending until this repeated wait is attributed.

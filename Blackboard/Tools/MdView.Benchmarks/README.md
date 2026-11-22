@@ -235,7 +235,11 @@ flushes caches or invokes privileged commands.
   results and their measurement caveats. New builds
   record per-phase `gc_gen*_delta` and `gc_pause_ms_delta`,
   plus journal-progress interval timing, allocation, GC
-  collection/pause, CPU and memory counters.
+  collection/pause, CPU and memory counters. New per-window
+  diagnostics separately time all 128-line `ReadAsync` calls,
+  the longest cursor request (with its line and journal offset),
+  and **the prior progress log write duration**. This helps
+  distinguish cursor stalls from the benchmark logger itself.
 
 [Full experiment plan](Docs/HDD-Benchmark/en.md) ·
 [MdView implementation status](../MdView/IMPLEMENTATION_STATUS.md).

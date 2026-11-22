@@ -354,9 +354,11 @@ internal static class MdViewDiskBenchmark
                     long first = 0;
                     var nextProgress = (long)settings.ProgressStep;
 
-                    // Progress windows help distinguish GC-heavy CPU
-                    // intervals from external storage/scheduler stalls.
-                    // No extra reads or writes to the benchmark source.
+                    // Progress windows measure the relative cost of scanning
+                    // versus benchmark diagnostic logging. The previous
+                    // progress Write may be included in the next wall interval.
+                    // Instrument ReadAsync at each 128-line request without
+                    // producing extra per-request disk log writes.
                     using var intervalProcess = Process.GetCurrentProcess();
                     var intervalTimestamp = Stopwatch.GetTimestamp();
                     var intervalAllocatedBytes = GC.GetTotalAllocatedBytes(false);
@@ -366,9 +368,35 @@ internal static class MdViewDiskBenchmark
                     var intervalGcPause = GC.GetTotalPauseDuration();
                     var intervalCpu = intervalProcess.TotalProcessorTime;
                     long intervalJournalBytes = 0;
+                    long intervalCursorCalls = 0;
+                    long intervalCursorAbove100Ms = 0;
+                    double intervalCursorElapsedMs = 0;
+                    double intervalCursorMaxMs = 0;
+                    long intervalCursorMaxLine = -1;
+                    long intervalCursorMaxJournalBefore = 0;
+                    long intervalCursorMaxJournalAfter = 0;
+                    double previousProgressLogWriteMs = 0;
                     while (first < snapshot.Lines.LineCount)
                     {
+                        var requestLine = first;
+                        var requestJournalBefore = cursor.JournalBytes;
+                        var requestStart = Stopwatch.GetTimestamp();
                         var lines = await cursor.ReadAsync(first, 128);
+                        var requestElapsedMs = Stopwatch.GetElapsedTime(
+                            requestStart).TotalMilliseconds;
+
+                        intervalCursorCalls++;
+                        intervalCursorElapsedMs += requestElapsedMs;
+                        if (requestElapsedMs >= 100)
+                            intervalCursorAbove100Ms++;
+                        if (requestElapsedMs > intervalCursorMaxMs)
+                        {
+                            intervalCursorMaxMs = requestElapsedMs;
+                            intervalCursorMaxLine = requestLine;
+                            intervalCursorMaxJournalBefore = requestJournalBefore;
+                            intervalCursorMaxJournalAfter = cursor.JournalBytes;
+                        }
+
                         if (lines.Count == 0 ||
                             lines[0].Source.LineNumber != first)
                             throw new InvalidDataException(
@@ -386,12 +414,14 @@ internal static class MdViewDiskBenchmark
                             var nowGcPause = GC.GetTotalPauseDuration();
                             var nowCpu = intervalProcess.TotalProcessorTime;
                             var nowJournalBytes = cursor.JournalBytes;
+                            var intervalWallMs = Stopwatch.GetElapsedTime(
+                                intervalTimestamp, nowTimestamp).TotalMilliseconds;
+                            var progressWriteStart = Stopwatch.GetTimestamp();
                             log.Write("journal_progress", new
                             {
                                 pass, percent, source_lines_scanned = first,
                                 journal_bytes = nowJournalBytes,
-                                interval_elapsed_ms = Stopwatch.GetElapsedTime(
-                                    intervalTimestamp, nowTimestamp).TotalMilliseconds,
+                                interval_elapsed_ms = intervalWallMs,
                                 interval_allocated_bytes = nowAllocatedBytes - intervalAllocatedBytes,
                                 interval_gc_gen0 = nowGc0 - intervalGc0,
                                 interval_gc_gen1 = nowGc1 - intervalGc1,
@@ -400,8 +430,23 @@ internal static class MdViewDiskBenchmark
                                     (nowGcPause - intervalGcPause).TotalMilliseconds,
                                 interval_cpu_ms = (nowCpu - intervalCpu).TotalMilliseconds,
                                 interval_journal_bytes = nowJournalBytes - intervalJournalBytes,
-                                working_set_bytes = intervalProcess.WorkingSet64
+                                working_set_bytes = intervalProcess.WorkingSet64,
+                                interval_cursor_read_count = intervalCursorCalls,
+                                interval_cursor_read_total_ms = intervalCursorElapsedMs,
+                                interval_cursor_read_max_ms = intervalCursorMaxMs,
+                                interval_cursor_read_above_100ms = intervalCursorAbove100Ms,
+                                interval_cursor_max_start_line = intervalCursorMaxLine,
+                                interval_cursor_max_journal_before = intervalCursorMaxJournalBefore,
+                                interval_cursor_max_journal_after = intervalCursorMaxJournalAfter,
+                                previous_progress_log_write_ms = previousProgressLogWriteMs
                             });
+                            previousProgressLogWriteMs =
+                                Stopwatch.GetElapsedTime(progressWriteStart).TotalMilliseconds;
+
+                            // The new interval begins at the original
+                            // pre-log timestamp so wall time still includes
+                            // the previous progress Write; its duration is
+                            // now measured separately for attribution.
                             intervalTimestamp = nowTimestamp;
                             intervalAllocatedBytes = nowAllocatedBytes;
                             intervalGc0 = nowGc0;
@@ -410,8 +455,15 @@ internal static class MdViewDiskBenchmark
                             intervalGcPause = nowGcPause;
                             intervalCpu = nowCpu;
                             intervalJournalBytes = nowJournalBytes;
-                            // A single 128-line read may skip multiple
-                            // small percentage thresholds on small fixtures.
+                            intervalCursorCalls = 0;
+                            intervalCursorAbove100Ms = 0;
+                            intervalCursorElapsedMs = 0;
+                            intervalCursorMaxMs = 0;
+                            intervalCursorMaxLine = -1;
+                            intervalCursorMaxJournalBefore = 0;
+                            intervalCursorMaxJournalAfter = 0;
+                            // 128-line requests may skip multiple percentage
+                            // thresholds in very small fixtures.
                             nextProgress =
                                 (percent / settings.ProgressStep + 1) *
                                 settings.ProgressStep;
