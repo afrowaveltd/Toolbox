@@ -140,8 +140,14 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             (firstLine + count < _scannedLines ? 1 : 0);
         var offsetsBuffer = new byte[checked(offsetCount * sizeof(long))];
         _offsets.Position = checked(firstLine * sizeof(long));
+        var readTimings = ScanTimings;
+        var offsetReadStartedAt = readTimings is null
+            ? 0 : Stopwatch.GetTimestamp();
         await _offsets.ReadExactlyAsync(offsetsBuffer, cancellationToken)
             .ConfigureAwait(false);
+        // At this point the first actual journal offset is not known.
+        readTimings?.Record(MdViewJournalScanStage.OffsetTableRead,
+            offsetReadStartedAt, firstLine, -1L);
 
         var offsets = new long[count + 1];
         for (var i = 0; i < offsetCount; i++)
@@ -190,8 +196,12 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             var serializedWindow = new byte[readLength];
             _events.Position = offsets[first];
             EventReadRequestCount++;
+            var eventReadStartedAt = readTimings is null
+                ? 0 : Stopwatch.GetTimestamp();
             await _events.ReadExactlyAsync(
                 serializedWindow, cancellationToken).ConfigureAwait(false);
+            readTimings?.Record(MdViewJournalScanStage.EventWindowRead,
+                eventReadStartedAt, firstLine + first, offsets[first]);
 
             for (var i = first; i < lastExclusive; i++)
             {
@@ -208,6 +218,8 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                         "Container journal record length is invalid.");
 
                 MarkdownContainerLine? value;
+                var deserializeStartedAt = readTimings is null
+                    ? 0 : Stopwatch.GetTimestamp();
                 try
                 {
                     value = JsonSerializer.Deserialize<MarkdownContainerLine>(
@@ -218,6 +230,8 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                     throw new InvalidDataException(
                         "Container journal JSON is invalid.", ex);
                 }
+                readTimings?.Record(MdViewJournalScanStage.DeserializeEvent,
+                    deserializeStartedAt, firstLine + i, offsets[i]);
                 if (value is null || value.Source.LineNumber != firstLine + i)
                     throw new InvalidDataException(
                         "Container journal line numbering is invalid.");

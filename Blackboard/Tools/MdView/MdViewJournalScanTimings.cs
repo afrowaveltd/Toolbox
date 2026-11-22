@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 
 /// <summary>
-/// Internal, opt-in stages of scanner-backed event-journal construction.
+/// Internal, opt-in stages of scanning and reading the event journal.
 /// These are logical asynchronous operations, NOT physical disk IO events.
 /// </summary>
 internal enum MdViewJournalScanStage
@@ -12,7 +12,10 @@ internal enum MdViewJournalScanStage
     SerializeEvent,
     EventLengthWrite,
     EventPayloadWrite,
-    OffsetWrite
+    OffsetWrite,
+    OffsetTableRead,
+    EventWindowRead,
+    DeserializeEvent
 }
 
 /// <summary>Immutable statistics for one timed journal operation in a progress window.</summary>
@@ -24,18 +27,23 @@ internal readonly record struct MdViewJournalStageWindow(
     long MaxSourceLine,
     long MaxJournalOffset);
 
-/// <summary>Optional journal-construction profile sampled and reset per progress window.</summary>
+/// <summary>Optional journal build and readback timings per progress window.</summary>
 internal readonly record struct MdViewJournalTimingWindow(
     MdViewJournalStageWindow ScannerAdvance,
     MdViewJournalStageWindow SerializeEvent,
     MdViewJournalStageWindow EventLengthWrite,
     MdViewJournalStageWindow EventPayloadWrite,
-    MdViewJournalStageWindow OffsetWrite)
+    MdViewJournalStageWindow OffsetWrite,
+    MdViewJournalStageWindow OffsetTableRead,
+    MdViewJournalStageWindow EventWindowRead,
+    MdViewJournalStageWindow DeserializeEvent)
 {
-    /// <summary>Sum of instrumented stage timings, not the cursor's entire wall time.</summary>
+    /// <summary>Sum of instrumented stages including the journal readback path.</summary>
     public double AccountedMs =>
         ScannerAdvance.TotalMs + SerializeEvent.TotalMs +
-        EventLengthWrite.TotalMs + EventPayloadWrite.TotalMs + OffsetWrite.TotalMs;
+        EventLengthWrite.TotalMs + EventPayloadWrite.TotalMs +
+        OffsetWrite.TotalMs + OffsetTableRead.TotalMs +
+        EventWindowRead.TotalMs + DeserializeEvent.TotalMs;
 }
 
 /// <summary>
@@ -45,7 +53,7 @@ internal readonly record struct MdViewJournalTimingWindow(
 /// </summary>
 internal sealed class MdViewJournalScanTimings
 {
-    private readonly StageCounts[] _counts = new StageCounts[5];
+    private readonly StageCounts[] _counts = new StageCounts[8];
 
     /// <summary>Records one completed logical operation on the scanning caller.</summary>
     internal void Record(
@@ -79,7 +87,10 @@ internal sealed class MdViewJournalScanTimings
             ToWindow(_counts[1]),
             ToWindow(_counts[2]),
             ToWindow(_counts[3]),
-            ToWindow(_counts[4]));
+            ToWindow(_counts[4]),
+            ToWindow(_counts[5]),
+            ToWindow(_counts[6]),
+            ToWindow(_counts[7]));
         Array.Clear(_counts);
         return result;
     }

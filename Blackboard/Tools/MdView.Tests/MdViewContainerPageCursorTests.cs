@@ -52,6 +52,9 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(2, window.EventLengthWrite.Calls);
         Assert.Equal(2, window.EventPayloadWrite.Calls);
         Assert.Equal(2, window.OffsetWrite.Calls);
+        Assert.Equal(1, window.OffsetTableRead.Calls);
+        Assert.True(window.EventWindowRead.Calls >= 1);
+        Assert.Equal(2, window.DeserializeEvent.Calls);
         Assert.True(window.AccountedMs >= 0);
         Assert.Equal(0, window.EventPayloadWrite.CallsAtLeast100Ms);
 
@@ -63,6 +66,9 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(0, cachedWindow.ScannerAdvance.Calls);
         Assert.Equal(0, cachedWindow.OffsetWrite.Calls);
         Assert.Equal(-1, cachedWindow.OffsetWrite.MaxSourceLine);
+        Assert.Equal(1, cachedWindow.OffsetTableRead.Calls);
+        Assert.True(cachedWindow.EventWindowRead.Calls >= 1);
+        Assert.Equal(2, cachedWindow.DeserializeEvent.Calls);
 
         var last = await cursor.ReadAsync(2, 1);
         Assert.Single(last);
@@ -73,10 +79,15 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(1, nextWindow.EventPayloadWrite.Calls);
         Assert.Equal(1, nextWindow.OffsetWrite.Calls);
         Assert.Equal(2, nextWindow.OffsetWrite.MaxSourceLine);
+        Assert.Equal(1, nextWindow.OffsetTableRead.Calls);
+        Assert.Equal(1, nextWindow.DeserializeEvent.Calls);
 
         var emptyWindow = timings.TakeWindowAndReset();
         Assert.Equal(0, emptyWindow.ScannerAdvance.Calls);
         Assert.Equal(0, emptyWindow.OffsetWrite.Calls);
+        Assert.Equal(0, emptyWindow.OffsetTableRead.Calls);
+        Assert.Equal(0, emptyWindow.EventWindowRead.Calls);
+        Assert.Equal(0, emptyWindow.DeserializeEvent.Calls);
     }
 
     [Fact]

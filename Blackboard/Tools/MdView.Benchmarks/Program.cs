@@ -551,8 +551,9 @@ internal static class MdViewDiskBenchmark
                                 interval_cursor_max_start_line = intervalCursorMaxLine,
                                 interval_cursor_max_journal_before = intervalCursorMaxJournalBefore,
                                 interval_cursor_max_journal_after = intervalCursorMaxJournalAfter,
-                                // Each stage's Calls, TotalMs, MaxMs,
-                                // CallsAtLeast100Ms and worst line/offset.
+                                // Eight build + readback stages; each has
+                                // Calls, TotalMs, MaxMs, >=100ms counts and
+                                // longest stage source line / journal offset.
                                 // Null unless the opt-in trace is enabled.
                                 journal_scan_stages =
                                     journalScanTimings?.TakeWindowAndReset(),
