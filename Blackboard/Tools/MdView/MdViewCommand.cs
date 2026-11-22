@@ -13,6 +13,8 @@ public enum MdViewSourceKind
     GitHub,
     /// <summary>Print command-line usage and exit.</summary>
     Help,
+    /// <summary>Print the actual informational assembly version and exit.</summary>
+    Version,
     /// <summary>Navigate a local UTF-8 file as indexed raw source lines.</summary>
     SourcePager,
     /// <summary>Preview one bounded source page with the Markdown renderer.</summary>
@@ -65,6 +67,7 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
             var value = args[0];
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Empty source.");
             if (value is "-h" or "--help" or "/?") return new(MdViewSourceKind.Help);
+            if (value is "--version" or "version") return new(MdViewSourceKind.Version);
             if (value.StartsWith("github:", StringComparison.OrdinalIgnoreCase))
             {
                 var parts = value["github:".Length..].Split('/');

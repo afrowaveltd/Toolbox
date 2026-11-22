@@ -3,6 +3,7 @@ using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache;
 using Afrowave.Toolbox.Blackboard.Tools.MdView;
 using Spectre.Console;
+using System.Reflection;
 
 return await RunAsync(args);
 
@@ -20,6 +21,16 @@ static async Task<int> RunAsync(string[] args)
     if (initial.Kind == MdViewSourceKind.Help)
     {
         PrintHelp();
+        return 0;
+    }
+    if (initial.Kind == MdViewSourceKind.Version)
+    {
+        // Keep the printed version tied to the published assembly metadata.
+        // The optional +source-revision suffix is not part of the CLI SemVer.
+        var informationalVersion = typeof(MdViewCommand).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion.Split('+', 2)[0] ?? "unknown";
+        Console.WriteLine("mdview " + informationalVersion);
         return 0;
     }
 
@@ -240,5 +251,6 @@ static void PrintHelp()
     Console.WriteLine("mdview git OWNER REPOSITORY");
     Console.WriteLine("mdview git OWNER/REPOSITORY");
     Console.WriteLine("mdview --help");
+    Console.WriteLine("mdview --version");
     Console.WriteLine("No arguments: interactive Spectre source menu with a local Markdown FileBrowser.");
 }

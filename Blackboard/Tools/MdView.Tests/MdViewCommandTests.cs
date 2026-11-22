@@ -7,6 +7,11 @@ public sealed class MdViewCommandTests
 {
     [Fact] public void NoArgumentsUsesMenu() => Assert.Equal(MdViewSourceKind.Interactive, MdViewCommand.Parse().Kind);
     [Fact] public void HelpSwitchIsRecognized() => Assert.Equal(MdViewSourceKind.Help, MdViewCommand.Parse("--help").Kind);
+    [Theory]
+    [InlineData("--version")]
+    [InlineData("version")]
+    public void VersionSwitchIsRecognized(string argument) =>
+        Assert.Equal(MdViewSourceKind.Version, MdViewCommand.Parse(argument).Kind);
     [Fact] public void DirectLocalFile() => Assert.Equal("README.md", MdViewCommand.Parse("README.md").Value);
     [Fact] public void LocalVerbIgnoresCapitalization() =>
         Assert.Equal(MdViewSourceKind.Local, MdViewCommand.Parse("LOCAL", "Docs/Help/en.md").Kind);

@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <AssemblyName>mdview</AssemblyName>
+    <Version>0.1.0-preview.1</Version>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Description>Preview terminal Markdown reader with opt-in disk-backed local paging.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../SpectreConsole/Markdown/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.csproj" />
