@@ -2617,8 +2617,7 @@ is necessary to close B–A–B.
 
 ## 2026-11-22 — first public MdView CLI prerelease verified
 
-**Published** [MdView 0.1.0-preview.1]
-(https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
+**Published** [MdView 0.1.0-preview.1](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
 on 2026-11-22 at **18:44:31 UTC**.
 GitHub release tag: `mdview-v0.1.0-preview.1`,
 source commit:

@@ -46,5 +46,4 @@ archive validation. Link navigation, local disk-backed
 page previews and native table modes are available,
 but advanced paging is explicitly opt-in and still experimental.
 
-[Usage and known limitations]
-(Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md).
+[Usage and known limitations](Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md).

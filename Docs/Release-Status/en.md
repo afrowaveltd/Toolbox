@@ -65,8 +65,7 @@ untrimmed, and carry the project documentation and MIT
 license. They passed focused xUnit tests on their target
 CI OS, then version/help/local-render smoke tests and
 post-extraction version/license/README validation.
-Publishing workflow: [GitHub Actions run 45056640320]
-(https://github.com/afrowaveltd/Toolbox/actions/runs/45056640320).
+Publishing workflow: [GitHub Actions run 45056640320](https://github.com/afrowaveltd/Toolbox/actions/runs/45056640320).
 
 **Not asserted:** standalone DEB/MSI installer, native
 ARM builds, private GitHub authentication, interactive
