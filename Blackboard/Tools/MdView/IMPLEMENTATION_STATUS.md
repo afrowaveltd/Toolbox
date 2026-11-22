@@ -2772,3 +2772,26 @@ released executable was changed based on this feedback.
 the verified-fast journal A default. Next optional milestone
 is the first follow-up preview only when concrete bug
 reports, installer needs, or verified improvements justify it.
+
+## 2026-11-22 — application icon integration (preview.2 preparation)
+
+The maintainer has committed `Assets/icon.png` as the canonical
+MdView artwork. The executable project now copies it to the
+published output as `icon.png` for Linux portable usage.
+On Windows-hosted builds, a no-extra-package PowerShell script
+creates a 16/24/32/48/64/128/256 ICO under `obj/` and supplies
+it through the MSBuild `ApplicationIcon` property for the
+Windows executable resource.
+
+`Assets/install-desktop.sh` installs an optional user-local
+Freedesktop application menu entry, using the unpacked
+`mdview` executable and PNG icon via absolute paths,
+with `Terminal=true` and no root privileges. It does not
+create a graphical Markdown window or render images
+inside the terminal. The output is still a CLI/TUI.
+
+Because `0.1.0-preview.1` was already published,
+metadata has been advanced to `0.1.0-preview.2`.
+Windows/Linux release workflow integration, package
+smoke tests and documentation are to be verified
+before publishing a new immutable prerelease.

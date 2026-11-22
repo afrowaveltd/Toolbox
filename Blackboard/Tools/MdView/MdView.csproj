@@ -6,10 +6,28 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <AssemblyName>mdview</AssemblyName>
-    <Version>0.1.0-preview.1</Version>
-    <FileVersion>0.1.0.0</FileVersion>
+    <Version>0.1.0-preview.2</Version>
+    <FileVersion>0.1.0.2</FileVersion>
     <Description>Preview terminal Markdown reader with opt-in disk-backed local paging.</Description>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <!-- Converted from the canonical PNG during Windows-hosted MSBuild. -->
+    <ApplicationIcon>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)mdview.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="Assets/icon.png"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          TargetPath="icon.png" />
+  </ItemGroup>
+  <Target Name="GenerateMdViewWindowsIcon"
+          BeforeTargets="CoreCompile"
+          Condition="'$(OS)' == 'Windows_NT'"
+          Inputs="$(MSBuildProjectDirectory)/Assets/icon.png;$(MSBuildProjectDirectory)/Assets/Generate-WindowsIcon.ps1"
+          Outputs="$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)mdview.ico">
+    <MakeDir Directories="$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)" />
+    <Exec Command="powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/Assets/Generate-WindowsIcon.ps1&quot; -Source &quot;$(MSBuildProjectDirectory)/Assets/icon.png&quot; -Destination &quot;$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)mdview.ico&quot;" />
+  </Target>
   <ItemGroup>
     <ProjectReference Include="../../SpectreConsole/Markdown/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.csproj" />
     <ProjectReference Include="../../SpectreConsole/Markdown.TextMate/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.csproj" />
