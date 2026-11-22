@@ -1,6 +1,6 @@
 # Toolbox package publication and release status
 
-**Updated 2026-10-31.** The package versions below come from current project files. The maintainer has explicitly confirmed that **three packages are already published on NuGet.org**. Direct independent NuGet gallery verification of every listing was unavailable during this documentation pass; that does not negate the maintainer's publication confirmation.
+**Updated 2026-11-22.** The package versions below come from current project files. The maintainer has explicitly confirmed that **three packages are already published on NuGet.org**. Direct independent NuGet gallery verification of every listing was unavailable during this documentation pass; that does not negate the maintainer's publication confirmation.
 
 | Package ID | Project version | Publication |
 |---|---|---|
@@ -49,3 +49,29 @@ A published `.nupkg` is immutable for a given ID and version. Source README corr
 - WhenItFails has a separate [1.0 release checklist](../../WhenItFails/Docs/Release-Checklist/en.md); Essentials has [packaging notes](../../Essentials/Docs/Packaging/en.md); FileBrowser has its [publication notes](../../Blackboard/SpectreConsole/FileBrowser/README.md).
 
 [Main documentation index](../Documentation/en.md).
+
+## GitHub executable prereleases — separate from NuGet
+
+**MdView 0.1.0-preview.1** was published on **2026-11-22**
+as a [GitHub prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1) from source
+commit `c66859be5dbbfa9d3bf60135ab4a6cc16119cad8`
+(tag `mdview-v0.1.0-preview.1`). This release is
+an executable CLI preview, **not** a NuGet package.
+
+The release contains portable **Windows x64 ZIP**
+and **Linux x64 TAR.GZ** archives, each with a SHA-256
+checksum file. Both builds are .NET 10 self-contained,
+untrimmed, and carry the project documentation and MIT
+license. They passed focused xUnit tests on their target
+CI OS, then version/help/local-render smoke tests and
+post-extraction version/license/README validation.
+Publishing workflow: [GitHub Actions run 45056640320]
+(https://github.com/afrowaveltd/Toolbox/actions/runs/45056640320).
+
+**Not asserted:** standalone DEB/MSI installer, native
+ARM builds, private GitHub authentication, interactive
+manual visual acceptance on Debian/Windows/SSH, or
+a stable fully paged default CLI. The full-document
+mode still allocates the document in RAM; opt-in local
+paged modes use disk-backed indexes. This is why the
+release is explicitly labeled prerelease.

@@ -1292,3 +1292,47 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   review, not compilation. The first 8-MiB
   manual smoke run and 2-GiB HGST measurements
   remain pending on the user's machine.
+
+## 2026-11-22 — first public MdView CLI prerelease verified
+
+**Published** [MdView 0.1.0-preview.1]
+(https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
+on 2026-11-22 at **18:44:31 UTC**.
+GitHub release tag: `mdview-v0.1.0-preview.1`,
+source commit:
+`c66859be5dbbfa9d3bf60135ab4a6cc16119cad8`.
+Release is `prerelease=true`, `draft=false`,
+containing four files:
+- `mdview-0.1.0-preview.1-win-x64.zip`
+- `mdview-0.1.0-preview.1-win-x64.zip.sha256`
+- `mdview-0.1.0-preview.1-linux-x64.tar.gz`
+- `mdview-0.1.0-preview.1-linux-x64.tar.gz.sha256`
+
+Verified release workflow
+https://github.com/afrowaveltd/Toolbox/actions/runs/45056640320
+completed **all three jobs successfully**:
+- full focused MdView xUnit tests on Ubuntu 24.04 and Windows;
+- self-contained, single-file untrimmed executable publishing;
+- packaged CLI `--version`, `--help` and safe local Markdown
+  rendering on both operating systems;
+- extraction of produced ZIP/TAR.GZ and running the
+  extracted binary with `--version`, plus checking
+  the license and packaged README;
+- release job checks both archives then publishes
+  prerelease assets and checksum files to GitHub.
+
+The wider .NET solution CI for the pre-release source
+commit is also green (see GitHub Actions). The
+packaged executables themselves have been checked
+under CI, not manually on physical Windows/Debian/SSH
+terminal environments. No native installers, ARM
+builds, private GitHub auth or stable fully paged TUI
+are claimed. This is an explicitly limited first
+preview milestone.
+
+**Next suggested acceptance:** Windows Terminal and
+Debian Konsole interactive source menu, FileBrowser,
+`source`, `preview`, `preview-native` and remote browsing;
+SSH no-GUI terminal. Investigate limitations and
+issue a new immutable preview version for fixes.
+Do not overwrite the published tag or artifacts.

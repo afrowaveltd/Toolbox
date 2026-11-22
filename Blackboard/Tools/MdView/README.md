@@ -1,4 +1,4 @@
-# mdview — terminal Markdown reader (0.1.0-preview.1 candidate)
+# mdview — terminal Markdown reader (0.1.0-preview.1 prerelease)
 
 > **Current journal I/O behavior (2026-11-22):** Production MdView
 > uses the **original unconditional append-position setters** (mode A),
@@ -17,10 +17,13 @@ repository navigation. **The default full-document renderer still
 loads the entire document into RAM.** The paged reader is not yet the
 default or a finished general-purpose TUI.
 
-A portable **Windows x64 / Linux x64** preview distribution is being
-validated in CI; see [first-preview release scope and instructions](Docs/First-Preview-Release/en.md).
-Do not mistake CI build artifacts
-for an already published GitHub Release.
+The portable **Windows x64 / Linux x64** CLI prerelease is now
+[published on GitHub](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1). Both archives passed
+build, full focused xUnit tests, executable help/version/render
+smoke tests and post-extraction smoke tests on their target
+platforms. See [first-preview release scope and installation
+instructions](Docs/First-Preview-Release/en.md).
+This is not a NuGet package, system installer or stable TUI.
 
 ## Start from the Toolbox root
 

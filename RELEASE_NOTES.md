@@ -31,3 +31,20 @@ dotnet test Toolbox.sln -c Release
 ```
 
 A release additionally requires inspecting the exact `.nupkg` and its dependencies, documentation, license, source tag and independent consumer restore. Never overwrite an already-published immutable NuGet package ID/version. The latest verified cross-platform nested-list source CI is [#41244480220](https://github.com/afrowaveltd/Toolbox/actions/runs/41244480220).
+
+## Portable application prerelease: MdView 0.1.0-preview.1 (2026-11-22)
+
+**Published** as [GitHub prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1), not NuGet.
+This first .NET 10 terminal Markdown preview includes portable
+self-contained Windows x64 ZIP and Linux x64 TAR.GZ builds,
+plus SHA-256 files and MIT license. The release is tagged
+`mdview-v0.1.0-preview.1` at commit
+`c66859be5dbbfa9d3bf60135ab4a6cc16119cad8`.
+Both packages passed per-platform focused tests, packaged
+binary help/version/local render smoke and extracted
+archive validation. Link navigation, local disk-backed
+page previews and native table modes are available,
+but advanced paging is explicitly opt-in and still experimental.
+
+[Usage and known limitations]
+(Blackboard/Tools/MdView/Docs/First-Preview-Release/en.md).

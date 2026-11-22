@@ -101,3 +101,17 @@ https://github.com/afrowaveltd/Toolbox/tree/master/Blackboard/Tools/MdView
 
 This is intentionally a **pre-release**, with the scope
 and limitations documented for early users.
+
+## Published prerelease
+
+The first preview is now available at the
+[MdView 0.1.0-preview.1 GitHub release](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1).
+It was published from commit
+`c66859be5dbbfa9d3bf60135ab4a6cc16119cad8`
+on 2026-11-22 after Windows x64 and Linux x64
+package tests and archive extraction smoke tests.
+The immutable release includes two archives and
+two matching SHA-256 files. This documentation
+on master may receive updates after the release;
+the published archives remain tied to the tagged
+source commit.

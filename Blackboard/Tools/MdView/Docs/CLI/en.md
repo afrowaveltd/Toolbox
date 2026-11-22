@@ -3,9 +3,10 @@
 **Current status (2026-11-22):** in-repository .NET 10 executable,
 version 0.1.0-preview.1, with complete rendering, interactive source
 selection, public repository/HTTPS navigation and opt-in disk-backed
-local paging. Dedicated Windows x64 and Linux x64 portable builds
-have passed packaged executable version/help/local-render smoke tests
-in GitHub Actions. **No system-wide installer is provided.**
+local paging. The [Windows x64 / Linux x64 portable prerelease](https://github.com/afrowaveltd/Toolbox/releases/tag/mdview-v0.1.0-preview.1)
+is published on GitHub, after passing packaged executable and
+post-extraction smoke tests on both platforms.
+**No system-wide installer is provided.**
 See [first preview distribution](../First-Preview-Release/en.md).
 
 ## Source selection
