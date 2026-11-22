@@ -2752,3 +2752,23 @@ supports **200/200** correct indexed lookups,
 **58.780 s** Debian journal time, **84.10 MiB**
 peak working set, and no Windows-style
 70–73% multi-second journal stall.
+
+## 2026-11-22 — initial real-Debian interactive acceptance feedback
+
+After the successfully recorded 1-GiB physical HDD test on
+Debian 13, the maintainer tried the published MdView
+`0.1.0-preview.1` on the real Debian workstation.
+Their feedback was **"everything seems perfect"** and
+no new defect was reported.
+
+This is a positive **user-reported smoke-test observation**,
+not a recorded step-by-step verification of every menu,
+terminal-resize edge case, remote browsing, or SSH/TTY mode.
+The automated Windows/Linux tests and release verification
+remain documented separately. No production source or
+released executable was changed based on this feedback.
+
+**Status:** keep the public prerelease as issued; retain
+the verified-fast journal A default. Next optional milestone
+is the first follow-up preview only when concrete bug
+reports, installer needs, or verified improvements justify it.
